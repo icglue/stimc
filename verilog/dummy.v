@@ -10,4 +10,8 @@ module dummy (
     input  [31:0] data_in_i;
     output [31:0] data_out_o;
 
+    initial begin
+        $socc_dummy_init();
+    end
+
 endmodule

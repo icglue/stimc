@@ -1,5 +1,9 @@
 a.out
 
+*.o
+*.vpi
+*.vvp
+
 *.lxt
 *.fst
 *.vcd
