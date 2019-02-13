@@ -1,0 +1,7 @@
+a.out
+
+*.lxt
+*.fst
+*.vcd
+
+.*.sw?
