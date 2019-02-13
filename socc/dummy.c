@@ -48,12 +48,12 @@ void dummy_testcontrol (void *userdata) {
 
 
 /* init */
-static int socc_dummy_init_cptf (PLI_BYTE8* user_data)
+static int socc_dummy_init_cptf (PLI_BYTE8* user_data __attribute__((unused)))
 {
     return 0;
 }
 
-static int socc_dummy_init_cltf (PLI_BYTE8* user_data)
+static int socc_dummy_init_cltf (PLI_BYTE8* user_data __attribute__((unused)))
 {
     struct dummy *dummy = dummy_create ();
 
