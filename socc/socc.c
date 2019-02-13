@@ -5,7 +5,7 @@
 #include <stdio.h>
 #include <assert.h>
 
-const char *socc_get_caller_scope (void)
+static const char *socc_get_caller_scope (void)
 {
     vpiHandle taskref      = vpi_handle(vpiSysTfCall, NULL);
     assert (taskref);
@@ -50,4 +50,47 @@ vpiHandle socc_pin_init (struct socc_module *m, const char *name)
     assert (pin);
 
     return pin;
+}
+
+
+struct socc_callback_data {
+    void (*task) (void *userdata);
+    void *userdata;
+};
+
+static PLI_INT32 socc_callback_wrapper (struct t_cb_data *cb_data) {
+    fprintf (stderr, "DEBUG: callback wrapper\n");
+    struct socc_callback_data *scd = (struct socc_callback_data *) cb_data->user_data;
+
+    scd->task (scd->userdata);
+
+    return 0;
+}
+
+void socc_register_startup_task (void (*task) (void *userdata), void *userdata)
+{
+    fprintf (stderr, "DEBUG: socc_register_startup_task\n");
+    s_cb_data   data;
+    s_vpi_time  data_time;
+    s_vpi_value data_value;
+
+    struct socc_callback_data *scd = (struct socc_callback_data *) malloc (sizeof (struct socc_callback_data));
+    scd->task     = task;
+    scd->userdata = userdata;
+
+    //data.reason        = cbStartOfSimulation;
+    data.reason        = cbAfterDelay;
+    data.cb_rtn        = socc_callback_wrapper;
+    data.obj           = NULL;
+    data.time          = &data_time;
+    data.time->type    = vpiSimTime;
+    data.time->high    = 0;
+    data.time->low     = 0;
+    data.time->real    = 0.0;
+    data.value         = &data_value;
+    data.value->format = vpiSuppressVal;
+    data.index         = 0;
+    data.user_data     = (PLI_BYTE8 *) scd;
+
+    assert (vpi_register_cb (&data));
 }

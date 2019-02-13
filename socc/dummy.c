@@ -30,7 +30,13 @@ struct dummy* dummy_create (void) {
 void dummy_testcontrol (void *userdata) {
     struct dummy *dummy = (struct dummy *) userdata;
 
-    /* TODO */
+    fprintf (stderr, "DEBUG: testcontrol...\n");
+
+    /* write to output */
+    s_vpi_value val;
+    val.format = vpiIntVal;
+    val.value.integer = 0x12345678;
+    vpi_put_value (dummy->data_out_o, &val, NULL, vpiNoDelay);
 }
 
 
@@ -45,6 +51,8 @@ static int socc_dummy_init_cptf (PLI_BYTE8* user_data)
 static int socc_dummy_init_cltf (PLI_BYTE8* user_data)
 {
     struct dummy *dummy = dummy_create ();
+
+    socc_register_startup_task (dummy_testcontrol, dummy);
 
     return 0;
 }

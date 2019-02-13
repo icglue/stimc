@@ -7,10 +7,9 @@ struct socc_module {
     char *scope;
 };
 
-
-const char *socc_get_caller_scope (void);
-
 void socc_module_init (struct socc_module *m);
 vpiHandle socc_pin_init (struct socc_module *m, const char *name);
+
+void socc_register_startup_task (void (*task) (void *userdata), void *userdata);
 
 #endif
