@@ -12,4 +12,6 @@ vpiHandle socc_pin_init (struct socc_module *m, const char *name);
 
 void socc_register_startup_task (void (*task) (void *userdata), void *userdata);
 
+void socc_wait_time (double time);
+
 #endif

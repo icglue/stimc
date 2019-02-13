@@ -37,6 +37,11 @@ void dummy_testcontrol (void *userdata) {
     val.format = vpiIntVal;
     val.value.integer = 0x12345678;
     vpi_put_value (dummy->data_out_o, &val, NULL, vpiNoDelay);
+
+    socc_wait_time (1e-9);
+
+    val.value.integer = 0x9abcdef0;
+    vpi_put_value (dummy->data_out_o, &val, NULL, vpiNoDelay);
 }
 
 

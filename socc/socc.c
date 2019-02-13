@@ -4,6 +4,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <assert.h>
+#include <math.h>
 
 static const char *socc_get_caller_scope (void)
 {
@@ -86,11 +87,19 @@ void socc_register_startup_task (void (*task) (void *userdata), void *userdata)
     data.time->type    = vpiSimTime;
     data.time->high    = 0;
     data.time->low     = 0;
-    data.time->real    = 0.0;
+    data.time->real    = 0;
     data.value         = &data_value;
     data.value->format = vpiSuppressVal;
     data.index         = 0;
     data.user_data     = (PLI_BYTE8 *) scd;
 
     assert (vpi_register_cb (&data));
+}
+
+void socc_wait_time (double time)
+{
+    int timeunit_raw = vpi_get (vpiTimeUnit, NULL);
+    double timeunit = timeunit_raw;
+    time *= pow (10, -timeunit);
+    fprintf (stderr, "DEBUG: waittime is %f * 10^%d s\n", time, timeunit_raw);
 }
