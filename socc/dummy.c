@@ -1,6 +1,8 @@
 #include <vpi_user.h>
 #include <stdlib.h>
 
+#include "socc.h"
+
 static int socc_dummy_init_cptf (PLI_BYTE8* user_data)
 {
     return 0;
@@ -8,9 +10,7 @@ static int socc_dummy_init_cptf (PLI_BYTE8* user_data)
 
 static int socc_dummy_init_cltf (PLI_BYTE8* user_data)
 {
-    vpiHandle taskref      = vpi_handle(vpiSysTfCall, NULL);
-    vpiHandle taskscope    = vpi_handle(vpiScope, taskref);
-    const char *scope_name = vpi_get_str(vpiFullName, taskscope);
+    const char *scope_name = get_caller_scope ();
 
     vpi_printf("VPI routine scope: \"%s\"\n", scope_name);
 
