@@ -1,4 +1,4 @@
-#include "socc.h"
+#include "stimc.h"
 
 #include <vpi_user.h>
 
@@ -12,7 +12,7 @@
 
 #include <pcl.h>
 
-static const char *socc_get_caller_scope (void)
+static const char *stimc_get_caller_scope (void)
 {
     vpiHandle taskref      = vpi_handle(vpiSysTfCall, NULL);
     assert (taskref);
@@ -26,16 +26,16 @@ static const char *socc_get_caller_scope (void)
     return scope_name;
 }
 
-void socc_module_init (struct socc_module *m)
+void stimc_module_init (struct stimc_module *m)
 {
     assert (m);
-    const char *scope = socc_get_caller_scope ();
+    const char *scope = stimc_get_caller_scope ();
 
     m->scope = (char *) malloc (sizeof (char) * (strlen (scope) + 1));
     strcpy (m->scope, scope);
 }
 
-vpiHandle socc_pin_init (struct socc_module *m, const char *name)
+vpiHandle stimc_pin_init (struct stimc_module *m, const char *name)
 {
     const char *scope = m->scope;
 
@@ -59,25 +59,25 @@ vpiHandle socc_pin_init (struct socc_module *m, const char *name)
     return pin;
 }
 
-coroutine_t socc_current_thread = NULL;
+coroutine_t stimc_current_thread = NULL;
 
-static PLI_INT32 socc_callback_wrapper (struct t_cb_data *cb_data) {
+static PLI_INT32 stimc_callback_wrapper (struct t_cb_data *cb_data) {
     fprintf (stderr, "DEBUG: callback wrapper\n");
     coroutine_t *thread = (coroutine_t) cb_data->user_data;
     assert (thread);
 
     fprintf (stderr, "DEBUG: cbw - running thread\n");
-    socc_current_thread = thread;
+    stimc_current_thread = thread;
     co_call (thread);
-    socc_current_thread = NULL;
+    stimc_current_thread = NULL;
     fprintf (stderr, "DEBUG: cbw - thread paused\n");
 
     return 0;
 }
 
-void socc_register_startup_task (void (*task) (void *userdata), void *userdata)
+void stimc_register_startup_task (void (*task) (void *userdata), void *userdata)
 {
-    fprintf (stderr, "DEBUG: socc_register_startup_task\n");
+    fprintf (stderr, "DEBUG: stimc_register_startup_task\n");
     s_cb_data   data;
     s_vpi_time  data_time;
     s_vpi_value data_value;
@@ -86,7 +86,7 @@ void socc_register_startup_task (void (*task) (void *userdata), void *userdata)
     assert (thread);
 
     data.reason        = cbAfterDelay;
-    data.cb_rtn        = socc_callback_wrapper;
+    data.cb_rtn        = stimc_callback_wrapper;
     data.obj           = NULL;
     data.time          = &data_time;
     data.time->type    = vpiSimTime;
@@ -101,17 +101,17 @@ void socc_register_startup_task (void (*task) (void *userdata), void *userdata)
     assert (vpi_register_cb (&data));
 }
 
-static void socc_suspend (void)
+static void stimc_suspend (void)
 {
     fprintf (stderr, "DEBUG: thread - suspending in wait\n");
     co_resume ();
     fprintf (stderr, "DEBUG: thread - returning from wait\n");
 }
 
-void socc_wait_time (double time)
+void stimc_wait_time (double time)
 {
     // thread data ...
-    coroutine_t *thread = socc_current_thread;
+    coroutine_t *thread = stimc_current_thread;
     assert (thread);
 
     // time ...
@@ -129,7 +129,7 @@ void socc_wait_time (double time)
     s_vpi_value data_value;
 
     data.reason        = cbAfterDelay;
-    data.cb_rtn        = socc_callback_wrapper;
+    data.cb_rtn        = stimc_callback_wrapper;
     data.obj           = NULL;
     data.time          = &data_time;
     data.time->type    = vpiSimTime;
@@ -144,6 +144,6 @@ void socc_wait_time (double time)
     assert (vpi_register_cb (&data));
 
     // thread handling ...
-    socc_suspend ();
+    stimc_suspend ();
     fprintf (stderr, "DEBUG: wait done\n");
 }

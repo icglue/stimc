@@ -11,7 +11,7 @@ module dummy (
     output [31:0] data_out_o;
 
     initial begin
-        $socc_dummy_init();
+        $stimc_dummy_init();
     end
 
 endmodule
