@@ -2,6 +2,7 @@
 #define __STIMC_H__
 
 #include <vpi_user.h>
+#include <stdint.h>
 
 void stimc_register_posedge_method (void (*methodfunc) (void *userdata), void *userdata, vpiHandle net);
 void stimc_register_negedge_method (void (*methodfunc) (void *userdata), void *userdata, vpiHandle net);
@@ -18,6 +19,22 @@ stimc_event stimc_event_create (void);
 void stimc_wait_event (stimc_event event);
 void stimc_trigger_event (stimc_event event);
 
+static inline void stimc_net_set_uint32 (vpiHandle net, uint32_t value)
+{
+    s_vpi_value v;
+    v.format        = vpiIntVal;
+    v.value.integer = value;
+    vpi_put_value (net, &v, NULL, vpiNoDelay);
+}
+
+static inline uint32_t stimc_net_get_uint32 (vpiHandle net)
+{
+    s_vpi_value v;
+    v.format        = vpiIntVal;
+    vpi_get_value (net, &v);
+
+    return v.value.integer;
+}
 
 struct stimc_module {
     char *id;
