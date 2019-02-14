@@ -31,39 +31,6 @@ static const char *stimc_get_caller_scope (void)
     return scope_name;
 }
 
-void stimc_module_init (struct stimc_module *m)
-{
-    assert (m);
-    const char *scope = stimc_get_caller_scope ();
-
-    m->id = (char *) malloc (sizeof (char) * (strlen (scope) + 1));
-    strcpy (m->id, scope);
-}
-
-vpiHandle stimc_pin_init (struct stimc_module *m, const char *name)
-{
-    const char *scope = m->id;
-
-    size_t scope_len = strlen (scope);
-    size_t name_len  = strlen (name);
-
-    char *pin_name = (char *) malloc (sizeof (char) * (scope_len + name_len + 2));
-
-    strcpy (pin_name, scope);
-    pin_name[scope_len] = '.';
-    strcpy (&(pin_name[scope_len+1]), name);
-
-    fprintf (stderr, "DEBUG: pin_init of \"%s\"\n", pin_name);
-
-    vpiHandle pin = vpi_handle_by_name(pin_name, NULL);
-
-    free (pin_name);
-
-    assert (pin);
-
-    return pin;
-}
-
 struct stimc_method_wrap {
     void (*methodfunc) (void *userdata);
     void *userdata;
@@ -232,3 +199,102 @@ double stimc_time (void)
 
     return dtime;
 }
+
+struct stimc_event_s {
+    size_t threads_len;
+    size_t threads_num;
+    volatile bool active;
+    coroutine_t *threads;
+    coroutine_t *threads_shadow;
+};
+
+stimc_event stimc_event_create (void)
+{
+    stimc_event event = (stimc_event) malloc (sizeof (struct stimc_event_s));
+
+    event->active         = false;
+    event->threads_len    = 16;
+    event->threads_num    = 0;
+    event->threads        = (coroutine_t *) malloc (sizeof (coroutine_t) * (event->threads_len));
+    event->threads_shadow = (coroutine_t *) malloc (sizeof (coroutine_t) * (event->threads_len));
+    event->threads[0]     = NULL;
+
+    return event;
+}
+
+void stimc_wait_event (stimc_event event)
+{
+    // size check
+    if (event->threads_num + 1 >= event->threads_len) {
+        assert (event->active == false);
+        event->threads_len   *= 2;
+        event->threads        = (coroutine_t *) realloc (event->threads,        event->threads_len);
+        event->threads_shadow = (coroutine_t *) realloc (event->threads_shadow, event->threads_len);
+    }
+
+    // thread data ...
+    coroutine_t *thread = stimc_current_thread;
+    assert (thread);
+
+    event->threads[event->threads_num] = thread;
+    event->threads_num++;
+    event->threads[event->threads_num] = NULL;
+
+    // thread handling ...
+    stimc_suspend ();
+}
+
+void stimc_trigger_event (stimc_event event)
+{
+    if (event->active) return;
+
+    // copy threads to shadow...
+    for (size_t i = 0; i <= event->threads_num; i++) {
+        event->threads_shadow[i] = event->threads[i];
+    }
+
+    assert (event->threads_shadow [event->threads_num] == NULL);
+
+    event->threads[0]  = NULL;
+    event->threads_num = 0;
+
+    // execute threads...
+    for (size_t i = 0; event->threads_shadow[i] != NULL; i++) {
+        co_call (event->threads_shadow[i]);
+    }
+}
+
+
+void stimc_module_init (struct stimc_module *m)
+{
+    assert (m);
+    const char *scope = stimc_get_caller_scope ();
+
+    m->id = (char *) malloc (sizeof (char) * (strlen (scope) + 1));
+    strcpy (m->id, scope);
+}
+
+vpiHandle stimc_pin_init (struct stimc_module *m, const char *name)
+{
+    const char *scope = m->id;
+
+    size_t scope_len = strlen (scope);
+    size_t name_len  = strlen (name);
+
+    char *pin_name = (char *) malloc (sizeof (char) * (scope_len + name_len + 2));
+
+    strcpy (pin_name, scope);
+    pin_name[scope_len] = '.';
+    strcpy (&(pin_name[scope_len+1]), name);
+
+    fprintf (stderr, "DEBUG: pin_init of \"%s\"\n", pin_name);
+
+    vpiHandle pin = vpi_handle_by_name(pin_name, NULL);
+
+    free (pin_name);
+
+    assert (pin);
+
+    return pin;
+}
+
