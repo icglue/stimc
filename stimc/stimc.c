@@ -259,11 +259,13 @@ void stimc_trigger_event (stimc_event event)
     event->threads_num = 0;
 
     // execute threads...
+    coroutine_t *old_thread = stimc_current_thread;
     for (size_t i = 0; event->threads_shadow[i] != NULL; i++) {
         coroutine_t *thread = event->threads_shadow[i];
         stimc_current_thread = thread;
         co_call (thread);
     }
+    stimc_current_thread = old_thread;
 }
 
 
