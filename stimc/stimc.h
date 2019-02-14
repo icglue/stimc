@@ -10,10 +10,18 @@ struct stimc_module {
 void stimc_module_init (struct stimc_module *m);
 vpiHandle stimc_pin_init (struct stimc_module *m, const char *name);
 
-void stimc_register_startup_task (void (*task) (void *userdata), void *userdata);
+void stimc_register_startup_thread (void (*threadfunc) (void *userdata), void *userdata);
 
 void stimc_wait_time (double time);
 
+
+/* module initialization routine macro
+ *
+ * calling STIMC_INIT (modulename)
+ * { // body }
+ *
+ * runs function body when called via $stimc_modulename_init in verilog shell.
+ */
 
 #define STIMC_INIT(module) \
 static void _stimc_module_ ## module ## _init (void);\

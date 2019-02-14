@@ -49,6 +49,6 @@ STIMC_INIT (dummy)
 {
     struct dummy *dummy = dummy_create ();
 
-    stimc_register_startup_task (dummy_testcontrol, dummy);
+    stimc_register_startup_thread (dummy_testcontrol, dummy);
 }
 

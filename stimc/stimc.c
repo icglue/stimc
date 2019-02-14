@@ -80,14 +80,14 @@ static PLI_INT32 stimc_callback_wrapper (struct t_cb_data *cb_data) {
     return 0;
 }
 
-void stimc_register_startup_task (void (*task) (void *userdata), void *userdata)
+void stimc_register_startup_thread (void (*threadfunc) (void *userdata), void *userdata)
 {
-    fprintf (stderr, "DEBUG: stimc_register_startup_task\n");
+    fprintf (stderr, "DEBUG: stimc_register_startup_thread\n");
     s_cb_data   data;
     s_vpi_time  data_time;
     s_vpi_value data_value;
 
-    coroutine_t thread = co_create (task, userdata, NULL, SOCC_THREAD_STACK_SIZE);
+    coroutine_t thread = co_create (threadfunc, userdata, NULL, SOCC_THREAD_STACK_SIZE);
     assert (thread);
 
     data.reason        = cbAfterDelay;
