@@ -19,6 +19,8 @@ stimc_event stimc_event_create (void);
 void stimc_wait_event (stimc_event event);
 void stimc_trigger_event (stimc_event event);
 
+void stimc_finish (void);
+
 static inline void stimc_net_set_uint32 (vpiHandle net, uint32_t value)
 {
     s_vpi_value v;

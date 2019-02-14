@@ -152,6 +152,7 @@ void apb_emulator_testcontrol (void *userdata) {
     uint32_t rdata;
     apb_emulator_read  (apb_emulator, 0x5678, &rdata);
     stimc_wait_event (apb_emulator->clk_event);
+    stimc_finish ();
 }
 
 void apb_emulator_clock (void *userdata) {

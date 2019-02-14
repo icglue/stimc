@@ -268,6 +268,10 @@ void stimc_trigger_event (stimc_event event)
     stimc_current_thread = old_thread;
 }
 
+void stimc_finish (void)
+{
+    vpi_control (vpiFinish, 0);
+}
 
 void stimc_module_init (struct stimc_module *m)
 {

@@ -75,7 +75,9 @@ module tb_apb ();
         apb_rdata  = 32'h0;
         apb_ready  =  1'b1;
         apb_slverr =  1'b0;
-        #(10*APB_CLKPERIOD);
+        #(100*APB_CLKPERIOD);
+        $display ("ERROR: timeout");
+        #(APB_CLKPERIOD);
         $finish ();
     end
 
