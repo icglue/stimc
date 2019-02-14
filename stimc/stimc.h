@@ -13,6 +13,7 @@ vpiHandle stimc_pin_init (struct stimc_module *m, const char *name);
 void stimc_register_startup_thread (void (*threadfunc) (void *userdata), void *userdata);
 
 void stimc_wait_time (double time);
+double stimc_time (void);
 
 
 /* module initialization routine macro

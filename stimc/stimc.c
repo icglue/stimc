@@ -152,3 +152,24 @@ void stimc_wait_time (double time)
     stimc_suspend ();
     fprintf (stderr, "DEBUG: wait done\n");
 }
+
+double stimc_time (void)
+{
+    // get time
+    s_vpi_time time;
+    time.type = vpiSimTime;
+    vpi_get_time (NULL, &time);
+
+    uint64_t ltime_h = time.high;
+    uint64_t ltime_l = time.low;
+    uint64_t ltime   = ((ltime_h << 32) | ltime_l);
+
+    // timeunit
+    int timeunit_raw = vpi_get (vpiTimeUnit, NULL);
+
+    double dtime = ltime;
+    double dunit = timeunit_raw;
+    dtime *= pow (10, dunit);
+
+    return dtime;
+}
