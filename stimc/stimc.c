@@ -12,6 +12,8 @@
 
 #include <pcl.h>
 
+#define THREAD_STACK_SIZE 65536
+
 static const char *stimc_get_caller_scope (void)
 {
     vpiHandle taskref      = vpi_handle(vpiSysTfCall, NULL);
@@ -82,7 +84,7 @@ void stimc_register_startup_task (void (*task) (void *userdata), void *userdata)
     s_vpi_time  data_time;
     s_vpi_value data_value;
 
-    coroutine_t thread = co_create (task, userdata, NULL, 65536);
+    coroutine_t thread = co_create (task, userdata, NULL, THREAD_STACK_SIZE);
     assert (thread);
 
     data.reason        = cbAfterDelay;

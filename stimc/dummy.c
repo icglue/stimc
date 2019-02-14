@@ -44,39 +44,11 @@ void dummy_testcontrol (void *userdata) {
     vpi_put_value (dummy->data_out_o, &val, NULL, vpiNoDelay);
 }
 
-
-
-
 /* init */
-static int stimc_dummy_init_cptf (PLI_BYTE8* user_data __attribute__((unused)))
-{
-    return 0;
-}
-
-static int stimc_dummy_init_cltf (PLI_BYTE8* user_data __attribute__((unused)))
+STIMC_INIT (dummy)
 {
     struct dummy *dummy = dummy_create ();
 
     stimc_register_startup_task (dummy_testcontrol, dummy);
-
-    return 0;
 }
 
-static void stimc_dummy_register (void)
-{
-    s_vpi_systf_data tf_data;
-
-    tf_data.type      = vpiSysTask;
-    tf_data.tfname    = "$stimc_dummy_init";
-    tf_data.calltf    = stimc_dummy_init_cltf;
-    tf_data.compiletf = stimc_dummy_init_cptf;
-    tf_data.sizetf    = 0;
-    tf_data.user_data = NULL;
-
-    vpi_register_systf(&tf_data);
-}
-
-void (*vlog_startup_routines[])(void) = {
-    stimc_dummy_register,
-    0
-};
