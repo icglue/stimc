@@ -10,7 +10,7 @@
 
 #include <assert.h>
 
-#include <ucontext.h>
+#include <pcl.h>
 
 static const char *socc_get_caller_scope (void)
 {
@@ -59,41 +59,18 @@ vpiHandle socc_pin_init (struct socc_module *m, const char *name)
     return pin;
 }
 
-
-struct socc_callback_data {
-    void     (*task) (void *userdata);
-    void      *userdata;
-    ucontext_t wakeup_context;
-    bool       context_valid;
-};
-
-static volatile bool                       socc_thread_context_finished = false;
-static ucontext_t                          socc_thread_context_return;
-static volatile struct socc_callback_data *socc_thread_current = NULL;
+coroutine_t socc_current_thread = NULL;
 
 static PLI_INT32 socc_callback_wrapper (struct t_cb_data *cb_data) {
     fprintf (stderr, "DEBUG: callback wrapper\n");
-    struct socc_callback_data *scd = (struct socc_callback_data *) cb_data->user_data;
+    coroutine_t *thread = (coroutine_t) cb_data->user_data;
+    assert (thread);
 
-    socc_thread_context_finished = false;
-    getcontext (&socc_thread_context_return);
-
-    if (! socc_thread_context_finished) {
-        socc_thread_current = scd;
-
-        if (scd->context_valid) {
-            // continue run
-            fprintf (stderr, "DEBUG: cbw - continuing thread\n");
-            setcontext (& (scd->wakeup_context));
-        } else {
-            // start
-            fprintf (stderr, "DEBUG: cbw - starting thread\n");
-            scd->task (scd->userdata);
-        }
-    }
-
+    fprintf (stderr, "DEBUG: cbw - running thread\n");
+    socc_current_thread = thread;
+    co_call (thread);
+    socc_current_thread = NULL;
     fprintf (stderr, "DEBUG: cbw - thread paused\n");
-    socc_thread_current = NULL;
 
     return 0;
 }
@@ -105,10 +82,8 @@ void socc_register_startup_task (void (*task) (void *userdata), void *userdata)
     s_vpi_time  data_time;
     s_vpi_value data_value;
 
-    struct socc_callback_data *scd = (struct socc_callback_data *) malloc (sizeof (struct socc_callback_data));
-    scd->task          = task;
-    scd->userdata      = userdata;
-    scd->context_valid = false;
+    coroutine_t thread = co_create (task, userdata, NULL, 65536);
+    assert (thread);
 
     data.reason        = cbAfterDelay;
     data.cb_rtn        = socc_callback_wrapper;
@@ -121,30 +96,23 @@ void socc_register_startup_task (void (*task) (void *userdata), void *userdata)
     data.value         = &data_value;
     data.value->format = vpiSuppressVal;
     data.index         = 0;
-    data.user_data     = (PLI_BYTE8 *) scd;
+    data.user_data     = (PLI_BYTE8 *) thread;
 
     assert (vpi_register_cb (&data));
 }
 
-static void socc_suspend (ucontext_t *ctx)
+static void socc_suspend (void)
 {
-    socc_thread_context_finished = true;
-    getcontext (ctx);
-
-    if (socc_thread_context_finished) {
-        // suspend ...
-        fprintf (stderr, "DEBUG: thread - suspending in wait\n");
-        setcontext (&socc_thread_context_return);
-    }
-    // continue ...
+    fprintf (stderr, "DEBUG: thread - suspending in wait\n");
+    co_resume ();
     fprintf (stderr, "DEBUG: thread - returning from wait\n");
 }
 
 void socc_wait_time (double time)
 {
     // thread data ...
-    struct socc_callback_data *scd = (struct socc_callback_data *) socc_thread_current;
-    assert (scd);
+    coroutine_t *thread = socc_current_thread;
+    assert (thread);
 
     // time ...
     int timeunit_raw = vpi_get (vpiTimeUnit, NULL);
@@ -171,12 +139,11 @@ void socc_wait_time (double time)
     data.value         = &data_value;
     data.value->format = vpiSuppressVal;
     data.index         = 0;
-    data.user_data     = (PLI_BYTE8 *) scd;
+    data.user_data     = (PLI_BYTE8 *) thread;
 
     assert (vpi_register_cb (&data));
 
     // thread handling ...
-    scd->context_valid = true;
-    socc_suspend (&(scd->wakeup_context));
+    socc_suspend ();
     fprintf (stderr, "DEBUG: wait done\n");
 }
