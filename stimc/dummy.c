@@ -1,6 +1,7 @@
 #include <vpi_user.h>
 
 #include <stdlib.h>
+#include <stdbool.h>
 #include <string.h>
 
 #include "stimc.h"
@@ -12,6 +13,8 @@ struct dummy {
     vpiHandle reset_n_i;
     vpiHandle data_in_i;
     vpiHandle data_out_o;
+    /* events */
+    stimc_event clk_event;
 };
 
 struct dummy* dummy_create (void) {
@@ -23,6 +26,8 @@ struct dummy* dummy_create (void) {
     dummy->reset_n_i  = stimc_pin_init (&(dummy->module), "reset_n_i");
     dummy->data_in_i  = stimc_pin_init (&(dummy->module), "data_in_i");
     dummy->data_out_o = stimc_pin_init (&(dummy->module), "data_out_o");
+
+    dummy->clk_event  = stimc_event_create ();
 
     return dummy;
 }
@@ -42,11 +47,20 @@ void dummy_testcontrol (void *userdata) {
 
     val.value.integer = 0x9abcdef0;
     vpi_put_value (dummy->data_out_o, &val, NULL, vpiNoDelay);
+
+    for (int i = 0; i < 100; i++) {
+        stimc_wait_event (dummy->clk_event);
+
+        val.value.integer = i;
+        vpi_put_value (dummy->data_out_o, &val, NULL, vpiNoDelay);
+    }
 }
 
 void dummy_clock (void *userdata) {
     struct dummy *dummy = (struct dummy *) userdata;
     fprintf (stderr, "DEBUG: clkedge in %s at time %e\n", dummy->module.id, stimc_time ());
+
+    stimc_trigger_event (dummy->clk_event);
 }
 
 /* init */

@@ -260,7 +260,9 @@ void stimc_trigger_event (stimc_event event)
 
     // execute threads...
     for (size_t i = 0; event->threads_shadow[i] != NULL; i++) {
-        co_call (event->threads_shadow[i]);
+        coroutine_t *thread = event->threads_shadow[i];
+        stimc_current_thread = thread;
+        co_call (thread);
     }
 }
 
