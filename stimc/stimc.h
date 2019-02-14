@@ -4,11 +4,14 @@
 #include <vpi_user.h>
 
 struct stimc_module {
-    char *scope;
+    char *id;
 };
 
 void stimc_module_init (struct stimc_module *m);
 vpiHandle stimc_pin_init (struct stimc_module *m, const char *name);
+
+void stimc_register_posedge_method (void (*methodfunc) (void *userdata), void *userdata, vpiHandle net);
+void stimc_register_negedge_method (void (*methodfunc) (void *userdata), void *userdata, vpiHandle net);
 
 void stimc_register_startup_thread (void (*threadfunc) (void *userdata), void *userdata);
 

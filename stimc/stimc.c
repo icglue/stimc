@@ -36,13 +36,13 @@ void stimc_module_init (struct stimc_module *m)
     assert (m);
     const char *scope = stimc_get_caller_scope ();
 
-    m->scope = (char *) malloc (sizeof (char) * (strlen (scope) + 1));
-    strcpy (m->scope, scope);
+    m->id = (char *) malloc (sizeof (char) * (strlen (scope) + 1));
+    strcpy (m->id, scope);
 }
 
 vpiHandle stimc_pin_init (struct stimc_module *m, const char *name)
 {
-    const char *scope = m->scope;
+    const char *scope = m->id;
 
     size_t scope_len = strlen (scope);
     size_t name_len  = strlen (name);
@@ -64,9 +64,68 @@ vpiHandle stimc_pin_init (struct stimc_module *m, const char *name)
     return pin;
 }
 
+struct stimc_method_wrap {
+    void (*methodfunc) (void *userdata);
+    void *userdata;
+};
+
+static void stimc_edge_method_callback_wrapper (struct t_cb_data *cb_data, bool edge) {
+    struct stimc_method_wrap *wrap = (struct stimc_method_wrap *) cb_data->user_data;
+
+    // correct edge?
+    if (edge ? (cb_data->value->value.scalar == vpi1) : (cb_data->value->value.scalar == vpi0)) {
+        wrap->methodfunc (wrap->userdata);
+    }
+}
+
+static PLI_INT32 stimc_posedge_method_callback_wrapper (struct t_cb_data *cb_data) {
+    stimc_edge_method_callback_wrapper (cb_data, true);
+    return 0;
+}
+static PLI_INT32 stimc_negedge_method_callback_wrapper (struct t_cb_data *cb_data) {
+    stimc_edge_method_callback_wrapper (cb_data, false);
+    return 0;
+}
+
+static void stimc_register_edge_method (void (*methodfunc) (void *userdata), void *userdata, vpiHandle net, bool edge)
+{
+    s_cb_data   data;
+    s_vpi_time  data_time;
+    s_vpi_value data_value;
+
+    struct stimc_method_wrap *wrap = (struct stimc_method_wrap *) malloc (sizeof (struct stimc_method_wrap));
+    wrap->methodfunc = methodfunc;
+    wrap->userdata   = userdata;
+
+    data.reason        = cbValueChange;
+    data.cb_rtn        = (edge ? stimc_posedge_method_callback_wrapper : stimc_negedge_method_callback_wrapper);
+    data.obj           = net;
+    data.time          = &data_time;
+    data.time->type    = vpiSuppressTime;
+    data.time->high    = 0;
+    data.time->low     = 0;
+    data.time->real    = 0;
+    data.value         = &data_value;
+    data.value->format = vpiScalarVal;
+    data.index         = 0;
+    data.user_data     = (PLI_BYTE8 *) wrap;
+
+    assert (vpi_register_cb (&data));
+}
+
+void stimc_register_posedge_method (void (*methodfunc) (void *userdata), void *userdata, vpiHandle net)
+{
+    stimc_register_edge_method (methodfunc, userdata, net, true);
+}
+void stimc_register_negedge_method (void (*methodfunc) (void *userdata), void *userdata, vpiHandle net)
+{
+    stimc_register_edge_method (methodfunc, userdata, net, false);
+}
+
+
 coroutine_t stimc_current_thread = NULL;
 
-static PLI_INT32 stimc_callback_wrapper (struct t_cb_data *cb_data) {
+static PLI_INT32 stimc_thread_callback_wrapper (struct t_cb_data *cb_data) {
     fprintf (stderr, "DEBUG: callback wrapper\n");
     coroutine_t *thread = (coroutine_t) cb_data->user_data;
     assert (thread);
@@ -91,7 +150,7 @@ void stimc_register_startup_thread (void (*threadfunc) (void *userdata), void *u
     assert (thread);
 
     data.reason        = cbAfterDelay;
-    data.cb_rtn        = stimc_callback_wrapper;
+    data.cb_rtn        = stimc_thread_callback_wrapper;
     data.obj           = NULL;
     data.time          = &data_time;
     data.time->type    = vpiSimTime;
@@ -134,7 +193,7 @@ void stimc_wait_time (double time)
     s_vpi_value data_value;
 
     data.reason        = cbAfterDelay;
-    data.cb_rtn        = stimc_callback_wrapper;
+    data.cb_rtn        = stimc_thread_callback_wrapper;
     data.obj           = NULL;
     data.time          = &data_time;
     data.time->type    = vpiSimTime;

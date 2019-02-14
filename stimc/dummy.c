@@ -44,11 +44,17 @@ void dummy_testcontrol (void *userdata) {
     vpi_put_value (dummy->data_out_o, &val, NULL, vpiNoDelay);
 }
 
+void dummy_clock (void *userdata) {
+    struct dummy *dummy = (struct dummy *) userdata;
+    fprintf (stderr, "DEBUG: clkedge in %s at time %e\n", dummy->module.id, stimc_time ());
+}
+
 /* init */
 STIMC_INIT (dummy)
 {
     struct dummy *dummy = dummy_create ();
 
     stimc_register_startup_thread (dummy_testcontrol, dummy);
+    stimc_register_posedge_method (dummy_clock, dummy, dummy->clk_i);
 }
 
