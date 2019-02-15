@@ -54,6 +54,9 @@ static inline uint32_t stimc_net_get_uint32 (vpiHandle net)
     return v.value.integer;
 }
 
+void stimc_net_set_z (vpiHandle net);
+void stimc_net_set_x (vpiHandle net);
+
 /* modules */
 typedef struct stimc_module_s {
     char *id;

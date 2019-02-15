@@ -357,3 +357,49 @@ stimc_port stimc_port_init (stimc_module *m, const char *name)
     return pin;
 }
 
+static inline void stimc_net_set_xz (vpiHandle net, int val)
+{
+    unsigned size = vpi_get (vpiSize, net);
+
+    s_vpi_value v;
+
+    if (size == 1) {
+        v.format        = vpiScalarVal;
+        v.value.integer = val;
+        vpi_put_value (net, &v, NULL, vpiNoDelay);
+        return;
+    }
+
+    unsigned vsize = ((size-1)/32)+1;
+    if (vsize <= 8) {
+        s_vpi_vecval vec[8];
+        for (unsigned i = 0; i < vsize; i++) {
+            vec[i].aval = (val == vpiZ ? 0x00000000 : 0xffffffff);
+            vec[i].bval = 0xffffffff;
+        }
+        v.format       = vpiVectorVal;
+        v.value.vector = &(vec[0]);
+        vpi_put_value (net, &v, NULL, vpiNoDelay);
+        return;
+    }
+
+    s_vpi_vecval *vec = (s_vpi_vecval*) malloc (vsize * sizeof (s_vpi_vecval));
+    for (unsigned i = 0; i < vsize; i++) {
+        vec[i].aval = (val == vpiZ ? 0x00000000 : 0xffffffff);
+        vec[i].bval = 0xffffffff;
+    }
+    v.format       = vpiVectorVal;
+    v.value.vector = vec;
+    vpi_put_value (net, &v, NULL, vpiNoDelay);
+
+    free (vec);
+}
+
+void stimc_net_set_z (vpiHandle net)
+{
+    stimc_net_set_xz (net, vpiZ);
+}
+void stimc_net_set_x (vpiHandle net)
+{
+    stimc_net_set_xz (net, vpiX);
+}

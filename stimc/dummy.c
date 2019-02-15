@@ -35,14 +35,22 @@ void dummy_testcontrol (void *userdata)
 
     for (int i = 0; i < 100; i++) {
         stimc_wait_event (dummy->clk_event);
-        stimc_net_set_uint32 (dummy->data_out_o, i);
+        if (i % 2) {
+            stimc_net_set_uint32 (dummy->data_out_o, i);
+        } else {
+            if (i % 4) {
+                stimc_net_set_z (dummy->data_out_o);
+            } else {
+                stimc_net_set_x (dummy->data_out_o);
+            }
+        }
     }
 }
 
 void dummy_dinchange (void *userdata)
 {
     struct dummy *dummy = (struct dummy *) userdata;
-    fprintf (stderr, "DEBUG: data_in changed at time %ldns\n", stimc_time (SC_NS));
+    fprintf (stderr, "DEBUG: data_in changed at time %ldns to 0x%08x\n", stimc_time (SC_NS), stimc_net_get_uint32 (dummy->data_in_i));
 }
 
 void dummy_clock (void *userdata)
