@@ -63,7 +63,9 @@ vpiHandle stimc_pin_init (stimc_module *m, const char *name);
 /* module initialization routine macro
  *
  * calling STIMC_INIT (modulename)
- * { // body }
+ * {
+ *   // body
+ * }
  *
  * runs function body when called via $stimc_modulename_init in verilog shell.
  *

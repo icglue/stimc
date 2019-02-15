@@ -56,7 +56,7 @@ struct apb_emulator* apb_emulator_create (void) {
     apb_emulator->clk_event           = stimc_event_create ();
     apb_emulator->reset_release_event = stimc_event_create ();
 
-    // init...
+    /* init... */
     stimc_net_set_uint32 (apb_emulator->apb_clk_en_o, 0);
     stimc_net_set_uint32 (apb_emulator->apb_sel_o,    0);
     stimc_net_set_uint32 (apb_emulator->apb_enable_o, 0);
@@ -139,7 +139,7 @@ bool apb_emulator_read (struct apb_emulator *emulator, uint32_t addr, uint32_t *
 void apb_emulator_testcontrol (void *userdata) {
     struct apb_emulator *apb_emulator = (struct apb_emulator *) userdata;
 
-    // reset...
+    /* reset... */
     stimc_wait_event (apb_emulator->reset_release_event);
     printf ("reset released\n");
     stimc_wait_event (apb_emulator->clk_event);

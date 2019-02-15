@@ -35,7 +35,7 @@ struct stimc_method_wrap {
 static void stimc_edge_method_callback_wrapper (struct t_cb_data *cb_data, bool edge) {
     struct stimc_method_wrap *wrap = (struct stimc_method_wrap *) cb_data->user_data;
 
-    // correct edge?
+    /* correct edge? */
     if (edge ? (cb_data->value->value.scalar == vpi1) : (cb_data->value->value.scalar == vpi0)) {
         wrap->methodfunc (wrap->userdata);
     }
@@ -131,11 +131,11 @@ static void stimc_suspend (void)
 
 void stimc_wait_time (uint64_t time, int exp)
 {
-    // thread data ...
+    /* thread data ... */
     coroutine_t *thread = stimc_current_thread;
     assert (thread);
 
-    // time ...
+    /* time ... */
     uint64_t ltime = time;
     int timeunit_raw = vpi_get (vpiTimeUnit, NULL);
     while (exp > timeunit_raw) {
@@ -149,7 +149,7 @@ void stimc_wait_time (uint64_t time, int exp)
     uint64_t ltime_h = ltime >> 32;
     uint64_t ltime_l = ltime & 0xffffffff;
 
-    // add callback ...
+    /* add callback ... */
     s_cb_data   data;
     s_vpi_time  data_time;
     s_vpi_value data_value;
@@ -169,13 +169,13 @@ void stimc_wait_time (uint64_t time, int exp)
 
     assert (vpi_register_cb (&data));
 
-    // thread handling ...
+    /* thread handling ... */
     stimc_suspend ();
 }
 
 void stimc_wait_time_seconds (double time)
 {
-    // time ...
+    /* time ... */
     int timeunit_raw = vpi_get (vpiTimeUnit, NULL);
     double timeunit = timeunit_raw;
     time *= pow (10, -timeunit);
@@ -185,7 +185,7 @@ void stimc_wait_time_seconds (double time)
 
 double stimc_time (void)
 {
-    // get time
+    /* get time */
     s_vpi_time time;
     time.type = vpiSimTime;
     vpi_get_time (NULL, &time);
@@ -194,7 +194,7 @@ double stimc_time (void)
     uint64_t ltime_l = time.low;
     uint64_t ltime   = ((ltime_h << 32) | ltime_l);
 
-    // timeunit
+    /* timeunit */
     int timeunit_raw = vpi_get (vpiTimeUnit, NULL);
 
     double dtime = ltime;
@@ -228,7 +228,7 @@ stimc_event stimc_event_create (void)
 
 void stimc_wait_event (stimc_event event)
 {
-    // size check
+    /* size check */
     if (event->threads_num + 1 >= event->threads_len) {
         assert (event->active == false);
         event->threads_len   *= 2;
@@ -236,7 +236,7 @@ void stimc_wait_event (stimc_event event)
         event->threads_shadow = (coroutine_t *) realloc (event->threads_shadow, event->threads_len);
     }
 
-    // thread data ...
+    /* thread data ... */
     coroutine_t *thread = stimc_current_thread;
     assert (thread);
 
@@ -244,15 +244,16 @@ void stimc_wait_event (stimc_event event)
     event->threads_num++;
     event->threads[event->threads_num] = NULL;
 
-    // thread handling ...
+    /* thread handling ... */
     stimc_suspend ();
 }
 
 void stimc_trigger_event (stimc_event event)
 {
     if (event->active) return;
+    if (event->threads_num == 0) return;
 
-    // copy threads to shadow...
+    /* copy threads to shadow... */
     for (size_t i = 0; i <= event->threads_num; i++) {
         event->threads_shadow[i] = event->threads[i];
     }
@@ -262,7 +263,7 @@ void stimc_trigger_event (stimc_event event)
     event->threads[0]  = NULL;
     event->threads_num = 0;
 
-    // execute threads...
+    /* execute threads... */
     coroutine_t *old_thread = stimc_current_thread;
     for (size_t i = 0; event->threads_shadow[i] != NULL; i++) {
         coroutine_t *thread = event->threads_shadow[i];
