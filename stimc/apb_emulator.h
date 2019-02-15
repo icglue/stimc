@@ -2,7 +2,6 @@
 #define __APB_EMULATOR_H__
 
 #include <stimc.h>
-#include <stdbool.h>
 
 struct apb_emulator {
     stimc_module module;

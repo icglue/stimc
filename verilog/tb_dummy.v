@@ -42,6 +42,12 @@ module tb_dummy ();
 
     initial begin
         data_in = 32'h0;
+        #(2.5*CLKPERIOD);
+        data_in = 32'hx;
+        #(CLKPERIOD);
+        data_in = 32'h12345678;
+        #(CLKPERIOD);
+        data_in = 32'hz;
         #(10*CLKPERIOD);
         $finish ();
     end

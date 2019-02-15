@@ -3,6 +3,7 @@
 
 #include <vpi_user.h>
 #include <stdint.h>
+#include <stdbool.h>
 
 /* methods/threads */
 void stimc_register_posedge_method (void (*methodfunc) (void *userdata), void *userdata, vpiHandle net);
@@ -48,7 +49,7 @@ static inline void stimc_net_set_uint32 (vpiHandle net, uint32_t value)
 static inline uint32_t stimc_net_get_uint32 (vpiHandle net)
 {
     s_vpi_value v;
-    v.format        = vpiIntVal;
+    v.format = vpiIntVal;
     vpi_get_value (net, &v);
 
     return v.value.integer;
@@ -56,6 +57,7 @@ static inline uint32_t stimc_net_get_uint32 (vpiHandle net)
 
 void stimc_net_set_z (vpiHandle net);
 void stimc_net_set_x (vpiHandle net);
+bool stimc_net_is_xz (vpiHandle net);
 
 /* modules */
 typedef struct stimc_module_s {

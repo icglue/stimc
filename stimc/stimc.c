@@ -364,8 +364,8 @@ static inline void stimc_net_set_xz (vpiHandle net, int val)
     s_vpi_value v;
 
     if (size == 1) {
-        v.format        = vpiScalarVal;
-        v.value.integer = val;
+        v.format       = vpiScalarVal;
+        v.value.scalar = val;
         vpi_put_value (net, &v, NULL, vpiNoDelay);
         return;
     }
@@ -402,4 +402,29 @@ void stimc_net_set_z (vpiHandle net)
 void stimc_net_set_x (vpiHandle net)
 {
     stimc_net_set_xz (net, vpiX);
+}
+
+bool stimc_net_is_xz (vpiHandle net)
+{
+    unsigned size = vpi_get (vpiSize, net);
+
+    s_vpi_value v;
+
+    if (size == 1) {
+        v.format        = vpiScalarVal;
+        vpi_get_value (net, &v);
+        if ((v.value.scalar == vpiX) || (v.value.scalar == vpiZ)) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    unsigned vsize = ((size-1)/32)+1;
+    v.format = vpiVectorVal;
+    vpi_get_value (net, &v);
+    for (unsigned i = 0; i < vsize; i++) {
+        if (v.value.vector[i].bval != 0) return true;
+    }
+    return false;
 }

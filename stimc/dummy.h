@@ -2,7 +2,6 @@
 #define __DUMMY_H__
 
 #include <stimc.h>
-#include <stdbool.h>
 
 struct dummy {
     stimc_module module;

@@ -50,7 +50,11 @@ void dummy_testcontrol (void *userdata)
 void dummy_dinchange (void *userdata)
 {
     struct dummy *dummy = (struct dummy *) userdata;
-    fprintf (stderr, "DEBUG: data_in changed at time %ldns to 0x%08x\n", stimc_time (SC_NS), stimc_net_get_uint32 (dummy->data_in_i));
+    if (stimc_net_is_xz (dummy->data_in_i)) {
+        fprintf (stderr, "DEBUG: data_in changed at time %ldns to <undefined>\n", stimc_time (SC_NS));
+    } else {
+        fprintf (stderr, "DEBUG: data_in changed at time %ldns to 0x%08x\n", stimc_time (SC_NS), stimc_net_get_uint32 (dummy->data_in_i));
+    }
 }
 
 void dummy_clock (void *userdata)
