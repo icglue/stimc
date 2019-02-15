@@ -1,31 +1,29 @@
-#include <vpi_user.h>
-
 #include <stdlib.h>
 #include <stdbool.h>
 #include <string.h>
 
-#include "stimc.h"
+#include <stimc.h>
 
 struct apb_emulator {
-    struct stimc_module module;
+    stimc_module module;
     /* ports */
-    vpiHandle apb_clk_i;
-    vpiHandle apb_resetn_i;
-    vpiHandle apb_clk_en_o;
+    stimc_port  apb_clk_i;
+    stimc_port  apb_resetn_i;
+    stimc_port  apb_clk_en_o;
 
-    vpiHandle apb_addr_o;
-    vpiHandle apb_sel_o;
-    vpiHandle apb_enable_o;
-    vpiHandle apb_write_o;
-    vpiHandle apb_strb_o;
-    vpiHandle apb_prot_o;
-    vpiHandle apb_wdata_o;
+    stimc_port  apb_addr_o;
+    stimc_port  apb_sel_o;
+    stimc_port  apb_enable_o;
+    stimc_port  apb_write_o;
+    stimc_port  apb_strb_o;
+    stimc_port  apb_prot_o;
+    stimc_port  apb_wdata_o;
 
-    vpiHandle apb_ready_i;
-    vpiHandle apb_rdata_i;
-    vpiHandle apb_slverr_i;
+    stimc_port  apb_ready_i;
+    stimc_port  apb_rdata_i;
+    stimc_port  apb_slverr_i;
 
-    vpiHandle emulator_id_i;
+    stimc_port  emulator_id_i;
     /* events */
     stimc_event clk_event;
     stimc_event reset_release_event;

@@ -4,11 +4,13 @@
 #include <vpi_user.h>
 #include <stdint.h>
 
+/* methods/threads */
 void stimc_register_posedge_method (void (*methodfunc) (void *userdata), void *userdata, vpiHandle net);
 void stimc_register_negedge_method (void (*methodfunc) (void *userdata), void *userdata, vpiHandle net);
 
 void stimc_register_startup_thread (void (*threadfunc) (void *userdata), void *userdata);
 
+/* time/wait */
 void stimc_wait_time_seconds (double time);
 #define SC_FS -15
 #define SC_PS -12
@@ -20,14 +22,18 @@ void stimc_wait_time (uint64_t time, int exp);
 
 double stimc_time (void);
 
-
+/* event/wait */
 typedef struct stimc_event_s* stimc_event;
 
 stimc_event stimc_event_create (void);
 void stimc_wait_event (stimc_event event);
 void stimc_trigger_event (stimc_event event);
 
+/* sim control */
 void stimc_finish (void);
+
+/* ports */
+typedef vpiHandle stimc_port;
 
 static inline void stimc_net_set_uint32 (vpiHandle net, uint32_t value)
 {
@@ -46,12 +52,13 @@ static inline uint32_t stimc_net_get_uint32 (vpiHandle net)
     return v.value.integer;
 }
 
-struct stimc_module {
+/* modules */
+typedef struct stimc_module_s {
     char *id;
-};
+} stimc_module;
 
-void stimc_module_init (struct stimc_module *m);
-vpiHandle stimc_pin_init (struct stimc_module *m, const char *name);
+void stimc_module_init (stimc_module *m);
+vpiHandle stimc_pin_init (stimc_module *m, const char *name);
 
 /* module initialization routine macro
  *
@@ -59,6 +66,13 @@ vpiHandle stimc_pin_init (struct stimc_module *m, const char *name);
  * { // body }
  *
  * runs function body when called via $stimc_modulename_init in verilog shell.
+ *
+ * STIMC_EXPORT_START
+ * STIMC_EXPORT (module1)
+ * STIMC_EXPORT (module2)
+ * STIMC_EXPORT_END
+ *
+ * makes module1 and module2 available (only once per vpi interface lib)
  */
 
 #define STIMC_INIT(module) \

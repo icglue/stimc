@@ -1,7 +1,5 @@
 #include "stimc.h"
 
-#include <vpi_user.h>
-
 #include <math.h>
 #include <stdlib.h>
 #include <string.h>
@@ -25,8 +23,6 @@ static const char *stimc_get_caller_scope (void)
     assert (taskscope);
     const char *scope_name = vpi_get_str(vpiFullName, taskscope);
     assert (scope_name);
-
-    fprintf (stderr, "DEBUG: scope of \"%s\"\n", scope_name);
 
     return scope_name;
 }
@@ -93,22 +89,18 @@ void stimc_register_negedge_method (void (*methodfunc) (void *userdata), void *u
 coroutine_t stimc_current_thread = NULL;
 
 static PLI_INT32 stimc_thread_callback_wrapper (struct t_cb_data *cb_data) {
-    fprintf (stderr, "DEBUG: callback wrapper\n");
     coroutine_t *thread = (coroutine_t) cb_data->user_data;
     assert (thread);
 
-    fprintf (stderr, "DEBUG: cbw - running thread\n");
     stimc_current_thread = thread;
     co_call (thread);
     stimc_current_thread = NULL;
-    fprintf (stderr, "DEBUG: cbw - thread paused\n");
 
     return 0;
 }
 
 void stimc_register_startup_thread (void (*threadfunc) (void *userdata), void *userdata)
 {
-    fprintf (stderr, "DEBUG: stimc_register_startup_thread\n");
     s_cb_data   data;
     s_vpi_time  data_time;
     s_vpi_value data_value;
@@ -134,9 +126,7 @@ void stimc_register_startup_thread (void (*threadfunc) (void *userdata), void *u
 
 static void stimc_suspend (void)
 {
-    fprintf (stderr, "DEBUG: thread - suspending in wait\n");
     co_resume ();
-    fprintf (stderr, "DEBUG: thread - returning from wait\n");
 }
 
 void stimc_wait_time (uint64_t time, int exp)
@@ -156,7 +146,6 @@ void stimc_wait_time (uint64_t time, int exp)
         ltime /= 10;
         exp++;
     }
-    fprintf (stderr, "DEBUG: waittime is %lu * 10^%d s\n", time, timeunit_raw);
     uint64_t ltime_h = ltime >> 32;
     uint64_t ltime_l = ltime & 0xffffffff;
 
@@ -182,7 +171,6 @@ void stimc_wait_time (uint64_t time, int exp)
 
     // thread handling ...
     stimc_suspend ();
-    fprintf (stderr, "DEBUG: wait done\n");
 }
 
 void stimc_wait_time_seconds (double time)
@@ -289,7 +277,7 @@ void stimc_finish (void)
     vpi_control (vpiFinish, 0);
 }
 
-void stimc_module_init (struct stimc_module *m)
+void stimc_module_init (stimc_module *m)
 {
     assert (m);
     const char *scope = stimc_get_caller_scope ();
@@ -298,7 +286,7 @@ void stimc_module_init (struct stimc_module *m)
     strcpy (m->id, scope);
 }
 
-vpiHandle stimc_pin_init (struct stimc_module *m, const char *name)
+vpiHandle stimc_pin_init (stimc_module *m, const char *name)
 {
     const char *scope = m->id;
 
@@ -310,8 +298,6 @@ vpiHandle stimc_pin_init (struct stimc_module *m, const char *name)
     strcpy (pin_name, scope);
     pin_name[scope_len] = '.';
     strcpy (&(pin_name[scope_len+1]), name);
-
-    fprintf (stderr, "DEBUG: pin_init of \"%s\"\n", pin_name);
 
     vpiHandle pin = vpi_handle_by_name(pin_name, NULL);
 

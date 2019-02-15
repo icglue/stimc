@@ -1,18 +1,16 @@
-#include <vpi_user.h>
-
 #include <stdlib.h>
 #include <stdbool.h>
 #include <string.h>
 
-#include "stimc.h"
+#include <stimc.h>
 
 struct dummy {
-    struct stimc_module module;
+    stimc_module module;
     /* ports */
-    vpiHandle clk_i;
-    vpiHandle reset_n_i;
-    vpiHandle data_in_i;
-    vpiHandle data_out_o;
+    stimc_port  clk_i;
+    stimc_port  reset_n_i;
+    stimc_port  data_in_i;
+    stimc_port  data_out_o;
     /* events */
     stimc_event clk_event;
 };
