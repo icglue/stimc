@@ -139,18 +139,24 @@ static void stimc_suspend (void)
     fprintf (stderr, "DEBUG: thread - returning from wait\n");
 }
 
-void stimc_wait_time (double time)
+void stimc_wait_time (uint64_t time, int exp)
 {
     // thread data ...
     coroutine_t *thread = stimc_current_thread;
     assert (thread);
 
     // time ...
-    int timeunit_raw = vpi_get (vpiTimeUnit, NULL);
-    double timeunit = timeunit_raw;
-    time *= pow (10, -timeunit);
-    fprintf (stderr, "DEBUG: waittime is %f * 10^%d s\n", time, timeunit_raw);
     uint64_t ltime = time;
+    int timeunit_raw = vpi_get (vpiTimeUnit, NULL);
+    while (exp > timeunit_raw) {
+        ltime *= 10;
+        exp--;
+    }
+    while (exp < timeunit_raw) {
+        ltime /= 10;
+        exp++;
+    }
+    fprintf (stderr, "DEBUG: waittime is %lu * 10^%d s\n", time, timeunit_raw);
     uint64_t ltime_h = ltime >> 32;
     uint64_t ltime_l = ltime & 0xffffffff;
 
@@ -177,6 +183,16 @@ void stimc_wait_time (double time)
     // thread handling ...
     stimc_suspend ();
     fprintf (stderr, "DEBUG: wait done\n");
+}
+
+void stimc_wait_time_seconds (double time)
+{
+    // time ...
+    int timeunit_raw = vpi_get (vpiTimeUnit, NULL);
+    double timeunit = timeunit_raw;
+    time *= pow (10, -timeunit);
+    uint64_t ltime = time;
+    stimc_wait_time (ltime, timeunit_raw);
 }
 
 double stimc_time (void)

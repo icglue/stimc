@@ -40,7 +40,7 @@ void dummy_testcontrol (void *userdata) {
     /* write to output */
     stimc_net_set_uint32 (dummy->data_out_o, 0x12345678);
 
-    stimc_wait_time (1e-9);
+    stimc_wait_time_seconds (1e-9);
 
     stimc_net_set_uint32 (dummy->data_out_o, 0x9abcdef0);
 

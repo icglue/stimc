@@ -9,7 +9,15 @@ void stimc_register_negedge_method (void (*methodfunc) (void *userdata), void *u
 
 void stimc_register_startup_thread (void (*threadfunc) (void *userdata), void *userdata);
 
-void stimc_wait_time (double time);
+void stimc_wait_time_seconds (double time);
+#define SC_FS -15
+#define SC_PS -12
+#define SC_NS -9
+#define SC_US -6
+#define SC_MS -3
+#define SC_S  0
+void stimc_wait_time (uint64_t time, int exp);
+
 double stimc_time (void);
 
 
