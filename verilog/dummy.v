@@ -5,10 +5,12 @@ module dummy (
     data_out_o
 );
 
-    input         clk_i;
-    input         reset_n_i;
-    input  [31:0] data_in_i;
-    output [31:0] data_out_o;
+    parameter DATA_W = 32;
+
+    input               clk_i;
+    input               reset_n_i;
+    input  [DATA_W-1:0] data_in_i;
+    output [DATA_W-1:0] data_out_o;
 
     initial begin
         $stimc_dummy_init();

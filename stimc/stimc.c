@@ -335,7 +335,7 @@ void stimc_module_init (stimc_module *m)
     strcpy (m->id, scope);
 }
 
-stimc_port stimc_port_init (stimc_module *m, const char *name)
+static vpiHandle stimc_module_handle_init (stimc_module *m, const char *name)
 {
     const char *scope = m->id;
 
@@ -355,6 +355,15 @@ stimc_port stimc_port_init (stimc_module *m, const char *name)
     assert (pin);
 
     return pin;
+}
+
+stimc_port stimc_port_init (stimc_module *m, const char *name)
+{
+    return stimc_module_handle_init (m, name);
+}
+stimc_parameter stimc_parameter_init (stimc_module *m, const char *name)
+{
+    return stimc_module_handle_init (m, name);
 }
 
 static inline void stimc_net_set_xz (vpiHandle net, int val)

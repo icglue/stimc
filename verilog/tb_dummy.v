@@ -2,12 +2,16 @@
 
 module tb_dummy ();
 
-    wire        clk_s;
-    wire        reset_n_s;
-    wire [31:0] data_in_s;
-    wire [31:0] data_out_s;
+    localparam DATA_W = 32;
 
-    dummy i_dummy (
+    wire              clk_s;
+    wire              reset_n_s;
+    wire [DATA_W-1:0] data_in_s;
+    wire [DATA_W-1:0] data_out_s;
+
+    dummy #(
+        .DATA_W (DATA_W)
+    ) i_dummy (
         .clk_i      (clk_s),
         .reset_n_i  (reset_n_s),
         .data_in_i  (data_in_s),
@@ -16,9 +20,9 @@ module tb_dummy ();
 
 
     localparam CLKPERIOD = 2.0;
-    reg        clk;
-    reg        reset_n;
-    reg [31:0] data_in;
+    reg              clk;
+    reg              reset_n;
+    reg [DATA_W-1:0] data_in;
 
     assign clk_s     = clk;
     assign reset_n_s = reset_n;
@@ -41,13 +45,13 @@ module tb_dummy ();
     end
 
     initial begin
-        data_in = 32'h0;
+        data_in = {DATA_W {1'b0}};
         #(2.5*CLKPERIOD);
-        data_in = 32'hx;
+        data_in = {DATA_W {1'bx}};
         #(CLKPERIOD);
-        data_in = 32'h12345678;
+        data_in = 'h12345678;
         #(CLKPERIOD);
-        data_in = 32'hz;
+        data_in = {DATA_W {1'bz}};
         #(10*CLKPERIOD);
         $finish ();
     end

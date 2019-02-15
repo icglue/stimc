@@ -35,8 +35,9 @@ void stimc_trigger_event (stimc_event event);
 /* sim control */
 void stimc_finish (void);
 
-/* ports */
+/* ports/parameters */
 typedef vpiHandle stimc_port;
+typedef vpiHandle stimc_parameter;
 
 static inline void stimc_net_set_uint32 (vpiHandle net, uint32_t value)
 {
@@ -55,6 +56,20 @@ static inline uint32_t stimc_net_get_uint32 (vpiHandle net)
     return v.value.integer;
 }
 
+static inline unsigned stimc_net_size (vpiHandle net)
+{
+    return vpi_get (vpiSize, net);
+}
+
+static inline uint32_t stimc_parameter_get_uint32 (stimc_parameter parameter)
+{
+    s_vpi_value v;
+    v.format = vpiIntVal;
+    vpi_get_value (parameter, &v);
+
+    return v.value.integer;
+}
+
 void stimc_net_set_z (vpiHandle net);
 void stimc_net_set_x (vpiHandle net);
 bool stimc_net_is_xz (vpiHandle net);
@@ -64,8 +79,9 @@ typedef struct stimc_module_s {
     char *id;
 } stimc_module;
 
-void stimc_module_init (stimc_module *m);
-stimc_port stimc_port_init (stimc_module *m, const char *name);
+void            stimc_module_init    (stimc_module *m);
+stimc_port      stimc_port_init      (stimc_module *m, const char *name);
+stimc_parameter stimc_parameter_init (stimc_module *m, const char *name);
 
 /* module initialization routine macro
  *

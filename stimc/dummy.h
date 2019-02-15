@@ -5,11 +5,13 @@
 
 struct dummy {
     stimc_module module;
+    /* parameters */
+    stimc_parameter DATA_W;
     /* ports */
-    stimc_port  clk_i;
-    stimc_port  reset_n_i;
-    stimc_port  data_in_i;
-    stimc_port  data_out_o;
+    stimc_port      clk_i;
+    stimc_port      reset_n_i;
+    stimc_port      data_in_i;
+    stimc_port      data_out_o;
     /* events */
     stimc_event clk_event;
 };

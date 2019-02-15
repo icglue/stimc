@@ -10,10 +10,12 @@ struct dummy* dummy_create (void)
 
     stimc_module_init (&(dummy->module));
 
-    dummy->clk_i      = stimc_port_init (&(dummy->module), "clk_i");
-    dummy->reset_n_i  = stimc_port_init (&(dummy->module), "reset_n_i");
-    dummy->data_in_i  = stimc_port_init (&(dummy->module), "data_in_i");
-    dummy->data_out_o = stimc_port_init (&(dummy->module), "data_out_o");
+    dummy->DATA_W     = stimc_parameter_init (&(dummy->module), "DATA_W");
+
+    dummy->clk_i      = stimc_port_init      (&(dummy->module), "clk_i");
+    dummy->reset_n_i  = stimc_port_init      (&(dummy->module), "reset_n_i");
+    dummy->data_in_i  = stimc_port_init      (&(dummy->module), "data_in_i");
+    dummy->data_out_o = stimc_port_init      (&(dummy->module), "data_out_o");
 
     dummy->clk_event  = stimc_event_create ();
 
@@ -73,6 +75,8 @@ STIMC_INIT (dummy)
     stimc_register_startup_thread (dummy_testcontrol, dummy);
     stimc_register_posedge_method (dummy_clock, dummy, dummy->clk_i);
     stimc_register_change_method  (dummy_dinchange, dummy, dummy->data_in_i);
+
+    fprintf (stderr, "DEBUG: dummy module \"%s\" has DATA_W %d\n", dummy->module.id, stimc_parameter_get_uint32 (dummy->DATA_W));
 }
 
 /* export */
