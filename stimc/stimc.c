@@ -32,25 +32,34 @@ struct stimc_method_wrap {
     void *userdata;
 };
 
-static void stimc_edge_method_callback_wrapper (struct t_cb_data *cb_data, bool edge) {
+static inline void stimc_valuechange_method_callback_wrapper (struct t_cb_data *cb_data, int edge) {
     struct stimc_method_wrap *wrap = (struct stimc_method_wrap *) cb_data->user_data;
 
     /* correct edge? */
-    if (edge ? (cb_data->value->value.scalar == vpi1) : (cb_data->value->value.scalar == vpi0)) {
-        wrap->methodfunc (wrap->userdata);
+    if ((edge > 0) && (cb_data->value->value.scalar != vpi1)) {
+        return;
     }
+    if ((edge < 0) && (cb_data->value->value.scalar != vpi0)) {
+        return;
+    }
+
+    wrap->methodfunc (wrap->userdata);
 }
 
 static PLI_INT32 stimc_posedge_method_callback_wrapper (struct t_cb_data *cb_data) {
-    stimc_edge_method_callback_wrapper (cb_data, true);
+    stimc_valuechange_method_callback_wrapper (cb_data, 1);
     return 0;
 }
 static PLI_INT32 stimc_negedge_method_callback_wrapper (struct t_cb_data *cb_data) {
-    stimc_edge_method_callback_wrapper (cb_data, false);
+    stimc_valuechange_method_callback_wrapper (cb_data, -1);
+    return 0;
+}
+static PLI_INT32 stimc_change_method_callback_wrapper (struct t_cb_data *cb_data) {
+    stimc_valuechange_method_callback_wrapper (cb_data, 0);
     return 0;
 }
 
-static void stimc_register_edge_method (void (*methodfunc) (void *userdata), void *userdata, vpiHandle net, bool edge)
+static void stimc_register_valuechange_method (void (*methodfunc) (void *userdata), void *userdata, vpiHandle net, int edge)
 {
     s_cb_data   data;
     s_vpi_time  data_time;
@@ -61,7 +70,16 @@ static void stimc_register_edge_method (void (*methodfunc) (void *userdata), voi
     wrap->userdata   = userdata;
 
     data.reason        = cbValueChange;
-    data.cb_rtn        = (edge ? stimc_posedge_method_callback_wrapper : stimc_negedge_method_callback_wrapper);
+    if (edge > 0) {
+        /* posedge */
+        data.cb_rtn    = stimc_posedge_method_callback_wrapper;
+    } else if (edge < 0) {
+        /* negedge */
+        data.cb_rtn    = stimc_negedge_method_callback_wrapper;
+    } else {
+        /* value change */
+        data.cb_rtn    = stimc_change_method_callback_wrapper;
+    }
     data.obj           = net;
     data.time          = &data_time;
     data.time->type    = vpiSuppressTime;
@@ -78,11 +96,15 @@ static void stimc_register_edge_method (void (*methodfunc) (void *userdata), voi
 
 void stimc_register_posedge_method (void (*methodfunc) (void *userdata), void *userdata, vpiHandle net)
 {
-    stimc_register_edge_method (methodfunc, userdata, net, true);
+    stimc_register_valuechange_method (methodfunc, userdata, net, 1);
 }
 void stimc_register_negedge_method (void (*methodfunc) (void *userdata), void *userdata, vpiHandle net)
 {
-    stimc_register_edge_method (methodfunc, userdata, net, false);
+    stimc_register_valuechange_method (methodfunc, userdata, net, -1);
+}
+void stimc_register_change_method  (void (*methodfunc) (void *userdata), void *userdata, vpiHandle net)
+{
+    stimc_register_valuechange_method (methodfunc, userdata, net, 0);
 }
 
 

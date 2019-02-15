@@ -7,6 +7,7 @@
 /* methods/threads */
 void stimc_register_posedge_method (void (*methodfunc) (void *userdata), void *userdata, vpiHandle net);
 void stimc_register_negedge_method (void (*methodfunc) (void *userdata), void *userdata, vpiHandle net);
+void stimc_register_change_method  (void (*methodfunc) (void *userdata), void *userdata, vpiHandle net);
 
 void stimc_register_startup_thread (void (*threadfunc) (void *userdata), void *userdata);
 
