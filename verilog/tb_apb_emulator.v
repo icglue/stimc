@@ -1,3 +1,5 @@
+`timescale 1ns/1ps
+
 module tb_apb ();
 
     wire        apb_clk_s;
