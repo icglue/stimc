@@ -38,21 +38,15 @@ void dummy_testcontrol (void *userdata) {
     fprintf (stderr, "DEBUG: testcontrol...\n");
 
     /* write to output */
-    s_vpi_value val;
-    val.format = vpiIntVal;
-    val.value.integer = 0x12345678;
-    vpi_put_value (dummy->data_out_o, &val, NULL, vpiNoDelay);
+    stimc_net_set_uint32 (dummy->data_out_o, 0x12345678);
 
     stimc_wait_time (1e-9);
 
-    val.value.integer = 0x9abcdef0;
-    vpi_put_value (dummy->data_out_o, &val, NULL, vpiNoDelay);
+    stimc_net_set_uint32 (dummy->data_out_o, 0x9abcdef0);
 
     for (int i = 0; i < 100; i++) {
         stimc_wait_event (dummy->clk_event);
-
-        val.value.integer = i;
-        vpi_put_value (dummy->data_out_o, &val, NULL, vpiNoDelay);
+        stimc_net_set_uint32 (dummy->data_out_o, i);
     }
 }
 
