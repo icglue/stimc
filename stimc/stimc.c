@@ -309,7 +309,7 @@ void stimc_module_init (stimc_module *m)
     strcpy (m->id, scope);
 }
 
-vpiHandle stimc_pin_init (stimc_module *m, const char *name)
+stimc_port stimc_port_init (stimc_module *m, const char *name)
 {
     const char *scope = m->id;
 

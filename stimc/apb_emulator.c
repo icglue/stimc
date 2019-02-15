@@ -35,23 +35,23 @@ struct apb_emulator* apb_emulator_create (void) {
     stimc_module_init (&(apb_emulator->module));
 
 
-    apb_emulator->apb_clk_i     = stimc_pin_init (&(apb_emulator->module), "apb_clk_i");
-    apb_emulator->apb_resetn_i  = stimc_pin_init (&(apb_emulator->module), "apb_resetn_i");
-    apb_emulator->apb_clk_en_o  = stimc_pin_init (&(apb_emulator->module), "apb_clk_en_o");
+    apb_emulator->apb_clk_i     = stimc_port_init (&(apb_emulator->module), "apb_clk_i");
+    apb_emulator->apb_resetn_i  = stimc_port_init (&(apb_emulator->module), "apb_resetn_i");
+    apb_emulator->apb_clk_en_o  = stimc_port_init (&(apb_emulator->module), "apb_clk_en_o");
 
-    apb_emulator->apb_addr_o    = stimc_pin_init (&(apb_emulator->module), "apb_addr_o");
-    apb_emulator->apb_sel_o     = stimc_pin_init (&(apb_emulator->module), "apb_sel_o");
-    apb_emulator->apb_enable_o  = stimc_pin_init (&(apb_emulator->module), "apb_enable_o");
-    apb_emulator->apb_write_o   = stimc_pin_init (&(apb_emulator->module), "apb_write_o");
-    apb_emulator->apb_strb_o    = stimc_pin_init (&(apb_emulator->module), "apb_strb_o");
-    apb_emulator->apb_prot_o    = stimc_pin_init (&(apb_emulator->module), "apb_prot_o");
-    apb_emulator->apb_wdata_o   = stimc_pin_init (&(apb_emulator->module), "apb_wdata_o");
+    apb_emulator->apb_addr_o    = stimc_port_init (&(apb_emulator->module), "apb_addr_o");
+    apb_emulator->apb_sel_o     = stimc_port_init (&(apb_emulator->module), "apb_sel_o");
+    apb_emulator->apb_enable_o  = stimc_port_init (&(apb_emulator->module), "apb_enable_o");
+    apb_emulator->apb_write_o   = stimc_port_init (&(apb_emulator->module), "apb_write_o");
+    apb_emulator->apb_strb_o    = stimc_port_init (&(apb_emulator->module), "apb_strb_o");
+    apb_emulator->apb_prot_o    = stimc_port_init (&(apb_emulator->module), "apb_prot_o");
+    apb_emulator->apb_wdata_o   = stimc_port_init (&(apb_emulator->module), "apb_wdata_o");
 
-    apb_emulator->apb_ready_i   = stimc_pin_init (&(apb_emulator->module), "apb_ready_i");
-    apb_emulator->apb_rdata_i   = stimc_pin_init (&(apb_emulator->module), "apb_rdata_i");
-    apb_emulator->apb_slverr_i  = stimc_pin_init (&(apb_emulator->module), "apb_slverr_i");
+    apb_emulator->apb_ready_i   = stimc_port_init (&(apb_emulator->module), "apb_ready_i");
+    apb_emulator->apb_rdata_i   = stimc_port_init (&(apb_emulator->module), "apb_rdata_i");
+    apb_emulator->apb_slverr_i  = stimc_port_init (&(apb_emulator->module), "apb_slverr_i");
 
-    apb_emulator->emulator_id_i = stimc_pin_init (&(apb_emulator->module), "emulator_id_i");
+    apb_emulator->emulator_id_i = stimc_port_init (&(apb_emulator->module), "emulator_id_i");
 
     apb_emulator->clk_event           = stimc_event_create ();
     apb_emulator->reset_release_event = stimc_event_create ();

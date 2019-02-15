@@ -20,10 +20,10 @@ struct dummy* dummy_create (void) {
 
     stimc_module_init (&(dummy->module));
 
-    dummy->clk_i      = stimc_pin_init (&(dummy->module), "clk_i");
-    dummy->reset_n_i  = stimc_pin_init (&(dummy->module), "reset_n_i");
-    dummy->data_in_i  = stimc_pin_init (&(dummy->module), "data_in_i");
-    dummy->data_out_o = stimc_pin_init (&(dummy->module), "data_out_o");
+    dummy->clk_i      = stimc_port_init (&(dummy->module), "clk_i");
+    dummy->reset_n_i  = stimc_port_init (&(dummy->module), "reset_n_i");
+    dummy->data_in_i  = stimc_port_init (&(dummy->module), "data_in_i");
+    dummy->data_out_o = stimc_port_init (&(dummy->module), "data_out_o");
 
     dummy->clk_event  = stimc_event_create ();
 
@@ -48,6 +48,11 @@ void dummy_testcontrol (void *userdata) {
     }
 }
 
+void dummy_dinchange (void *userdata) {
+    struct dummy *dummy = (struct dummy *) userdata;
+    fprintf (stderr, "DEBUG: data_in changed at time %e\n", stimc_time ());
+}
+
 void dummy_clock (void *userdata) {
     struct dummy *dummy = (struct dummy *) userdata;
     fprintf (stderr, "DEBUG: clkedge in %s at time %e\n", dummy->module.id, stimc_time ());
@@ -62,6 +67,7 @@ STIMC_INIT (dummy)
 
     stimc_register_startup_thread (dummy_testcontrol, dummy);
     stimc_register_posedge_method (dummy_clock, dummy, dummy->clk_i);
+    stimc_register_change_method  (dummy_dinchange, dummy, dummy->data_in_i);
 }
 
 /* export */

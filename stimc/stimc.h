@@ -59,7 +59,7 @@ typedef struct stimc_module_s {
 } stimc_module;
 
 void stimc_module_init (stimc_module *m);
-vpiHandle stimc_pin_init (stimc_module *m, const char *name);
+stimc_port stimc_port_init (stimc_module *m, const char *name);
 
 /* module initialization routine macro
  *
