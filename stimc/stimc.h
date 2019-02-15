@@ -82,12 +82,12 @@ static void _stimc_module_ ## module ## _register (void)\
     vpi_register_systf(&tf_data);\
 }\
 \
-void (*vlog_startup_routines[])(void) = {\
-    _stimc_module_ ## module ## _register,\
-    0\
-};\
-\
 static void _stimc_module_ ## module ## _init (void)
 
+#define STIMC_EXPORT(module)\
+    _stimc_module_ ## module ## _register,
+
+#define STIMC_EXPORT_START void (*vlog_startup_routines[])(void) = {
+#define STIMC_EXPORT_END   0};
 
 #endif

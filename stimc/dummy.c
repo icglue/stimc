@@ -72,3 +72,7 @@ STIMC_INIT (dummy)
     stimc_register_posedge_method (dummy_clock, dummy, dummy->clk_i);
 }
 
+/* export */
+STIMC_EXPORT_START
+    STIMC_EXPORT (dummy)
+STIMC_EXPORT_END

@@ -175,3 +175,8 @@ STIMC_INIT (apb_emulator)
     stimc_register_posedge_method (apb_emulator_reset_release, apb_emulator, apb_emulator->apb_resetn_i);
 }
 
+/* export */
+STIMC_EXPORT_START
+    STIMC_EXPORT (apb_emulator)
+STIMC_EXPORT_END
+
