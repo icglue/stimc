@@ -32,81 +32,81 @@ struct apb_emulator* apb_emulator_create (void)
     apb_emulator->reset_release_event = stimc_event_create ();
 
     /* init... */
-    stimc_net_set_uint32 (apb_emulator->apb_clk_en_o, 0);
-    stimc_net_set_uint32 (apb_emulator->apb_sel_o,    0);
-    stimc_net_set_uint32 (apb_emulator->apb_enable_o, 0);
-    stimc_net_set_uint32 (apb_emulator->apb_write_o,  0);
-    stimc_net_set_uint32 (apb_emulator->apb_prot_o,   0);
-    stimc_net_set_uint32 (apb_emulator->apb_addr_o,   0);
-    stimc_net_set_uint32 (apb_emulator->apb_wdata_o,  0);
-    stimc_net_set_uint32 (apb_emulator->apb_strb_o,   0);
+    stimc_net_set_int32 (apb_emulator->apb_clk_en_o, 0);
+    stimc_net_set_int32 (apb_emulator->apb_sel_o,    0);
+    stimc_net_set_int32 (apb_emulator->apb_enable_o, 0);
+    stimc_net_set_int32 (apb_emulator->apb_write_o,  0);
+    stimc_net_set_int32 (apb_emulator->apb_prot_o,   0);
+    stimc_net_set_int32 (apb_emulator->apb_addr_o,   0);
+    stimc_net_set_int32 (apb_emulator->apb_wdata_o,  0);
+    stimc_net_set_int32 (apb_emulator->apb_strb_o,   0);
 
     return apb_emulator;
 }
 
 bool apb_emulator_write (struct apb_emulator *emulator, uint32_t addr, uint8_t strb, uint32_t wdata)
 {
-    stimc_net_set_uint32 (emulator->apb_clk_en_o, 1);
-    stimc_net_set_uint32 (emulator->apb_sel_o,    1);
-    stimc_net_set_uint32 (emulator->apb_write_o,  1);
-    stimc_net_set_uint32 (emulator->apb_addr_o,   addr);
-    stimc_net_set_uint32 (emulator->apb_wdata_o,  wdata);
-    stimc_net_set_uint32 (emulator->apb_strb_o,   strb);
+    stimc_net_set_int32 (emulator->apb_clk_en_o, 1);
+    stimc_net_set_int32 (emulator->apb_sel_o,    1);
+    stimc_net_set_int32 (emulator->apb_write_o,  1);
+    stimc_net_set_int32 (emulator->apb_addr_o,   addr);
+    stimc_net_set_int32 (emulator->apb_wdata_o,  wdata);
+    stimc_net_set_int32 (emulator->apb_strb_o,   strb);
     stimc_wait_event (emulator->clk_event);
-    stimc_net_set_uint32 (emulator->apb_enable_o, 1);
+    stimc_net_set_int32 (emulator->apb_enable_o, 1);
 
     bool result = true;
     while (true) {
         stimc_wait_event (emulator->clk_event);
-        if (stimc_net_get_uint32 (emulator->apb_ready_i) == 1) {
-            if (stimc_net_get_uint32 (emulator->apb_slverr_i) == 1) {
+        if (stimc_net_get_int32 (emulator->apb_ready_i) == 1) {
+            if (stimc_net_get_int32 (emulator->apb_slverr_i) == 1) {
                 result = false;
             }
             break;
         }
     }
 
-    stimc_net_set_uint32 (emulator->apb_clk_en_o, 0);
-    stimc_net_set_uint32 (emulator->apb_sel_o,    0);
-    stimc_net_set_uint32 (emulator->apb_enable_o, 0);
-    stimc_net_set_uint32 (emulator->apb_write_o,  0);
-    stimc_net_set_uint32 (emulator->apb_addr_o,   0);
-    stimc_net_set_uint32 (emulator->apb_wdata_o,  0);
-    stimc_net_set_uint32 (emulator->apb_strb_o,   0);
+    stimc_net_set_int32 (emulator->apb_clk_en_o, 0);
+    stimc_net_set_int32 (emulator->apb_sel_o,    0);
+    stimc_net_set_int32 (emulator->apb_enable_o, 0);
+    stimc_net_set_int32 (emulator->apb_write_o,  0);
+    stimc_net_set_int32 (emulator->apb_addr_o,   0);
+    stimc_net_set_int32 (emulator->apb_wdata_o,  0);
+    stimc_net_set_int32 (emulator->apb_strb_o,   0);
 
     return result;
 }
 
 bool apb_emulator_read (struct apb_emulator *emulator, uint32_t addr, uint32_t *rdata)
 {
-    stimc_net_set_uint32 (emulator->apb_clk_en_o, 1);
-    stimc_net_set_uint32 (emulator->apb_sel_o,    1);
-    stimc_net_set_uint32 (emulator->apb_write_o,  0);
-    stimc_net_set_uint32 (emulator->apb_addr_o,   addr);
-    stimc_net_set_uint32 (emulator->apb_wdata_o,  0);
-    stimc_net_set_uint32 (emulator->apb_strb_o,   0);
+    stimc_net_set_int32 (emulator->apb_clk_en_o, 1);
+    stimc_net_set_int32 (emulator->apb_sel_o,    1);
+    stimc_net_set_int32 (emulator->apb_write_o,  0);
+    stimc_net_set_int32 (emulator->apb_addr_o,   addr);
+    stimc_net_set_int32 (emulator->apb_wdata_o,  0);
+    stimc_net_set_int32 (emulator->apb_strb_o,   0);
     stimc_wait_event (emulator->clk_event);
-    stimc_net_set_uint32 (emulator->apb_enable_o, 1);
+    stimc_net_set_int32 (emulator->apb_enable_o, 1);
 
     bool result = true;
     while (true) {
         stimc_wait_event (emulator->clk_event);
-        if (stimc_net_get_uint32 (emulator->apb_ready_i) == 1) {
-            if (stimc_net_get_uint32 (emulator->apb_slverr_i) == 1) {
+        if (stimc_net_get_int32 (emulator->apb_ready_i) == 1) {
+            if (stimc_net_get_int32 (emulator->apb_slverr_i) == 1) {
                 result = false;
             }
             break;
         }
     }
 
-    stimc_net_set_uint32 (emulator->apb_clk_en_o, 0);
-    stimc_net_set_uint32 (emulator->apb_sel_o,    0);
-    stimc_net_set_uint32 (emulator->apb_enable_o, 0);
-    stimc_net_set_uint32 (emulator->apb_write_o,  0);
-    stimc_net_set_uint32 (emulator->apb_addr_o,   0);
-    stimc_net_set_uint32 (emulator->apb_strb_o,   0);
+    stimc_net_set_int32 (emulator->apb_clk_en_o, 0);
+    stimc_net_set_int32 (emulator->apb_sel_o,    0);
+    stimc_net_set_int32 (emulator->apb_enable_o, 0);
+    stimc_net_set_int32 (emulator->apb_write_o,  0);
+    stimc_net_set_int32 (emulator->apb_addr_o,   0);
+    stimc_net_set_int32 (emulator->apb_strb_o,   0);
 
-    *rdata = stimc_net_get_uint32 (emulator->apb_rdata_i);
+    *rdata = stimc_net_get_int32 (emulator->apb_rdata_i);
 
     return result;
 }

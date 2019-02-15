@@ -39,7 +39,7 @@ void stimc_finish (void);
 typedef vpiHandle stimc_port;
 typedef vpiHandle stimc_parameter;
 
-static inline void stimc_net_set_uint32 (vpiHandle net, uint32_t value)
+static inline void stimc_net_set_int32 (vpiHandle net, int32_t value)
 {
     s_vpi_value v;
     v.format        = vpiIntVal;
@@ -47,7 +47,7 @@ static inline void stimc_net_set_uint32 (vpiHandle net, uint32_t value)
     vpi_put_value (net, &v, NULL, vpiNoDelay);
 }
 
-static inline uint32_t stimc_net_get_uint32 (vpiHandle net)
+static inline int32_t stimc_net_get_int32 (vpiHandle net)
 {
     s_vpi_value v;
     v.format = vpiIntVal;
@@ -61,7 +61,7 @@ static inline unsigned stimc_net_size (vpiHandle net)
     return vpi_get (vpiSize, net);
 }
 
-static inline uint32_t stimc_parameter_get_uint32 (stimc_parameter parameter)
+static inline uint32_t stimc_parameter_get_int32 (stimc_parameter parameter)
 {
     s_vpi_value v;
     v.format = vpiIntVal;

@@ -2,7 +2,7 @@
 
 module tb_dummy ();
 
-    localparam DATA_W = 32;
+    localparam DATA_W = 128;
 
     wire              clk_s;
     wire              reset_n_s;

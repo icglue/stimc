@@ -29,16 +29,16 @@ void dummy_testcontrol (void *userdata)
     fprintf (stderr, "DEBUG: testcontrol...\n");
 
     /* write to output */
-    stimc_net_set_uint32 (dummy->data_out_o, 0x12345678);
+    stimc_net_set_int32 (dummy->data_out_o, 0x12345678);
 
     stimc_wait_time_seconds (1e-9);
 
-    stimc_net_set_uint32 (dummy->data_out_o, 0x9abcdef0);
+    stimc_net_set_int32 (dummy->data_out_o, 0x9abcdef0);
 
     for (int i = 0; i < 100; i++) {
         stimc_wait_event (dummy->clk_event);
         if (i % 2) {
-            stimc_net_set_uint32 (dummy->data_out_o, i);
+            stimc_net_set_int32 (dummy->data_out_o, i);
         } else {
             if (i % 4) {
                 stimc_net_set_z (dummy->data_out_o);
@@ -55,7 +55,7 @@ void dummy_dinchange (void *userdata)
     if (stimc_net_is_xz (dummy->data_in_i)) {
         fprintf (stderr, "DEBUG: data_in changed at time %ldns to <undefined>\n", stimc_time (SC_NS));
     } else {
-        fprintf (stderr, "DEBUG: data_in changed at time %ldns to 0x%08x\n", stimc_time (SC_NS), stimc_net_get_uint32 (dummy->data_in_i));
+        fprintf (stderr, "DEBUG: data_in changed at time %ldns to 0x%08x\n", stimc_time (SC_NS), stimc_net_get_int32 (dummy->data_in_i));
     }
 }
 
@@ -76,7 +76,7 @@ STIMC_INIT (dummy)
     stimc_register_posedge_method (dummy_clock, dummy, dummy->clk_i);
     stimc_register_change_method  (dummy_dinchange, dummy, dummy->data_in_i);
 
-    fprintf (stderr, "DEBUG: dummy module \"%s\" has DATA_W %d\n", dummy->module.id, stimc_parameter_get_uint32 (dummy->DATA_W));
+    fprintf (stderr, "DEBUG: dummy module \"%s\" has DATA_W %d\n", dummy->module.id, stimc_parameter_get_int32 (dummy->DATA_W));
 }
 
 /* export */
