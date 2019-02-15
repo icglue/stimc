@@ -74,6 +74,11 @@ void stimc_net_set_z (vpiHandle net);
 void stimc_net_set_x (vpiHandle net);
 bool stimc_net_is_xz (vpiHandle net);
 
+void stimc_net_set_bits_uint64 (vpiHandle net, unsigned lsb, unsigned msb, uint64_t value);
+uint64_t stimc_net_get_bits_uint64 (vpiHandle net, unsigned lsb, unsigned msb);
+void stimc_net_set_uint64 (vpiHandle net, uint64_t value);
+uint64_t stimc_net_get_uint64 (vpiHandle net);
+
 /* modules */
 typedef struct stimc_module_s {
     char *id;

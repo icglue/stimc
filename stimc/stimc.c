@@ -15,6 +15,10 @@
 #define SOCC_THREAD_STACK_SIZE 65536
 #endif
 
+#ifndef SOCC_VALVECTOR_MAX_STATIC
+#define SOCC_VALVECTOR_MAX_STATIC 8
+#endif
+
 static const char *stimc_get_caller_scope (void)
 {
     vpiHandle taskref      = vpi_handle(vpiSysTfCall, NULL);
@@ -380,8 +384,8 @@ static inline void stimc_net_set_xz (vpiHandle net, int val)
     }
 
     unsigned vsize = ((size-1)/32)+1;
-    if (vsize <= 8) {
-        s_vpi_vecval vec[8];
+    if (vsize <= SOCC_VALVECTOR_MAX_STATIC) {
+        s_vpi_vecval vec[SOCC_VALVECTOR_MAX_STATIC];
         for (unsigned i = 0; i < vsize; i++) {
             vec[i].aval = (val == vpiZ ? 0x00000000 : 0xffffffff);
             vec[i].bval = 0xffffffff;
@@ -436,4 +440,128 @@ bool stimc_net_is_xz (vpiHandle net)
         if (v.value.vector[i].bval != 0) return true;
     }
     return false;
+}
+
+void stimc_net_set_bits_uint64 (vpiHandle net, unsigned lsb, unsigned msb, uint64_t value)
+{
+    unsigned size = vpi_get (vpiSize, net);
+
+    s_vpi_value v;
+
+    unsigned vsize = ((size-1)/32)+1;
+    v.format = vpiVectorVal;
+    vpi_get_value (net, &v);
+
+    unsigned jstart = lsb/32;
+    unsigned s0     = lsb % 32;
+    unsigned jstop  = msb/32;
+
+    uint64_t mask = ((2 << (msb-lsb))-1);
+    fprintf (stderr, "DEBUG: lsb=%d, msb=%d, mask=0x%016lx\n", lsb, msb, mask);
+
+    for (unsigned i = 0, j = jstart; (j < vsize) && (j <= jstop) && (i < 3); i++, j++) {
+        uint32_t i_mask;
+        uint32_t i_val;
+
+        if (i == 0) {
+            i_mask = mask           << s0;
+            i_val  = (value & mask) << s0;
+        } else {
+            i_mask = mask           >> (32*i - s0);
+            i_val  = (value & mask) >> (32*i - s0);
+        }
+        fprintf (stderr, "DEBUG: i=%d, j=%d, mask=0x%08x, value=0x%08x\n", i, j, i_mask, i_val);
+
+        v.value.vector[i].aval &= ~i_mask;
+        v.value.vector[i].aval |=  i_val;
+        v.value.vector[i].bval &= ~i_mask;
+    }
+
+    vpi_put_value (net, &v, NULL, vpiNoDelay);
+}
+
+uint64_t stimc_net_get_bits_uint64 (vpiHandle net, unsigned lsb, unsigned msb)
+{
+    unsigned size = vpi_get (vpiSize, net);
+
+    s_vpi_value v;
+
+    unsigned vsize = ((size-1)/32)+1;
+    v.format = vpiVectorVal;
+    vpi_get_value (net, &v);
+
+    uint64_t result = 0;
+
+    unsigned jstart = lsb/32;
+    unsigned s0     = lsb % 32;
+    unsigned jstop  = msb/32;
+
+    for (unsigned i = 0, j = jstart; (j < vsize) && (j <= jstop) && (i < 3); i++, j++) {
+        if (i == 0) {
+            result |= (((uint64_t) v.value.vector[i].aval & ~ ((uint64_t) v.value.vector[i].bval)) >> s0);
+        } else {
+            result |= (((uint64_t) v.value.vector[i].aval & ~ ((uint64_t) v.value.vector[i].bval)) << (32*i-s0));
+        }
+    }
+
+    result &= ((uint64_t) 2 << (msb-lsb)) - 1;
+
+    return result;
+}
+
+void stimc_net_set_uint64 (vpiHandle net, uint64_t value)
+{
+    unsigned size = vpi_get (vpiSize, net);
+
+    s_vpi_value v;
+
+    unsigned vsize = ((size-1)/32)+1;
+    if (vsize <= SOCC_VALVECTOR_MAX_STATIC) {
+        s_vpi_vecval vec[SOCC_VALVECTOR_MAX_STATIC];
+        for (unsigned i = 0; (i < vsize) && (i < 2); i++) {
+            vec[i].aval = (value >> (32*i)) & 0xffffffff;
+            vec[i].bval = 0;
+        }
+        for (unsigned i = 2; i < vsize; i++) {
+            vec[i].aval = 0;
+            vec[i].bval = 0;
+        }
+        v.format       = vpiVectorVal;
+        v.value.vector = &(vec[0]);
+        vpi_put_value (net, &v, NULL, vpiNoDelay);
+        return;
+    }
+
+    s_vpi_vecval *vec = (s_vpi_vecval*) malloc (vsize * sizeof (s_vpi_vecval));
+    for (unsigned i = 0; (i < vsize) && (i < 2); i++) {
+        vec[i].aval = (value >> (32*i)) & 0xffffffff;
+        vec[i].bval = 0;
+    }
+    for (unsigned i = 2; i < vsize; i++) {
+        vec[i].aval = 0;
+        vec[i].bval = 0;
+    }
+    v.format       = vpiVectorVal;
+    v.value.vector = vec;
+    vpi_put_value (net, &v, NULL, vpiNoDelay);
+
+    free (vec);
+}
+
+uint64_t stimc_net_get_uint64 (vpiHandle net)
+{
+    unsigned size = vpi_get (vpiSize, net);
+
+    s_vpi_value v;
+
+    unsigned vsize = ((size-1)/32)+1;
+    v.format = vpiVectorVal;
+    vpi_get_value (net, &v);
+
+    uint64_t result = 0;
+    for (unsigned i = 0; (i < vsize) && (i < 2); i++) {
+        result |= (((uint64_t) v.value.vector[i].aval & ~ ((uint64_t) v.value.vector[i].bval)) << (32*i));
+    }
+
+    return result;
 }
