@@ -5,6 +5,10 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /* methods/threads */
 void stimc_register_posedge_method (void (*methodfunc) (void *userdata), void *userdata, vpiHandle net);
 void stimc_register_negedge_method (void (*methodfunc) (void *userdata), void *userdata, vpiHandle net);
@@ -141,5 +145,9 @@ static void _stimc_module_ ## module ## _init (void)
 
 #define STIMC_EXPORT_START void (*vlog_startup_routines[])(void) = {
 #define STIMC_EXPORT_END   0};
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif
