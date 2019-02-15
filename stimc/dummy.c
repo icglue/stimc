@@ -1,21 +1,11 @@
+#include "dummy.h"
+
 #include <stdlib.h>
-#include <stdbool.h>
 #include <string.h>
+#include <stdio.h>
 
-#include <stimc.h>
-
-struct dummy {
-    stimc_module module;
-    /* ports */
-    stimc_port  clk_i;
-    stimc_port  reset_n_i;
-    stimc_port  data_in_i;
-    stimc_port  data_out_o;
-    /* events */
-    stimc_event clk_event;
-};
-
-struct dummy* dummy_create (void) {
+struct dummy* dummy_create (void)
+{
     struct dummy *dummy = (struct dummy*) malloc (sizeof (struct dummy));
 
     stimc_module_init (&(dummy->module));
@@ -30,7 +20,8 @@ struct dummy* dummy_create (void) {
     return dummy;
 }
 
-void dummy_testcontrol (void *userdata) {
+void dummy_testcontrol (void *userdata)
+{
     struct dummy *dummy = (struct dummy *) userdata;
 
     fprintf (stderr, "DEBUG: testcontrol...\n");
@@ -48,12 +39,14 @@ void dummy_testcontrol (void *userdata) {
     }
 }
 
-void dummy_dinchange (void *userdata) {
+void dummy_dinchange (void *userdata)
+{
     struct dummy *dummy = (struct dummy *) userdata;
     fprintf (stderr, "DEBUG: data_in changed at time %e\n", stimc_time ());
 }
 
-void dummy_clock (void *userdata) {
+void dummy_clock (void *userdata)
+{
     struct dummy *dummy = (struct dummy *) userdata;
     fprintf (stderr, "DEBUG: clkedge in %s at time %e\n", dummy->module.id, stimc_time ());
 
