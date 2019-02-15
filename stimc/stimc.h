@@ -12,7 +12,6 @@ void stimc_register_change_method  (void (*methodfunc) (void *userdata), void *u
 void stimc_register_startup_thread (void (*threadfunc) (void *userdata), void *userdata);
 
 /* time/wait */
-void stimc_wait_time_seconds (double time);
 #define SC_FS -15
 #define SC_PS -12
 #define SC_NS -9
@@ -20,8 +19,10 @@ void stimc_wait_time_seconds (double time);
 #define SC_MS -3
 #define SC_S  0
 void stimc_wait_time (uint64_t time, int exp);
+void stimc_wait_time_seconds (double time);
 
-double stimc_time (void);
+uint64_t stimc_time (int exp);
+double   stimc_time_seconds (void);
 
 /* event/wait */
 typedef struct stimc_event_s* stimc_event;

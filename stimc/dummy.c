@@ -42,13 +42,13 @@ void dummy_testcontrol (void *userdata)
 void dummy_dinchange (void *userdata)
 {
     struct dummy *dummy = (struct dummy *) userdata;
-    fprintf (stderr, "DEBUG: data_in changed at time %e\n", stimc_time ());
+    fprintf (stderr, "DEBUG: data_in changed at time %ldns\n", stimc_time (SC_NS));
 }
 
 void dummy_clock (void *userdata)
 {
     struct dummy *dummy = (struct dummy *) userdata;
-    fprintf (stderr, "DEBUG: clkedge in %s at time %e\n", dummy->module.id, stimc_time ());
+    fprintf (stderr, "DEBUG: clkedge in %s at time %ldns\n", dummy->module.id, stimc_time (SC_NS));
 
     stimc_trigger_event (dummy->clk_event);
 }

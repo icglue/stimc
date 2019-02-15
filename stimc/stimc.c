@@ -205,7 +205,33 @@ void stimc_wait_time_seconds (double time)
     stimc_wait_time (ltime, timeunit_raw);
 }
 
-double stimc_time (void)
+uint64_t stimc_time (int exp)
+{
+    /* get time */
+    s_vpi_time time;
+    time.type = vpiSimTime;
+    vpi_get_time (NULL, &time);
+
+    uint64_t ltime_h = time.high;
+    uint64_t ltime_l = time.low;
+    uint64_t ltime   = ((ltime_h << 32) | ltime_l);
+
+    /* timeunit */
+    int timeunit_raw = vpi_get (vpiTimeUnit, NULL);
+
+    while (exp < timeunit_raw) {
+        ltime *= 10;
+        exp++;
+    }
+    while (exp > timeunit_raw) {
+        ltime /= 10;
+        exp--;
+    }
+
+    return ltime;
+}
+
+double stimc_time_seconds (void)
 {
     /* get time */
     s_vpi_time time;
