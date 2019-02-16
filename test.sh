@@ -1,7 +1,7 @@
 #!/bin/sh
 
-module=dummy
-#module=apb_emulator
+#module=dummy
+module=apb_emulator
 #mode=c
 mode=cpp
 

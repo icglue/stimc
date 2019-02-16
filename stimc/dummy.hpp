@@ -1,5 +1,5 @@
-#ifndef __DUMMYXX_H__
-#define __DUMMYXX_H__
+#ifndef __DUMMY_HPP__
+#define __DUMMY_HPP__
 
 #include "stimc++.h"
 

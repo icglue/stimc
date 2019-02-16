@@ -25,6 +25,10 @@ class stimcxx_module {
         stimcxx_module ();
         virtual ~stimcxx_module ();
 
+        const char *module_id () {
+            return _module.id;
+        }
+
         static void wait (double time_seconds) {
             stimc_wait_time_seconds (time_seconds);
         }
@@ -41,8 +45,8 @@ class stimcxx_module {
             return stimc_time (exp);
         }
 
-        const char *module_id () {
-            return _module.id;
+        static void finish () {
+            stimc_finish ();
         }
 
     public:
