@@ -18,12 +18,9 @@ class dummy : public stimcxx_module {
         dummy ();
         virtual ~dummy ();
 
+        void testcontrol ();
+        void clock ();
+        void dinchange ();
 };
-
-/*
-void dummy_testcontrol (void *userdata);
-void dummy_dinchange (void *userdata);
-void dummy_clock (void *userdata);
-*/
 
 #endif

@@ -26,7 +26,7 @@ stimcxx_module::parameter::parameter (stimcxx_module &m, const char *name)
     v.format = vpiIntVal;
     vpi_get_value (this->_parameter, &v);
 
-    this->value = v.value.integer;
+    this->_value = v.value.integer;
 }
 
 stimcxx_module::parameter::~parameter ()
