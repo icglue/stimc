@@ -121,6 +121,12 @@ class stimcxx_module {
         };
 };
 
+#define STIMCXX_PARAMETER(port) \
+    port (*this, #port )
+
+#define STIMCXX_PORT(port) \
+    port (*this, #port )
+
 #define STIMCXX_REGISTER_STARTUP_THREAD(thread) \
     typedef decltype(this) thisptype;\
     class _stimcxx_thread_init_ ## thread {\

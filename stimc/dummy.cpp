@@ -1,11 +1,11 @@
 #include "dummy.hpp"
 
 dummy::dummy ():
-    DATA_W     (*this, "DATA_W"),
-    clk_i      (*this, "clk_i"),
-    reset_n_i  (*this, "reset_n_i"),
-    data_in_i  (*this, "data_in_i"),
-    data_out_o (*this, "data_out_o")
+    STIMCXX_PARAMETER (DATA_W),
+    STIMCXX_PORT (clk_i),
+    STIMCXX_PORT (reset_n_i),
+    STIMCXX_PORT (data_in_i),
+    STIMCXX_PORT (data_out_o)
 {
     STIMCXX_REGISTER_STARTUP_THREAD (testcontrol);
     STIMCXX_REGISTER_METHOD (posedge, clk_i, clock);

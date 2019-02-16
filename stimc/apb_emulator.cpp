@@ -1,23 +1,23 @@
 #include "apb_emulator.hpp"
 
 apb_emulator::apb_emulator ():
-    apb_clk_i     (*this, "apb_clk_i"),
-    apb_resetn_i  (*this, "apb_resetn_i"),
-    apb_clk_en_o  (*this, "apb_clk_en_o"),
+    STIMCXX_PORT (apb_clk_i),
+    STIMCXX_PORT (apb_resetn_i),
+    STIMCXX_PORT (apb_clk_en_o),
 
-    apb_addr_o    (*this, "apb_addr_o"),
-    apb_sel_o     (*this, "apb_sel_o"),
-    apb_enable_o  (*this, "apb_enable_o"),
-    apb_write_o   (*this, "apb_write_o"),
-    apb_strb_o    (*this, "apb_strb_o"),
-    apb_prot_o    (*this, "apb_prot_o"),
-    apb_wdata_o   (*this, "apb_wdata_o"),
+    STIMCXX_PORT (apb_addr_o),
+    STIMCXX_PORT (apb_sel_o),
+    STIMCXX_PORT (apb_enable_o),
+    STIMCXX_PORT (apb_write_o),
+    STIMCXX_PORT (apb_strb_o),
+    STIMCXX_PORT (apb_prot_o),
+    STIMCXX_PORT (apb_wdata_o),
 
-    apb_ready_i   (*this, "apb_ready_i"),
-    apb_rdata_i   (*this, "apb_rdata_i"),
-    apb_slverr_i  (*this, "apb_slverr_i"),
+    STIMCXX_PORT (apb_ready_i),
+    STIMCXX_PORT (apb_rdata_i),
+    STIMCXX_PORT (apb_slverr_i),
 
-    emulator_id_i (*this, "emulator_id_i")
+    STIMCXX_PORT (emulator_id_i)
 {
     /* init... */
     apb_clk_en_o = 0;
