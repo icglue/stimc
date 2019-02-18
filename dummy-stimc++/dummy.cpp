@@ -56,6 +56,3 @@ void dummy::testcontrol ()
 
 STIMCXX_INIT (dummy)
 
-STIMC_EXPORT_START
-STIMCXX_EXPORT (dummy)
-STIMC_EXPORT_END

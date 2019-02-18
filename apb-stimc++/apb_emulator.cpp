@@ -134,6 +134,3 @@ void apb_emulator::reset_release ()
 
 STIMCXX_INIT (apb_emulator)
 
-STIMC_EXPORT_START
-STIMCXX_EXPORT (apb_emulator)
-STIMC_EXPORT_END

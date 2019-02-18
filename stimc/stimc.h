@@ -100,14 +100,6 @@ stimc_parameter stimc_parameter_init (stimc_module *m, const char *name);
  *   // body
  * }
  *
- * runs function body when called via $stimc_modulename_init in verilog shell.
- *
- * STIMC_EXPORT_START
- * STIMC_EXPORT (module1)
- * STIMC_EXPORT (module2)
- * STIMC_EXPORT_END
- *
- * makes module1 and module2 available (only once per vpi interface lib)
  */
 
 #define STIMC_INIT(module) \
@@ -143,9 +135,6 @@ static void _stimc_module_ ## module ## _init (void)
 
 #define STIMC_EXPORT(module)\
     _stimc_module_ ## module ## _register,
-
-#define STIMC_EXPORT_START void (*vlog_startup_routines[])(void) = {
-#define STIMC_EXPORT_END   0};
 
 #ifdef __cplusplus
 }

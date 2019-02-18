@@ -9,8 +9,8 @@ VLOG_SOURCES   = $(wildcard $(VLOG_DIR)/*.v)
 
 # ------------  stimc_sources  -------------------------------------------------
 STIMC_MODULES  = apb_emulator
-STIMC_DIRS     = stimc stimc-apb
-STIMC_SOURCES  = $(wildcard $(addsuffix /*.c, $(STIMC_DIRS)))
+STIMC_DIRS     = stimc++ apb-stimc++
+STIMC_SOURCES  = $(wildcard $(addsuffix /*.c*, $(STIMC_DIRS)))
 
 # ------------  gtkwavefile & dumpfile  ----------------------------------------
 GTKWAVEFILE    = $(SIMNAME).gtkw
@@ -58,16 +58,15 @@ VVP_EXTARGS     =
 VVP_EXTARGS_RUN = run
 
 # ------------  tool flags for stimc  ------------------------------------------
-STIMC_CFLAGS    = $(addprefix -I,$(STIMC_DIRS))
 STIMC_LDFLAGS   = -lpcl
 
-WARNFLAGS       ?= -Wall -Wextra -Wshadow -Wstrict-prototypes
+WARNFLAGS       ?= -Wall -Wextra -Wshadow
 OPTFLAGS        ?= -O2 -fdata-sections -ffunction-sections
 ARCHFLAGS       ?= -mtune=native -march=native
-CFLAGS          ?= -fpic
+CFLAGS          ?= -fpic -Wstrict-prototypes
 CXXFLAGS        ?= -fpic
-CPPFLAGS        ?=
-LDFLAGS         ?=
+CPPFLAGS        ?= $(addprefix -I,$(STIMC_DIRS))
+LDFLAGS         ?= -lpcl
 
 ifneq ($(strip $(STIMC_MODULES)),)
   VPI_CFLAGS   = $(shell iverilog-vpi --cflags | egrep -o -- '-I\s*\S*')
@@ -76,9 +75,9 @@ ifneq ($(strip $(STIMC_MODULES)),)
   VVP_FLAGS   += -M$(WORK_DIR) -m$(notdir $(basename $(VPI_MODULE)))
 endif
 
-ALL_CFLAGS       = $(WARNFLAGS) $(OPTFLAGS) $(ARCHFLAGS) $(VPI_CFLAGS) $(STIMC_CFLAGS) $(CFLAGS) $(CPPFLAGS)
-ALL_CXXFLAGS     = $(WARNFLAGS) $(OPTFLAGS) $(ARCHFLAGS) $(CXXFLAGS) $(CPPFLAGS)
-ALL_LDFLAGS      = $(VPI_LDFLAGS) $(STIMC_LDFLAGS) $(LDFLAGS)
+ALL_CFLAGS       = $(WARNFLAGS) $(OPTFLAGS) $(ARCHFLAGS) $(VPI_CFLAGS) $(CFLAGS)   $(CPPFLAGS)
+ALL_CXXFLAGS     = $(WARNFLAGS) $(OPTFLAGS) $(ARCHFLAGS) $(VPI_CFLAGS) $(CXXFLAGS) $(CPPFLAGS)
+ALL_LDFLAGS      = $(VPI_LDFLAGS) $(LDFLAGS)
 
 VPATH = $(subst $() $(),:,$(STIMC_DIRS))
 
@@ -87,21 +86,21 @@ all: rungui
 $(WORK_DIR):
 	@mkdir -p $@
 
-$(WORK_DIR)/%.d: %.c $(MAKEFILE) | $(WORK_DIR)
+$(WORK_DIR)/%.d: %.c $(MAKEFILE_LIST) | $(WORK_DIR)
 	@$(CC) -MM -E $(CPPFLAGS) $< | perl -p -e 's#[^:]*:#$(WORK_DIR)/$$&#' > $@
 	@$(LN) $*.d $(WORK_DIR)/$*.dep
-
-$(WORK_DIR)/%.d: %.cc $(MAKEFILE) | $(WORK_DIR)
-	@$(CXX) -MM -E $(CPPFLAGS) $< | perl -p -e 's#[^:]*:#$(WORK_DIR)/$$&#' > $@
-	@$(LN) $*.d $(WORK_DIR)/$*.dep
-
--include ${STIMC_DEPS:.d=.dep}
 
 $(WORK_DIR)/%.o: %.c $(WORK_DIR)/%.d | $(WORK_DIR)
 	$(CC) $(ALL_CFLAGS) -g -c $< -o $@
 
-$(WORK_DIR)/%.o: %.cc $(WORK_DIR)/%.d | $(WORK_DIR)
+$(WORK_DIR)/%.d: %.cpp $(MAKEFILE_LIST) | $(WORK_DIR)
+	@$(CXX) -MM -E $(CPPFLAGS) $< | perl -p -e 's#[^:]*:#$(WORK_DIR)/$$&#' > $@
+	@$(LN) $*.d $(WORK_DIR)/$*.dep
+
+$(WORK_DIR)/%.o: %.cpp $(WORK_DIR)/%.d | $(WORK_DIR)
 	$(CXX) $(ALL_CXXFLAGS) -g -c $< -o $@
+
+-include ${STIMC_DEPS:.d=.dep}
 
 $(WORK_DIR)/%.vpi: $(STIMC_OBJECTS)
 	$(CC) $(WARNFLAGS) $(ALL_LDFLAGS) -o $@ $(STIMC_OBJECTS)
@@ -111,7 +110,7 @@ $(VVP_FILE): $(TESTBENCH) $(VLOG_SOURCES) $(DUMP_MODULE) | $(WORK_DIR)
 	$(IVERILOG) ${IVERLILOG_FLAGS} $^ -o $@
 
 
-$(DUMPFILE): $(VVP_FILE) $(VPI_MODULE) $(MAKEFILE)
+$(DUMPFILE): $(VVP_FILE) $(VPI_MODULE) $(MAKEFILE_LIST)
 	IVERILOG_DUMPER=${DUMPER} $(VVP) $(VVP_FLAGS) $(VVP_FILE) $(DUMPMODE) $(VVP_EXTARGS)
 
 vlog: $(VVP_FILE)
@@ -138,7 +137,8 @@ clean:
         $(VVP_FILE) $(DUMPFILE) $(DUMP_MODULE) $(GTKWAVE_LOG) $(VVP_LOG)  \
         $(VPI_MODULE) $(STIMC_DEPS) ${STIMC_DEPS:.d=.dep} $(STIMC_OBJECTS) \
         2> /dev/null || true
-	@rmdir $(WORK_DIR)
+	@rm -f $(WORK_DIR)/$(DUMPFILE).hier
+	@rmdir $(WORK_DIR) 2> /dev/null || true
 
 $(DUMP_MODULE):
 	@echo 'module dump ();'                 > $@

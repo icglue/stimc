@@ -79,7 +79,3 @@ STIMC_INIT (dummy)
     fprintf (stderr, "DEBUG: dummy module \"%s\" has DATA_W %d\n", dummy->module.id, stimc_parameter_get_int32 (dummy->DATA_W));
 }
 
-/* export */
-STIMC_EXPORT_START
-    STIMC_EXPORT (dummy)
-STIMC_EXPORT_END

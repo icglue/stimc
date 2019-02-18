@@ -164,7 +164,7 @@ class stimcxx_module {
         return 0;\
     }\
     \
-    static void _stimcxx_module_ ## module ## _register (void)\
+    void _stimc_module_ ## module ## _register (void)\
     {\
         s_vpi_systf_data tf_data;\
     \
@@ -177,9 +177,5 @@ class stimcxx_module {
     \
         vpi_register_systf(&tf_data);\
     }
-
-#define STIMCXX_EXPORT(module)\
-    _stimcxx_module_ ## module ## _register,
-
 
 #endif
