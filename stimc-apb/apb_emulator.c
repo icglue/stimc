@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+
 struct apb_emulator* apb_emulator_create (void)
 {
     struct apb_emulator *apb_emulator = (struct apb_emulator*) malloc (sizeof (struct apb_emulator));

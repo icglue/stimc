@@ -3,6 +3,7 @@
 
 #include <stimc.h>
 
+
 struct apb_emulator {
     stimc_module module;
     /* ports */

@@ -69,11 +69,6 @@ module tb_apb ();
     end
 
     initial begin
-        $dumpfile ("dump.vcd");
-        $dumpvars (0);
-    end
-
-    initial begin
         apb_rdata  = 32'h0;
         apb_ready  =  1'b1;
         apb_slverr =  1'b0;

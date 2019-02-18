@@ -1,6 +1,7 @@
 #ifndef __STIMC_H__
 #define __STIMC_H__
 
+
 #include <vpi_user.h>
 #include <stdint.h>
 #include <stdbool.h>
@@ -124,7 +125,7 @@ static int _stimc_module_ ## module ## _init_cltf (PLI_BYTE8* user_data __attrib
     return 0;\
 }\
 \
-static void _stimc_module_ ## module ## _register (void)\
+void _stimc_module_ ## module ## _register (void)\
 {\
     s_vpi_systf_data tf_data;\
 \

@@ -181,4 +181,5 @@ class stimcxx_module {
 #define STIMCXX_EXPORT(module)\
     _stimcxx_module_ ## module ## _register,
 
+
 #endif
