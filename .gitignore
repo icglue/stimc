@@ -10,5 +10,5 @@ a.out
 *.gtkw
 
 .*.sw?
-work
+.work
 dump.v
