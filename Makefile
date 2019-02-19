@@ -97,18 +97,18 @@ else
 	@mkdir -p $(WORK_DIR)
 endif
 
-$(WORK_DIR)/%.d: %.c $(MAKEFILE_LIST) | $(WORK_DIR)
+$(WORK_DIR)/%.d: %.c | $(WORK_DIR)
 	@$(CC) -MM -E $(CPPFLAGS) $< | perl -p -e 's#[^:]*:#$(WORK_DIR)/$$&#' > $@
 	@$(LN) $*.d $(WORK_DIR)/$*.dep
 
-$(WORK_DIR)/%.o: %.c $(WORK_DIR)/%.d | $(WORK_DIR)
+$(WORK_DIR)/%.o: %.c $(WORK_DIR)/%.d $(MAKEFILE_LIST) | $(WORK_DIR)
 	$(CC) $(ALL_CFLAGS) -g -c $< -o $@
 
-$(WORK_DIR)/%.d: %.cpp $(MAKEFILE_LIST) | $(WORK_DIR)
+$(WORK_DIR)/%.d: %.cpp | $(WORK_DIR)
 	@$(CXX) -MM -E $(CPPFLAGS) $< | perl -p -e 's#[^:]*:#$(WORK_DIR)/$$&#' > $@
 	@$(LN) $*.d $(WORK_DIR)/$*.dep
 
-$(WORK_DIR)/%.o: %.cpp $(WORK_DIR)/%.d | $(WORK_DIR)
+$(WORK_DIR)/%.o: %.cpp $(WORK_DIR)/%.d $(MAKEFILE_LIST) | $(WORK_DIR)
 	$(CXX) $(ALL_CXXFLAGS) -g -c $< -o $@
 
 -include ${STIMC_DEPS:.d=.dep}
@@ -117,7 +117,7 @@ $(WORK_DIR)/%.vpi: $(STIMC_OBJECTS)
 	$(CC) $(WARNFLAGS) $(ALL_LDFLAGS) -o $@ $(STIMC_OBJECTS)
 
 
-$(VVP_FILE): $(VLOG_SOURCES) $(DUMP_MOD) $(COMPILE_DEPS) $(MAKEFILE_LIST) | $(WORK_DIR)
+$(VVP_FILE): $(VLOG_SOURCES) $(DUMP_MOD) $(COMPILE_DEPS) $(filter-out %.dep,$(MAKEFILE_LIST)) | $(WORK_DIR)
 	$(IVERILOG) $(addprefix -s, $(TOPLEVEL)) $(addprefix -I,$(VLOG_INCDIRS)) $(IVERLILOG_FLAGS) $(ADDITIONAL_IVERILOG_FLAGS) $(VLOG_SOURCES) $(DUMP_MOD) -o $@
 
 
@@ -134,14 +134,10 @@ run: $(VVP_FILE) $(VPI_MODULE) Makefile
 	$(VVP) $(VVP_FLAGS) $(VVP_FILE) $(DUMPMODE) $(VVP_EXTARGS_RUN)
 
 rungui: $(DUMPFILE)
-	@$(MAKE) -s gui
+	@$(MAKE) --no-print-directory gui
 
 gui:
-	@if [ -e $(GTKWAVEFILE) ]; then                                           \
-		eval "gtkwave $(GTKWAVEFILE) > $(GTKWAVE_LOG) 2>&1 &";                \
-	else                                                                      \
-		eval "gtkwave -a $(GTKWAVEFILE) $(DUMPFILE) > $(GTKWAVE_LOG) 2>&1 &"; \
-	fi
+	gtkwave -a $(GTKWAVEFILE) -f $(DUMPFILE) -O $(GTKWAVE_LOG) &
 
 clean:
 	@rm -f \
