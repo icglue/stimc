@@ -1,6 +1,6 @@
 `timescale 1ns/1ps
 
-module tb_apb ();
+module tb_apb_emulator ();
 
     wire        apb_clk_s;
     wire        apb_resetn_s;

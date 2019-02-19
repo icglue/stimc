@@ -4,8 +4,8 @@
 
 
 # ------------  verilog testbench + sources  -----------------------------------
-SIMNAME         = apb_emulator
-TOPLEVEL        = tb_apb dump
+SIM_NAME        = tb_apb_emulator
+TOPLEVEL        = $(SIM_NAME) $(DUMP_MOD_NAME)
 VLOG_SOURCES    = $(wildcard ./apb-verilog/*.v)
 VLOG_INCDIRS    =
 
@@ -15,20 +15,21 @@ STIMC_DIRS      = ./stimc++ ./apb-stimc++/
 STIMC_SOURCES   = $(wildcard $(addsuffix /*.c*, $(STIMC_DIRS)))
 
 # ------------  gtkwavefile & dumpfile  ----------------------------------------
-GTKWAVEFILE     = $(SIMNAME).gtkw
-DUMPFILE        = $(WORK_DIR)/$(SIMNAME).dump
+GTKWAVEFILE     = $(SIM_NAME).gtkw
+DUMPFILE        = $(WORK_DIR)/$(SIM_NAME).dump
 
 # ------------  configuration parameters ---------------------------------------
 DUMPER          = fst
-DUMP_MODULE     = dump.v
 GTKWAVE_LOG     = $(WORK_DIR)/gtkwave.log
-VVP_LOG         = $(WORK_DIR)/$(SIMNAME).log
+VVP_LOG         = $(WORK_DIR)/$(SIM_NAME).log
+DUMP_MOD        = dump.v
+DUMP_MOD_NAME   = $(notdir $(basename $(DUMP_MOD)))
 
 #-------------  working directory  ---------------------------------------------
 WORK_DIR       ?= .work
 
 # ------------  name of vvp file  ----------------------------------------------
-VVP_FILE        = $(WORK_DIR)/$(SIMNAME)-simulate
+VVP_FILE        = $(WORK_DIR)/$(SIM_NAME)-simulate
 
 #===============================================================================
 # The following statements usually need not to be changed
@@ -51,7 +52,7 @@ CXX             = $(GP)g++
 LD              = $(GP)ld
 LN              = ln -sf
 VVP             = vvp
-MKTEMP          = mktemp -p $(TMPDIR) -t ivl-$(USER)-$(SIMNAME)-XXXX
+MKTEMP          = mktemp -p $(TMPDIR) -t ivl-$(USER)-$(SIM_NAME)-XXXX
 
 # ------------  tool flags for iverilog  ---------------------------------------
 IVERLILOG_FLAGS = -Wall -Wno-timescale -Wno-implicit-dimensions \
@@ -116,7 +117,7 @@ $(WORK_DIR)/%.vpi: $(STIMC_OBJECTS)
 	$(CC) $(WARNFLAGS) $(ALL_LDFLAGS) -o $@ $(STIMC_OBJECTS)
 
 
-$(VVP_FILE): $(VLOG_SOURCES) $(DUMP_MODULE) $(COMPILE_DEPS) | $(WORK_DIR)
+$(VVP_FILE): $(VLOG_SOURCES) $(DUMP_MOD) $(COMPILE_DEPS) | $(WORK_DIR)
 	$(IVERILOG) $(addprefix -s, $(TOPLEVEL)) $(addprefix -I,$(VLOG_INCDIRS)) $(IVERLILOG_FLAGS) $(ADDITIONAL_IVERILOG_FLAGS) $^ -o $@
 
 
@@ -144,7 +145,7 @@ gui:
 
 clean:
 	@rm -f \
-        $(VVP_FILE) $(DUMPFILE) $(DUMP_MODULE) $(GTKWAVE_LOG) $(VVP_LOG)  \
+        $(VVP_FILE) $(DUMPFILE) $(DUMP_MOD) $(GTKWAVE_LOG) $(VVP_LOG)  \
         $(VPI_MODULE) $(STIMC_DEPS) ${STIMC_DEPS:.d=.dep} $(STIMC_OBJECTS) \
         2> /dev/null || true
 	@rm -f $(WORK_DIR)/$(DUMPFILE).hier
@@ -155,8 +156,8 @@ clean:
 		rmdir $(WORK_DIR) 2>&1 > /dev/null || true ;\
 	fi
 
-$(DUMP_MODULE):
-	@echo 'module dump ();'                 > $@
+$(DUMP_MOD):
+	@echo 'module $(DUMP_MOD_NAME) ();'     > $@
 	@echo 'initial begin'                  >> $@
 	@echo '    $$dumpfile("$(DUMPFILE)");' >> $@
 	@echo '    $$dumpvars();'              >> $@
