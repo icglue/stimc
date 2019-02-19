@@ -145,7 +145,7 @@ gui:
 
 clean:
 	@rm -f \
-        $(VVP_FILE) $(DUMPFILE) $(DUMP_MOD) $(GTKWAVE_LOG) $(VVP_LOG)  \
+        $(VVP_FILE) $(DUMPFILE) $(GTKWAVE_LOG) $(VVP_LOG)  \
         $(VPI_MODULE) $(STIMC_DEPS) ${STIMC_DEPS:.d=.dep} $(STIMC_OBJECTS) \
         2> /dev/null || true
 	@rm -f $(WORK_DIR)/$(DUMPFILE).hier
