@@ -69,12 +69,18 @@ class stimcxx_module {
 
                         operator uint64_t ()
                         {
-                            return stimc_net_get_bits_uint64 (_p._port, _lsb, _msb);
+                            return stimc_net_get_bits_uint64 (_p._port, _msb, _lsb);
                         }
 
                         subbits& operator= (uint64_t value)
                         {
-                            stimc_net_set_bits_uint64 (_p._port, _lsb, _msb, value);
+                            stimc_net_set_bits_uint64 (_p._port, _msb, _lsb, value);
+                            return *this;
+                        }
+
+                        subbits& operator<<= (uint64_t value)
+                        {
+                            stimc_net_set_bits_uint64_nonblock (_p._port, _msb, _lsb, value);
                             return *this;
                         }
                 };
@@ -86,11 +92,21 @@ class stimcxx_module {
                     stimc_net_set_uint64 (_port, value);
                     return *this;
                 }
+                port& operator<<= (uint64_t value) {
+                    stimc_net_set_uint64_nonblock (_port, value);
+                    return *this;
+                }
                 operator uint64_t ()
                 {
                     return stimc_net_get_uint64 (_port);
                 }
 
+                void nb_set_x () {
+                    stimc_net_set_x_nonblock (_port);
+                }
+                void nb_set_z () {
+                    stimc_net_set_z_nonblock (_port);
+                }
                 void set_x () {
                     stimc_net_set_x (_port);
                 }
@@ -116,6 +132,10 @@ class stimcxx_module {
                 virtual ~parameter ();
 
                 int value () {
+                    return _value;
+                }
+                operator uint64_t ()
+                {
                     return _value;
                 }
         };

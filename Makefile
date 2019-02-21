@@ -4,14 +4,14 @@
 
 
 # ------------  verilog testbench + sources  -----------------------------------
-SIM_NAME        = tb_apb_emulator
+SIM_NAME        = tb_ff
 TOPLEVEL        = $(SIM_NAME) $(DUMP_MOD_NAME)
-VLOG_SOURCES    = $(wildcard ./apb-verilog/*.v)
+VLOG_SOURCES    = $(wildcard ./ff-verilog/*.v)
 VLOG_INCDIRS    =
 
 # ------------  stimc_sources  -------------------------------------------------
-STIMC_MODULES   = apb_emulator
-STIMC_DIRS      = ./stimc++ ./apb-stimc++/
+STIMC_MODULES   = ff_emulator
+STIMC_DIRS      = ./stimc++ ./ff-stimc++/
 STIMC_SOURCES   = $(wildcard $(addsuffix /*.c*, $(STIMC_DIRS)))
 
 # ------------  gtkwavefile & dumpfile  ----------------------------------------
@@ -131,7 +131,7 @@ vpi_run: $(VPI_MODULE)
 elab: vlog vpi_run
 
 run: $(VVP_FILE) $(VPI_MODULE) Makefile
-	$(VVP) $(VVP_FLAGS) $(VVP_FILE) $(DUMPMODE) $(VVP_EXTARGS_RUN)
+	IVERILOG_DUMPER=${DUMPER} $(VVP) $(VVP_FLAGS) $(VVP_FILE) $(DUMPMODE) $(VVP_EXTARGS_RUN)
 
 rungui: $(DUMPFILE)
 	@$(MAKE) --no-print-directory gui

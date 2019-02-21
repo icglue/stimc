@@ -10,10 +10,24 @@
 extern "C" {
 #endif
 
+/* port/net/parameter types */
+struct stimc_net_s {
+    vpiHandle net;
+
+    uint64_t  nba_value;
+    unsigned  nba_lsb;
+    unsigned  nba_msb;
+    vpiHandle nba_cb_handle;
+};
+typedef struct stimc_net_s * stimc_net;
+typedef struct stimc_net_s * stimc_port;
+
+typedef vpiHandle stimc_parameter;
+
 /* methods/threads */
-void stimc_register_posedge_method (void (*methodfunc) (void *userdata), void *userdata, vpiHandle net);
-void stimc_register_negedge_method (void (*methodfunc) (void *userdata), void *userdata, vpiHandle net);
-void stimc_register_change_method  (void (*methodfunc) (void *userdata), void *userdata, vpiHandle net);
+void stimc_register_posedge_method (void (*methodfunc) (void *userdata), void *userdata, stimc_net net);
+void stimc_register_negedge_method (void (*methodfunc) (void *userdata), void *userdata, stimc_net net);
+void stimc_register_change_method  (void (*methodfunc) (void *userdata), void *userdata, stimc_net net);
 
 void stimc_register_startup_thread (void (*threadfunc) (void *userdata), void *userdata);
 
@@ -41,29 +55,26 @@ void stimc_trigger_event (stimc_event event);
 void stimc_finish (void);
 
 /* ports/parameters */
-typedef vpiHandle stimc_port;
-typedef vpiHandle stimc_parameter;
-
-static inline void stimc_net_set_int32 (vpiHandle net, int32_t value)
+static inline void stimc_net_set_int32 (stimc_net net, int32_t value)
 {
     s_vpi_value v;
     v.format        = vpiIntVal;
     v.value.integer = value;
-    vpi_put_value (net, &v, NULL, vpiNoDelay);
+    vpi_put_value (net->net, &v, NULL, vpiNoDelay);
 }
 
-static inline int32_t stimc_net_get_int32 (vpiHandle net)
+static inline int32_t stimc_net_get_int32 (stimc_net net)
 {
     s_vpi_value v;
     v.format = vpiIntVal;
-    vpi_get_value (net, &v);
+    vpi_get_value (net->net, &v);
 
     return v.value.integer;
 }
 
-static inline unsigned stimc_net_size (vpiHandle net)
+static inline unsigned stimc_net_size (stimc_net net)
 {
-    return vpi_get (vpiSize, net);
+    return vpi_get (vpiSize, net->net);
 }
 
 static inline uint32_t stimc_parameter_get_int32 (stimc_parameter parameter)
@@ -75,14 +86,18 @@ static inline uint32_t stimc_parameter_get_int32 (stimc_parameter parameter)
     return v.value.integer;
 }
 
-void stimc_net_set_z (vpiHandle net);
-void stimc_net_set_x (vpiHandle net);
-bool stimc_net_is_xz (vpiHandle net);
+void stimc_net_set_z_nonblock (stimc_net net);
+void stimc_net_set_x_nonblock (stimc_net net);
+void stimc_net_set_z          (stimc_net net);
+void stimc_net_set_x          (stimc_net net);
+bool stimc_net_is_xz          (stimc_net net);
 
-void stimc_net_set_bits_uint64 (vpiHandle net, unsigned lsb, unsigned msb, uint64_t value);
-uint64_t stimc_net_get_bits_uint64 (vpiHandle net, unsigned lsb, unsigned msb);
-void stimc_net_set_uint64 (vpiHandle net, uint64_t value);
-uint64_t stimc_net_get_uint64 (vpiHandle net);
+void     stimc_net_set_bits_uint64_nonblock (stimc_net net, unsigned msb, unsigned lsb, uint64_t value);
+void     stimc_net_set_bits_uint64          (stimc_net net, unsigned msb, unsigned lsb, uint64_t value);
+uint64_t stimc_net_get_bits_uint64          (stimc_net net, unsigned msb, unsigned lsb);
+void     stimc_net_set_uint64_nonblock      (stimc_net net, uint64_t value);
+void     stimc_net_set_uint64               (stimc_net net, uint64_t value);
+uint64_t stimc_net_get_uint64               (stimc_net net);
 
 /* modules */
 typedef struct stimc_module_s {

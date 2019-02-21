@@ -63,7 +63,7 @@ static PLI_INT32 stimc_change_method_callback_wrapper (struct t_cb_data *cb_data
     return 0;
 }
 
-static void stimc_register_valuechange_method (void (*methodfunc) (void *userdata), void *userdata, vpiHandle net, int edge)
+static void stimc_register_valuechange_method (void (*methodfunc) (void *userdata), void *userdata, stimc_net net, int edge)
 {
     s_cb_data   data;
     s_vpi_time  data_time;
@@ -84,7 +84,7 @@ static void stimc_register_valuechange_method (void (*methodfunc) (void *userdat
         /* value change */
         data.cb_rtn    = stimc_change_method_callback_wrapper;
     }
-    data.obj           = net;
+    data.obj           = net->net;
     data.time          = &data_time;
     data.time->type    = vpiSuppressTime;
     data.time->high    = 0;
@@ -98,15 +98,15 @@ static void stimc_register_valuechange_method (void (*methodfunc) (void *userdat
     assert (vpi_register_cb (&data));
 }
 
-void stimc_register_posedge_method (void (*methodfunc) (void *userdata), void *userdata, vpiHandle net)
+void stimc_register_posedge_method (void (*methodfunc) (void *userdata), void *userdata, stimc_net net)
 {
     stimc_register_valuechange_method (methodfunc, userdata, net, 1);
 }
-void stimc_register_negedge_method (void (*methodfunc) (void *userdata), void *userdata, vpiHandle net)
+void stimc_register_negedge_method (void (*methodfunc) (void *userdata), void *userdata, stimc_net net)
 {
     stimc_register_valuechange_method (methodfunc, userdata, net, -1);
 }
-void stimc_register_change_method  (void (*methodfunc) (void *userdata), void *userdata, vpiHandle net)
+void stimc_register_change_method  (void (*methodfunc) (void *userdata), void *userdata, stimc_net net)
 {
     stimc_register_valuechange_method (methodfunc, userdata, net, 0);
 }
@@ -346,40 +346,48 @@ static vpiHandle stimc_module_handle_init (stimc_module *m, const char *name)
     size_t scope_len = strlen (scope);
     size_t name_len  = strlen (name);
 
-    char *pin_name = (char *) malloc (sizeof (char) * (scope_len + name_len + 2));
+    char *net_name = (char *) malloc (sizeof (char) * (scope_len + name_len + 2));
 
-    strcpy (pin_name, scope);
-    pin_name[scope_len] = '.';
-    strcpy (&(pin_name[scope_len+1]), name);
+    strcpy (net_name, scope);
+    net_name[scope_len] = '.';
+    strcpy (&(net_name[scope_len+1]), name);
 
-    vpiHandle pin = vpi_handle_by_name(pin_name, NULL);
+    vpiHandle net = vpi_handle_by_name(net_name, NULL);
 
-    free (pin_name);
+    free (net_name);
 
-    assert (pin);
+    assert (net);
 
-    return pin;
+    return net;
 }
 
 stimc_port stimc_port_init (stimc_module *m, const char *name)
 {
-    return stimc_module_handle_init (m, name);
+    vpiHandle handle = stimc_module_handle_init (m, name);
+    stimc_port result = (stimc_port) malloc (sizeof (struct stimc_net_s));
+
+    result->net           = handle;
+    result->nba_cb_handle = NULL;
+
+    return result;
 }
 stimc_parameter stimc_parameter_init (stimc_module *m, const char *name)
 {
     return stimc_module_handle_init (m, name);
 }
 
-static inline void stimc_net_set_xz (vpiHandle net, int val)
+static inline void stimc_net_set_xz (stimc_net net, int val)
 {
-    unsigned size = vpi_get (vpiSize, net);
+    unsigned size = vpi_get (vpiSize, net->net);
 
-    s_vpi_value v;
+    static s_vpi_value v;
+
+    int32_t flags = vpiNoDelay;
 
     if (size == 1) {
         v.format       = vpiScalarVal;
         v.value.scalar = val;
-        vpi_put_value (net, &v, NULL, vpiNoDelay);
+        vpi_put_value (net->net, &v, NULL, flags);
         return;
     }
 
@@ -392,7 +400,7 @@ static inline void stimc_net_set_xz (vpiHandle net, int val)
         }
         v.format       = vpiVectorVal;
         v.value.vector = &(vec[0]);
-        vpi_put_value (net, &v, NULL, vpiNoDelay);
+        vpi_put_value (net->net, &v, NULL, flags);
         return;
     }
 
@@ -403,29 +411,29 @@ static inline void stimc_net_set_xz (vpiHandle net, int val)
     }
     v.format       = vpiVectorVal;
     v.value.vector = vec;
-    vpi_put_value (net, &v, NULL, vpiNoDelay);
+    vpi_put_value (net->net, &v, NULL, flags);
 
     free (vec);
 }
 
-void stimc_net_set_z (vpiHandle net)
+void stimc_net_set_z (stimc_net net)
 {
     stimc_net_set_xz (net, vpiZ);
 }
-void stimc_net_set_x (vpiHandle net)
+void stimc_net_set_x (stimc_net net)
 {
     stimc_net_set_xz (net, vpiX);
 }
 
-bool stimc_net_is_xz (vpiHandle net)
+bool stimc_net_is_xz (stimc_net net)
 {
-    unsigned size = vpi_get (vpiSize, net);
+    unsigned size = vpi_get (vpiSize, net->net);
 
     s_vpi_value v;
 
     if (size == 1) {
         v.format        = vpiScalarVal;
-        vpi_get_value (net, &v);
+        vpi_get_value (net->net, &v);
         if ((v.value.scalar == vpiX) || (v.value.scalar == vpiZ)) {
             return true;
         } else {
@@ -435,22 +443,24 @@ bool stimc_net_is_xz (vpiHandle net)
 
     unsigned vsize = ((size-1)/32)+1;
     v.format = vpiVectorVal;
-    vpi_get_value (net, &v);
+    vpi_get_value (net->net, &v);
     for (unsigned i = 0; i < vsize; i++) {
         if (v.value.vector[i].bval != 0) return true;
     }
     return false;
 }
 
-void stimc_net_set_bits_uint64 (vpiHandle net, unsigned lsb, unsigned msb, uint64_t value)
+void stimc_net_set_bits_uint64 (stimc_net net, unsigned msb, unsigned lsb, uint64_t value)
 {
-    unsigned size = vpi_get (vpiSize, net);
+    unsigned size = vpi_get (vpiSize, net->net);
 
-    s_vpi_value v;
+    static s_vpi_value v;
+
+    int32_t flags = vpiNoDelay;
 
     unsigned vsize = ((size-1)/32)+1;
     v.format = vpiVectorVal;
-    vpi_get_value (net, &v);
+    vpi_get_value (net->net, &v);
 
     unsigned jstart = lsb/32;
     unsigned s0     = lsb % 32;
@@ -477,18 +487,18 @@ void stimc_net_set_bits_uint64 (vpiHandle net, unsigned lsb, unsigned msb, uint6
         v.value.vector[i].bval &= ~i_mask;
     }
 
-    vpi_put_value (net, &v, NULL, vpiNoDelay);
+    vpi_put_value (net->net, &v, NULL, flags);
 }
 
-uint64_t stimc_net_get_bits_uint64 (vpiHandle net, unsigned lsb, unsigned msb)
+uint64_t stimc_net_get_bits_uint64 (stimc_net net, unsigned lsb, unsigned msb)
 {
-    unsigned size = vpi_get (vpiSize, net);
+    unsigned size = vpi_get (vpiSize, net->net);
 
     s_vpi_value v;
 
     unsigned vsize = ((size-1)/32)+1;
     v.format = vpiVectorVal;
-    vpi_get_value (net, &v);
+    vpi_get_value (net->net, &v);
 
     uint64_t result = 0;
 
@@ -509,11 +519,20 @@ uint64_t stimc_net_get_bits_uint64 (vpiHandle net, unsigned lsb, unsigned msb)
     return result;
 }
 
-void stimc_net_set_uint64 (vpiHandle net, uint64_t value)
+void stimc_net_set_uint64 (stimc_net net, uint64_t value)
 {
-    unsigned size = vpi_get (vpiSize, net);
+    unsigned size = vpi_get (vpiSize, net->net);
 
-    s_vpi_value v;
+    static s_vpi_value v;
+
+    int32_t flags = vpiNoDelay;
+
+    if (size == 1) {
+        v.format       = vpiScalarVal;
+        v.value.scalar = (value ? vpi1 : vpi0);
+        vpi_put_value (net->net, &v, NULL, flags);
+        return;
+    }
 
     unsigned vsize = ((size-1)/32)+1;
     if (vsize <= SOCC_VALVECTOR_MAX_STATIC) {
@@ -528,7 +547,7 @@ void stimc_net_set_uint64 (vpiHandle net, uint64_t value)
         }
         v.format       = vpiVectorVal;
         v.value.vector = &(vec[0]);
-        vpi_put_value (net, &v, NULL, vpiNoDelay);
+        vpi_put_value (net->net, &v, NULL, flags);
         return;
     }
 
@@ -543,20 +562,20 @@ void stimc_net_set_uint64 (vpiHandle net, uint64_t value)
     }
     v.format       = vpiVectorVal;
     v.value.vector = vec;
-    vpi_put_value (net, &v, NULL, vpiNoDelay);
+    vpi_put_value (net->net, &v, NULL, flags);
 
     free (vec);
 }
 
-uint64_t stimc_net_get_uint64 (vpiHandle net)
+uint64_t stimc_net_get_uint64 (stimc_net net)
 {
-    unsigned size = vpi_get (vpiSize, net);
+    unsigned size = vpi_get (vpiSize, net->net);
 
     s_vpi_value v;
 
     unsigned vsize = ((size-1)/32)+1;
     v.format = vpiVectorVal;
-    vpi_get_value (net, &v);
+    vpi_get_value (net->net, &v);
 
     uint64_t result = 0;
     for (unsigned i = 0; (i < vsize) && (i < 2); i++) {
@@ -564,4 +583,95 @@ uint64_t stimc_net_get_uint64 (vpiHandle net)
     }
 
     return result;
+}
+
+static inline void stimc_net_set_uint64_callback_nonblock_gen (PLI_INT32 (*cb_rtn)(struct t_cb_data*), stimc_net net)
+{
+    s_cb_data   data;
+    s_vpi_time  data_time;
+    s_vpi_value data_value;
+
+    data.reason        = cbReadWriteSynch;
+    data.cb_rtn        = cb_rtn;
+    data.obj           = NULL;
+    data.time          = &data_time;
+    data.time->type    = vpiSuppressTime;
+    data.time->high    = 0;
+    data.time->low     = 0;
+    data.time->real    = 0;
+    data.value         = &data_value;
+    data.value->format = vpiSuppressVal;
+    data.index         = 0;
+    data.user_data     = (PLI_BYTE8 *) net;
+
+    if (net->nba_cb_handle != NULL) {
+        vpi_remove_cb (net->nba_cb_handle);
+    }
+    net->nba_cb_handle = vpi_register_cb (&data);
+    assert (net->nba_cb_handle);
+}
+
+static PLI_INT32 stimc_net_set_x_nonblock_callback_wrapper (struct t_cb_data *cb_data) {
+    stimc_net net = (stimc_net) cb_data->user_data;
+
+    stimc_net_set_x (net);
+    vpi_remove_cb (net->nba_cb_handle);
+    net->nba_cb_handle = NULL;
+
+    return 0;
+}
+
+static PLI_INT32 stimc_net_set_z_nonblock_callback_wrapper (struct t_cb_data *cb_data) {
+    stimc_net net = (stimc_net) cb_data->user_data;
+
+    stimc_net_set_z (net);
+    vpi_remove_cb (net->nba_cb_handle);
+    net->nba_cb_handle = NULL;
+
+    return 0;
+}
+
+void stimc_net_set_z_nonblock (stimc_net net)
+{
+    stimc_net_set_uint64_callback_nonblock_gen (stimc_net_set_z_nonblock_callback_wrapper, net);
+}
+void stimc_net_set_x_nonblock (stimc_net net)
+{
+    stimc_net_set_uint64_callback_nonblock_gen (stimc_net_set_x_nonblock_callback_wrapper, net);
+}
+
+static PLI_INT32 stimc_net_set_uint64_nonblock_callback_wrapper (struct t_cb_data *cb_data) {
+    stimc_net net = (stimc_net) cb_data->user_data;
+
+    stimc_net_set_uint64 (net, net->nba_value);
+    vpi_remove_cb (net->nba_cb_handle);
+    net->nba_cb_handle = NULL;
+
+    return 0;
+}
+
+static PLI_INT32 stimc_net_set_bits_uint64_nonblock_callback_wrapper (struct t_cb_data *cb_data) {
+    stimc_net net = (stimc_net) cb_data->user_data;
+
+    stimc_net_set_bits_uint64 (net, net->nba_msb, net->nba_lsb, net->nba_value);
+    vpi_remove_cb (net->nba_cb_handle);
+    net->nba_cb_handle = NULL;
+
+    return 0;
+}
+
+void stimc_net_set_uint64_nonblock (stimc_net net, uint64_t value)
+{
+    net->nba_value = value;
+
+    stimc_net_set_uint64_callback_nonblock_gen (stimc_net_set_uint64_nonblock_callback_wrapper, net);
+}
+
+void stimc_net_set_bits_uint64_nonblock (stimc_net net, unsigned msb, unsigned lsb, uint64_t value)
+{
+    net->nba_value = value;
+    net->nba_msb   = msb;
+    net->nba_lsb   = lsb;
+
+    stimc_net_set_uint64_callback_nonblock_gen (stimc_net_set_bits_uint64_nonblock_callback_wrapper, net);
 }
