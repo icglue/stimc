@@ -595,7 +595,7 @@ static inline void stimc_net_set_uint64_callback_nonblock_gen (PLI_INT32 (*cb_rt
     data.cb_rtn        = cb_rtn;
     data.obj           = NULL;
     data.time          = &data_time;
-    data.time->type    = vpiSuppressTime;
+    data.time->type    = vpiSimTime;
     data.time->high    = 0;
     data.time->low     = 0;
     data.time->real    = 0;
