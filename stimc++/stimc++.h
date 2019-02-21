@@ -187,9 +187,10 @@ class stimcxx_module {
     void _stimc_module_ ## module ## _register (void)\
     {\
         s_vpi_systf_data tf_data;\
+        static char tf_name[] = "$stimc_" #module "_init";\
     \
         tf_data.type      = vpiSysTask;\
-        tf_data.tfname    = "$stimc_" #module "_init";\
+        tf_data.tfname    = tf_name;\
         tf_data.calltf    = _stimcxx_module_ ## module ## _init_cltf;\
         tf_data.compiletf = _stimcxx_module_ ## module ## _init_cptf;\
         tf_data.sizetf    = 0;\
