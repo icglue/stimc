@@ -37,7 +37,7 @@ VVP_FILE        = $(WORK_DIR)/$(SIM_NAME)-simulate
 
 USE_TEMP        = 1
 TMPDIR         ?= /tmp
-COMPILE_DEPS = $(foreach incdir, $(INCLUDEDIRS), $(wildcard $(incdir)/*.vh))
+COMPILE_DEPS    = $(foreach incdir, $(INCLUDEDIRS), $(wildcard $(incdir)/*.vh))
 
 # ------------  generate the names of the stimc related files  -----------------
 STIMC_BASENAMES = $(notdir $(basename $(STIMC_SOURCES)))
@@ -132,6 +132,8 @@ elab: vlog vpi_run
 
 run: $(VVP_FILE) $(VPI_MODULE) Makefile
 	IVERILOG_DUMPER=${DUMPER} $(VVP) $(VVP_FLAGS) $(VVP_FILE) $(DUMPMODE) $(VVP_EXTARGS_RUN)
+
+rerungui: $(DUMPFILE)
 
 rungui: $(DUMPFILE)
 	@$(MAKE) --no-print-directory gui
