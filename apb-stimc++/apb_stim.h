@@ -2,8 +2,9 @@
 #define __APB_STIM_H__
 
 #include "stimc++.h"
+#include "regfile_contrib.h"
 
-class apb_stim : public stimcxx_module {
+class apb_stim : public stimcxx_module, regfile_dev_subword {
     private:
         parameter ID;
 
@@ -35,6 +36,18 @@ class apb_stim : public stimcxx_module {
         void testcontrol ();
         void clock ();
         void reset_release ();
+
+        rf_data_t rfdev_read (rf_addr_t addr)
+        {
+            uint32_t rdata;
+            read (addr, rdata);
+            return rdata;
+        }
+        void rfdev_write_subword (rf_addr_t addr, rf_data_t value, unsigned int size)
+        {
+            uint8_t strb = ((1 << size) - 1) << (addr & 0x3);
+            write (addr, strb, value);
+        }
 };
 
 #endif
