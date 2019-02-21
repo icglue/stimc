@@ -4,14 +4,14 @@
 
 
 # ------------  verilog testbench + sources  -----------------------------------
-SIM_NAME        = tb_apb_emulator
+SIM_NAME        = tb_apb_stim
 TOPLEVEL        = $(SIM_NAME) $(DUMP_MOD_NAME)
 VLOG_SOURCES    = $(wildcard ./apb-verilog/*.v)
 VLOG_INCDIRS    =
 
 # ------------  stimc_sources  -------------------------------------------------
-STIMC_MODULES   = apb_emulator
-STIMC_DIRS      = ./stimc++ ./apb-stimc++/
+STIMC_MODULES   = apb_stim
+STIMC_DIRS      = ./stimc++ ./apb-stimc++
 STIMC_SOURCES   = $(wildcard $(addsuffix /*.c*, $(STIMC_DIRS)))
 
 # ------------  gtkwavefile & dumpfile  ----------------------------------------

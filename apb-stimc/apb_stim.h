@@ -4,8 +4,12 @@
 #include <stimc.h>
 
 
-struct apb_emulator {
+struct apb_stim {
     stimc_module module;
+
+    /* parameter */
+    stimc_parameter ID;
+
     /* ports */
     stimc_port  apb_clk_i;
     stimc_port  apb_resetn_i;
@@ -23,17 +27,16 @@ struct apb_emulator {
     stimc_port  apb_rdata_i;
     stimc_port  apb_slverr_i;
 
-    stimc_port  emulator_id_i;
     /* events */
     stimc_event clk_event;
     stimc_event reset_release_event;
 };
 
-struct apb_emulator* apb_emulator_create (void);
-bool apb_emulator_write (struct apb_emulator *emulator, uint32_t addr, uint8_t strb, uint32_t wdata);
-bool apb_emulator_read (struct apb_emulator *emulator, uint32_t addr, uint32_t *rdata);
-void apb_emulator_testcontrol (void *userdata);
-void apb_emulator_clock (void *userdata);
-void apb_emulator_reset_release (void *userdata);
+struct apb_stim* apb_stim_create (void);
+bool apb_stim_write (struct apb_stim *emulator, uint32_t addr, uint8_t strb, uint32_t wdata);
+bool apb_stim_read (struct apb_stim *emulator, uint32_t addr, uint32_t *rdata);
+void apb_stim_testcontrol (void *userdata);
+void apb_stim_clock (void *userdata);
+void apb_stim_reset_release (void *userdata);
 
 #endif

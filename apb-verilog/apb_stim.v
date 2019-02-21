@@ -1,4 +1,4 @@
-module apb_emulator (
+module apb_stim (
     apb_clk_i,
     apb_resetn_i,
     apb_clk_en_o,
@@ -13,11 +13,10 @@ module apb_emulator (
 
     apb_ready_i,
     apb_rdata_i,
-    apb_slverr_i,
-
-    emulator_id_i
+    apb_slverr_i
 );
 
+    parameter ID = 0;
 
     input         apb_clk_i;
     input         apb_resetn_i;
@@ -35,10 +34,8 @@ module apb_emulator (
     input  [31:0] apb_rdata_i;
     input         apb_slverr_i;
 
-    input  [31:0] emulator_id_i;
-
     initial begin
-        $stimc_apb_emulator_init();
+        $stimc_apb_stim_init();
     end
 
 endmodule

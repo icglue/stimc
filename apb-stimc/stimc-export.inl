@@ -1,3 +1,3 @@
 
-STIMC_EXPORT (apb_emulator)
+STIMC_EXPORT (apb_stim)
 

@@ -660,6 +660,16 @@ static PLI_INT32 stimc_net_set_bits_uint64_nonblock_callback_wrapper (struct t_c
     return 0;
 }
 
+static PLI_INT32 stimc_net_set_int32_nonblock_callback_wrapper (struct t_cb_data *cb_data) {
+    stimc_net net = (stimc_net) cb_data->user_data;
+
+    stimc_net_set_int32 (net, net->nba_value);
+    vpi_remove_cb (net->nba_cb_handle);
+    net->nba_cb_handle = NULL;
+
+    return 0;
+}
+
 void stimc_net_set_uint64_nonblock (stimc_net net, uint64_t value)
 {
     net->nba_value = value;
@@ -674,4 +684,11 @@ void stimc_net_set_bits_uint64_nonblock (stimc_net net, unsigned msb, unsigned l
     net->nba_lsb   = lsb;
 
     stimc_net_set_uint64_callback_nonblock_gen (stimc_net_set_bits_uint64_nonblock_callback_wrapper, net);
+}
+
+void stimc_net_set_int32_nonblock (stimc_net net, int32_t value)
+{
+    net->nba_value = value;
+
+    stimc_net_set_uint64_callback_nonblock_gen (stimc_net_set_int32_nonblock_callback_wrapper, net);
 }

@@ -64,6 +64,8 @@ static inline void stimc_net_set_int32 (stimc_net net, int32_t value)
     vpi_put_value (net->net, &v, NULL, vpiNoDelay);
 }
 
+void stimc_net_set_int32_nonblock (stimc_net net, int32_t value);
+
 static inline int32_t stimc_net_get_int32 (stimc_net net)
 {
     s_vpi_value v;

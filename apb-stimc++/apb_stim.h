@@ -1,10 +1,12 @@
-#ifndef __APB_EMULATOR_HPP__
-#define __APB_EMULATOR_HPP__
+#ifndef __APB_STIM_H__
+#define __APB_STIM_H__
 
 #include "stimc++.h"
 
-class apb_emulator : public stimcxx_module {
+class apb_stim : public stimcxx_module {
     private:
+        parameter ID;
+
         port  apb_clk_i;
         port  apb_resetn_i;
         port  apb_clk_en_o;
@@ -21,14 +23,12 @@ class apb_emulator : public stimcxx_module {
         port  apb_rdata_i;
         port  apb_slverr_i;
 
-        port  emulator_id_i;
-
         stimcxx_event clk_event;
         stimcxx_event reset_release_event;
 
     public:
-        apb_emulator ();
-        virtual ~apb_emulator ();
+        apb_stim ();
+        virtual ~apb_stim ();
 
         bool write (uint32_t addr, uint8_t strb, uint32_t wdata);
         bool read (uint32_t addr, uint32_t &rdata);

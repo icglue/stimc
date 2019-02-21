@@ -1,6 +1,6 @@
 `timescale 1ns/1ps
 
-module tb_apb_emulator ();
+module tb_apb_stim ();
 
     wire        apb_clk_s;
     wire        apb_resetn_s;
@@ -18,9 +18,11 @@ module tb_apb_emulator ();
     wire [31:0] apb_rdata_s;
     wire        apb_slverr_s;
 
-    wire [31:0] emulator_id_s;
+    localparam EMULATOR_ID = 0;
 
-    apb_emulator i_apb_emulator (
+    apb_stim #(
+        .ID (EMULATOR_ID)
+    ) i_apb_stim (
         .apb_clk_i     (apb_clk_s),
         .apb_resetn_i  (apb_resetn_s),
         .apb_clk_en_o  (apb_clk_en_s),
@@ -35,9 +37,7 @@ module tb_apb_emulator ();
 
         .apb_ready_i   (apb_ready_s),
         .apb_rdata_i   (apb_rdata_s),
-        .apb_slverr_i  (apb_slverr_s),
-
-        .emulator_id_i (emulator_id_s)
+        .apb_slverr_i  (apb_slverr_s)
     );
 
     localparam APB_CLKPERIOD = 2.0;
@@ -54,8 +54,6 @@ module tb_apb_emulator ();
     assign apb_rdata_s   = apb_rdata;
     assign apb_ready_s   = apb_ready;
     assign apb_slverr_s  = apb_slverr;
-
-    assign emulator_id_s = 32'h0;
 
     initial begin
         apb_clk    = 1'b0;
