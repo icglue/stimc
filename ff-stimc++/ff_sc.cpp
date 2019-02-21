@@ -11,7 +11,7 @@ ff_sc::ff_sc ():
 {
     /* init... */
     unsigned rv = RESET_VAL;
-    data_o = rv;
+    data_o <<= rv;
 
     STIMCXX_REGISTER_METHOD (posedge, clk_i, clock);
     STIMCXX_REGISTER_METHOD (posedge, reset_n_i, reset_release);

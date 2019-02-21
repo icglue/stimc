@@ -20,14 +20,14 @@ apb_emulator::apb_emulator ():
     STIMCXX_PORT (emulator_id_i)
 {
     /* init... */
-    apb_clk_en_o = 0;
-    apb_sel_o    = 0;
-    apb_enable_o = 0;
-    apb_write_o  = 0;
-    apb_prot_o   = 0;
-    apb_addr_o   = 0;
-    apb_wdata_o  = 0;
-    apb_strb_o   = 0;
+    apb_clk_en_o <<= 0;
+    apb_sel_o    <<= 0;
+    apb_enable_o <<= 0;
+    apb_write_o  <<= 0;
+    apb_prot_o   <<= 0;
+    apb_addr_o   <<= 0;
+    apb_wdata_o  <<= 0;
+    apb_strb_o   <<= 0;
 
     STIMCXX_REGISTER_STARTUP_THREAD (testcontrol);
     STIMCXX_REGISTER_METHOD (posedge, apb_clk_i, clock);
