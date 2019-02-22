@@ -7,11 +7,11 @@ class ff_sc : public stimcxx_module {
     private:
         parameter RESET_VAL;
 
-        port  clk_i;
-        port  reset_n_i;
-        port  data_i;
+        port clk_i;
+        port reset_n_i;
+        port data_i;
 
-        port  data_o;
+        port data_o;
 
     public:
         ff_sc ();

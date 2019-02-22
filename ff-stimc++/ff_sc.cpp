@@ -1,6 +1,6 @@
 #include "ff_sc.h"
 
-ff_sc::ff_sc ():
+ff_sc::ff_sc () :
     STIMCXX_PARAMETER (RESET_VAL),
 
     STIMCXX_PORT (clk_i),
@@ -11,6 +11,7 @@ ff_sc::ff_sc ():
 {
     /* init... */
     unsigned rv = RESET_VAL;
+
     data_o <<= rv;
 
     STIMCXX_REGISTER_METHOD (posedge, clk_i, clock);
@@ -18,8 +19,7 @@ ff_sc::ff_sc ():
 }
 
 ff_sc::~ff_sc ()
-{
-}
+{}
 
 void ff_sc::clock ()
 {
@@ -30,7 +30,7 @@ void ff_sc::clock ()
 }
 
 void ff_sc::reset_release ()
-{
-}
+{}
 
 STIMCXX_INIT (ff_sc)
+

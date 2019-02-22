@@ -32,3 +32,4 @@ void (*vlog_startup_routines[])(void) = {
 #   include "stimc-export.inl"
     0,
 };
+

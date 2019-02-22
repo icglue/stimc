@@ -1,6 +1,6 @@
 #include "apb_stim.h"
 
-apb_stim::apb_stim ():
+apb_stim::apb_stim () :
     STIMCXX_PARAMETER (ID),
 
     STIMCXX_PORT (apb_clk_i),
@@ -35,8 +35,7 @@ apb_stim::apb_stim ():
 }
 
 apb_stim::~apb_stim ()
-{
-}
+{}
 
 bool apb_stim::write (uint32_t addr, uint8_t strb, uint32_t wdata)
 {

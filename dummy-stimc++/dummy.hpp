@@ -7,10 +7,10 @@ class dummy : public stimcxx_module {
     private:
         parameter DATA_W;
 
-        port      clk_i;
-        port      reset_n_i;
-        port      data_in_i;
-        port      data_out_o;
+        port clk_i;
+        port reset_n_i;
+        port data_in_i;
+        port data_out_o;
 
         stimcxx_event clk_event;
 
@@ -24,3 +24,4 @@ class dummy : public stimcxx_module {
 };
 
 #endif
+

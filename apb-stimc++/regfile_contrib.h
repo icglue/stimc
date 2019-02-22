@@ -8,24 +8,24 @@ typedef uint32_t rf_addr_t;
 
 class regfile_dev {
     public:
-        virtual rf_data_t rfdev_read (rf_addr_t addr) = 0;
+        virtual rf_data_t rfdev_read (rf_addr_t addr)                                                          = 0;
         virtual void      rfdev_write (rf_addr_t addr, rf_data_t value, rf_data_t mask, rf_data_t unused_mask) = 0;
         virtual void      rfdev_write_sequence (unsigned int length, rf_addr_t addr[], rf_data_t value[], rf_data_t mask[], rf_data_t unused_mask[]);
-        virtual           ~regfile_dev();
+        virtual ~regfile_dev();
 };
 
 class regfile_dev_simple : public regfile_dev {
     public:
-        virtual void      rfdev_write_simple (rf_addr_t addr, rf_data_t value) = 0;
-        virtual void      rfdev_write (rf_addr_t addr, rf_data_t value, rf_data_t mask, rf_data_t unused_mask);
-        virtual           ~regfile_dev_simple();
+        virtual void rfdev_write_simple (rf_addr_t addr, rf_data_t value) = 0;
+        virtual void rfdev_write (rf_addr_t addr, rf_data_t value, rf_data_t mask, rf_data_t unused_mask);
+        virtual ~regfile_dev_simple();
 };
 
 class regfile_dev_subword : public regfile_dev {
     public:
-        virtual void      rfdev_write_subword (rf_addr_t addr, rf_data_t value, unsigned int size) = 0;
-        virtual void      rfdev_write (rf_addr_t addr, rf_data_t value, rf_data_t mask, rf_data_t unused_mask);
-        virtual           ~regfile_dev_subword();
+        virtual void rfdev_write_subword (rf_addr_t addr, rf_data_t value, unsigned int size) = 0;
+        virtual void rfdev_write (rf_addr_t addr, rf_data_t value, rf_data_t mask, rf_data_t unused_mask);
+        virtual ~regfile_dev_subword();
 };
 
 class regfile_dev_bitcache : public regfile_dev {
@@ -38,11 +38,11 @@ class regfile_dev_bitcache : public regfile_dev {
             rf_data_t mask;
             rf_data_t unused_mask;
 
-            bool      valid;
+            bool valid;
         };
 
         struct cache cache;
-        bool         cache_enabled;
+        bool cache_enabled;
 
     protected:
         void cache_flush ();
@@ -68,7 +68,7 @@ class regfile_dev_wordcache : public regfile_dev {
 
         unsigned int seqlen;
         unsigned int seqlen_max;
-        bool         cache_enabled;
+        bool cache_enabled;
 
     protected:
         void cache_flush ();
@@ -87,7 +87,7 @@ class regfile_dev_wordcache : public regfile_dev {
 class regfile_t {
     protected:
         regfile_dev &dev;
-        rf_addr_t    base_addr;
+        rf_addr_t base_addr;
 
     protected:
         regfile_t (regfile_dev &dev, rf_addr_t base_addr);
@@ -101,8 +101,8 @@ class regfile_t {
 class _entry_t {
     public:
         regfile_t &_m_rf;
-        rf_addr_t  _m_addr;
-        rf_data_t  _m_unused_mask;
+        rf_addr_t _m_addr;
+        rf_data_t _m_unused_mask;
 
     protected:
         void      _entry_t_write (rf_data_t value);
@@ -114,14 +114,14 @@ class _entry_t {
 
         _entry_t& operator= (rf_data_t value);
         operator rf_data_t ();
-        rf_data_t* operator& ();
+        rf_data_t *operator& ();
 };
 
 class _reg_t {
     protected:
         _entry_t &_m_entry;
         unsigned int _m_lsb;
-        rf_data_t    _m_mask;
+        rf_data_t _m_mask;
 
         void      _reg_t_write (rf_data_t value);
         rf_data_t _reg_t_read ();
@@ -141,8 +141,9 @@ class _reg_rw_t : public _reg_t {
     public:
         _reg_rw_t (_entry_t &entry, unsigned int lsb, unsigned int msb);
 
-        _reg_rw_t& operator=(rf_data_t value);
+        _reg_rw_t& operator= (rf_data_t value);
         operator rf_data_t ();
 };
 
 #endif
+

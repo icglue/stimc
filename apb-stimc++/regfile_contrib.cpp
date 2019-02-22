@@ -9,13 +9,13 @@ void regfile_dev::rfdev_write_sequence (unsigned int length, rf_addr_t addr[], r
 }
 
 regfile_dev::~regfile_dev()
-{
-}
+{}
 
 /* regfile_dev_simple */
 void regfile_dev_simple::rfdev_write (rf_addr_t addr, rf_data_t value, rf_data_t mask, rf_data_t unused_mask)
 {
     rf_data_t keep_mask = ~(mask | unused_mask);
+
     if (keep_mask == 0) {
         rfdev_write_simple (addr, value);
     } else {
@@ -29,8 +29,7 @@ void regfile_dev_simple::rfdev_write (rf_addr_t addr, rf_data_t value, rf_data_t
 }
 
 regfile_dev_simple::~regfile_dev_simple()
-{
-}
+{}
 
 /* regfile_dev_subword */
 void regfile_dev_subword::rfdev_write (rf_addr_t addr, rf_data_t value, rf_data_t mask, rf_data_t unused_mask)
@@ -38,8 +37,9 @@ void regfile_dev_subword::rfdev_write (rf_addr_t addr, rf_data_t value, rf_data_
     unsigned int nbytes = sizeof (rf_data_t);
 
     rf_data_t keep_mask = ~(mask | unused_mask);
+
     for (unsigned int bytesperword = nbytes; bytesperword > 0; bytesperword >>= 2) {
-        rf_data_t word_mask = (1 << (bytesperword*8)) - 1;
+        rf_data_t word_mask = (1 << (bytesperword * 8)) - 1;
 
         for (unsigned int i = 0; i < nbytes / bytesperword; i++) {
             rf_data_t i_word_mask = word_mask << i;
@@ -64,8 +64,7 @@ void regfile_dev_subword::rfdev_write (rf_addr_t addr, rf_data_t value, rf_data_
 }
 
 regfile_dev_subword::~regfile_dev_subword()
-{
-}
+{}
 
 /* regfile_dev_bitcache */
 regfile_dev_bitcache::regfile_dev_bitcache (regfile_dev &main) :
@@ -93,8 +92,8 @@ void regfile_dev_bitcache::rfdev_write (rf_addr_t addr, rf_data_t value, rf_data
 
             /* update cache */
             rf_data_t tempval = cache.value;
-            tempval &= (~mask);
-            tempval |= (value & mask);
+            tempval    &= (~mask);
+            tempval    |= (value & mask);
             cache.value = tempval;
         } else {
             cache_flush ();
@@ -199,9 +198,8 @@ void regfile_dev_wordcache::cache_flush ()
 
 /* regfile_t */
 regfile_t::regfile_t (regfile_dev &_dev, rf_addr_t _base_addr) :
-    dev(_dev), base_addr(_base_addr)
-{
-}
+    dev (_dev), base_addr (_base_addr)
+{}
 
 rf_data_t regfile_t::read (rf_addr_t addr)
 {
@@ -220,9 +218,8 @@ rf_addr_t regfile_t::get_addr ()
 
 /* _entry_t */
 _entry_t::_entry_t(regfile_t &rf, rf_addr_t addr, rf_data_t unused_mask) :
-    _m_rf(rf), _m_addr(addr), _m_unused_mask(unused_mask)
-{
-}
+    _m_rf (rf), _m_addr (addr), _m_unused_mask (unused_mask)
+{}
 
 void _entry_t::_entry_t_write (rf_data_t value)
 {
@@ -232,12 +229,13 @@ void _entry_t::_entry_t_write (rf_data_t value)
 rf_data_t _entry_t::_entry_t_read ()
 {
     rf_data_t value = _m_rf.read (_m_addr);
+
     return value;
 }
 
 rf_addr_t _entry_t::_entry_t_addr ()
 {
-    return _m_rf.get_addr() + _m_addr;
+    return _m_rf.get_addr () + _m_addr;
 }
 
 _entry_t& _entry_t::operator= (rf_data_t value)
@@ -246,46 +244,47 @@ _entry_t& _entry_t::operator= (rf_data_t value)
     return *this;
 }
 
-_entry_t::operator rf_data_t()
+_entry_t::operator rf_data_t ()
 {
     return _entry_t_read  ();
 }
 
-rf_data_t* _entry_t::operator& ()
+rf_data_t *_entry_t::operator& ()
 {
-    return (rf_data_t *) (uintptr_t) _entry_t_addr ();
+    return (rf_data_t *)(uintptr_t)_entry_t_addr ();
 }
 
 /* _reg_t */
 void _reg_t::_reg_t_write (rf_data_t value)
 {
     value <<= _m_lsb;
-    value &= _m_mask;
+    value  &= _m_mask;
     _m_entry._m_rf.write (_m_entry._m_addr, value, _m_mask, _m_entry._m_unused_mask);
 }
-rf_data_t _reg_t::_reg_t_read () {
+rf_data_t _reg_t::_reg_t_read ()
+{
     rf_data_t value = _m_entry._m_rf.read (_m_entry._m_addr);
-    value &= _m_mask;
+
+    value  &= _m_mask;
     value >>= _m_lsb;
     return value;
 }
 
 _reg_t::_reg_t (_entry_t &entry, unsigned int lsb, unsigned int msb) :
-    _m_entry(entry), _m_lsb(lsb)
+    _m_entry (entry), _m_lsb (lsb)
 {
     /*
      * (1 << (msb+1)) does not work for msb = 31 and data type uint32_t:
      * result would/might/can be (1 << 32) --> (1 << 0) --> 1
      * workaround: (2 << msb)
      */
-    _m_mask = (2<<msb) - (1<<lsb);
+    _m_mask = (2 << msb) - (1 << lsb);
 }
 
 /* _reg_ro_t */
 _reg_ro_t::_reg_ro_t (_entry_t &entry, unsigned int lsb, unsigned int msb) :
     _reg_t (entry, lsb, msb)
-{
-}
+{}
 
 _reg_ro_t::operator rf_data_t ()
 {
@@ -295,10 +294,9 @@ _reg_ro_t::operator rf_data_t ()
 /* _reg_rw_t */
 _reg_rw_t::_reg_rw_t (_entry_t &entry, unsigned int lsb, unsigned int msb) :
     _reg_t (entry, lsb, msb)
-{
-}
+{}
 
-_reg_rw_t& _reg_rw_t::operator=(rf_data_t value)
+_reg_rw_t& _reg_rw_t::operator= (rf_data_t value)
 {
     _reg_t_write (value);
     return *this;

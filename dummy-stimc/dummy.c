@@ -4,27 +4,27 @@
 #include <string.h>
 #include <stdio.h>
 
-struct dummy* dummy_create (void)
+struct dummy *dummy_create (void)
 {
-    struct dummy *dummy = (struct dummy*) malloc (sizeof (struct dummy));
+    struct dummy *dummy = (struct dummy *)malloc (sizeof (struct dummy));
 
     stimc_module_init (&(dummy->module));
 
-    dummy->DATA_W     = stimc_parameter_init (&(dummy->module), "DATA_W");
+    dummy->DATA_W = stimc_parameter_init (&(dummy->module), "DATA_W");
 
     dummy->clk_i      = stimc_port_init      (&(dummy->module), "clk_i");
     dummy->reset_n_i  = stimc_port_init      (&(dummy->module), "reset_n_i");
     dummy->data_in_i  = stimc_port_init      (&(dummy->module), "data_in_i");
     dummy->data_out_o = stimc_port_init      (&(dummy->module), "data_out_o");
 
-    dummy->clk_event  = stimc_event_create ();
+    dummy->clk_event = stimc_event_create ();
 
     return dummy;
 }
 
 void dummy_testcontrol (void *userdata)
 {
-    struct dummy *dummy = (struct dummy *) userdata;
+    struct dummy *dummy = (struct dummy *)userdata;
 
     fprintf (stderr, "DEBUG: testcontrol...\n");
 
@@ -51,7 +51,8 @@ void dummy_testcontrol (void *userdata)
 
 void dummy_dinchange (void *userdata)
 {
-    struct dummy *dummy = (struct dummy *) userdata;
+    struct dummy *dummy = (struct dummy *)userdata;
+
     if (stimc_net_is_xz (dummy->data_in_i)) {
         fprintf (stderr, "DEBUG: data_in changed at time %ldns to <undefined>\n", stimc_time (SC_NS));
     } else {
@@ -61,7 +62,8 @@ void dummy_dinchange (void *userdata)
 
 void dummy_clock (void *userdata)
 {
-    struct dummy *dummy = (struct dummy *) userdata;
+    struct dummy *dummy = (struct dummy *)userdata;
+
     fprintf (stderr, "DEBUG: clkedge in %s at time %ldns\n", dummy->module.id, stimc_time (SC_NS));
 
     stimc_trigger_event (dummy->clk_event);

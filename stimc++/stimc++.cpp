@@ -25,8 +25,7 @@ stimcxx_module::stimcxx_module ()
 }
 
 stimcxx_module::~stimcxx_module ()
-{
-}
+{}
 
 stimcxx_module::port::port (stimcxx_module &m, const char *name)
 {
@@ -34,8 +33,7 @@ stimcxx_module::port::port (stimcxx_module &m, const char *name)
 }
 
 stimcxx_module::port::~port ()
-{
-}
+{}
 
 stimcxx_module::parameter::parameter (stimcxx_module &m, const char *name)
 {
@@ -49,8 +47,7 @@ stimcxx_module::parameter::parameter (stimcxx_module &m, const char *name)
 }
 
 stimcxx_module::parameter::~parameter ()
-{
-}
+{}
 
 stimcxx_event::stimcxx_event ()
 {
@@ -58,5 +55,5 @@ stimcxx_event::stimcxx_event ()
 }
 
 stimcxx_event::~stimcxx_event ()
-{
-}
+{}
+

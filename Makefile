@@ -165,3 +165,9 @@ $(DUMP_MOD):
 .PHONY: all elab vlog vpi_run elab run rungui gui clean
 
 .SECONDARY: $(STIMC_DEPS) $(STIMC_OBJECTS) $(VPI_MODULE)
+
+# ------------  uncrustify -----------------------------------------------------
+uncrustify:
+	@for f in $$(find . -type f -regex '.*\.\([ch]\(pp\)?\|inl\)') ; do \
+		uncrustify -c .uncrustify.cfg --replace --no-backup $$f ; \
+	done
