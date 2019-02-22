@@ -197,23 +197,23 @@ void regfile_dev_wordcache::cache_flush ()
 }
 
 /* regfile_t */
-regfile_t::regfile_t (regfile_dev &_dev, rf_addr_t _base_addr) :
-    dev (_dev), base_addr (_base_addr)
+regfile_t::regfile_t (regfile_dev &dev, rf_addr_t base_addr) :
+    _dev (dev), _base_addr (base_addr)
 {}
 
-rf_data_t regfile_t::read (rf_addr_t addr)
+rf_data_t regfile_t::_read (rf_addr_t addr)
 {
-    return dev.rfdev_read (base_addr + addr);
+    return _dev.rfdev_read (_base_addr + addr);
 }
 
-void regfile_t::write (rf_addr_t addr, rf_data_t value, rf_data_t mask, rf_data_t unused_mask)
+void regfile_t::_write (rf_addr_t addr, rf_data_t value, rf_data_t mask, rf_data_t unused_mask)
 {
-    dev.rfdev_write (base_addr + addr, value, mask, unused_mask);
+    _dev.rfdev_write (_base_addr + addr, value, mask, unused_mask);
 }
 
-rf_addr_t regfile_t::get_addr ()
+rf_addr_t regfile_t::_get_addr ()
 {
-    return base_addr;
+    return _base_addr;
 }
 
 /* _entry_t */
@@ -223,19 +223,19 @@ _entry_t::_entry_t(regfile_t &rf, rf_addr_t addr, rf_data_t unused_mask) :
 
 void _entry_t::_entry_t_write (rf_data_t value)
 {
-    _m_rf.write (_m_addr, value, 0xffffffff, _m_unused_mask);
+    _m_rf._write (_m_addr, value, 0xffffffff, _m_unused_mask);
 }
 
 rf_data_t _entry_t::_entry_t_read ()
 {
-    rf_data_t value = _m_rf.read (_m_addr);
+    rf_data_t value = _m_rf._read (_m_addr);
 
     return value;
 }
 
 rf_addr_t _entry_t::_entry_t_addr ()
 {
-    return _m_rf.get_addr () + _m_addr;
+    return _m_rf._get_addr () + _m_addr;
 }
 
 _entry_t& _entry_t::operator= (rf_data_t value)
@@ -259,11 +259,11 @@ void _reg_t::_reg_t_write (rf_data_t value)
 {
     value <<= _m_lsb;
     value  &= _m_mask;
-    _m_entry._m_rf.write (_m_entry._m_addr, value, _m_mask, _m_entry._m_unused_mask);
+    _m_entry._m_rf._write (_m_entry._m_addr, value, _m_mask, _m_entry._m_unused_mask);
 }
 rf_data_t _reg_t::_reg_t_read ()
 {
-    rf_data_t value = _m_entry._m_rf.read (_m_entry._m_addr);
+    rf_data_t value = _m_entry._m_rf._read (_m_entry._m_addr);
 
     value  &= _m_mask;
     value >>= _m_lsb;

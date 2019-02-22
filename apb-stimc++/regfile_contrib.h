@@ -86,16 +86,16 @@ class regfile_dev_wordcache : public regfile_dev {
 
 class regfile_t {
     protected:
-        regfile_dev &dev;
-        rf_addr_t base_addr;
+        regfile_dev &_dev;
+        rf_addr_t _base_addr;
 
     protected:
         regfile_t (regfile_dev &dev, rf_addr_t base_addr);
 
     public:
-        rf_data_t read  (rf_addr_t addr);
-        void      write (rf_addr_t addr, rf_data_t value, rf_data_t mask, rf_data_t unused_mask);
-        rf_addr_t get_addr ();
+        rf_data_t _read  (rf_addr_t addr);
+        void      _write (rf_addr_t addr, rf_data_t value, rf_data_t mask, rf_data_t unused_mask);
+        rf_addr_t _get_addr ();
 };
 
 class _entry_t {
