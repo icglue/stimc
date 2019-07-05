@@ -40,11 +40,6 @@ module tb_dummy ();
     end
 
     initial begin
-        $dumpfile ("dump.vcd");
-        $dumpvars (0);
-    end
-
-    initial begin
         data_in = {DATA_W {1'b0}};
         #(2.5*CLKPERIOD);
         data_in = {DATA_W {1'bx}};

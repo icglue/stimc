@@ -2,16 +2,22 @@
 # iverilog + stimc(optional) Makefile
 #
 
+SIM_MOD = apb_stim
+#SIM_MOD = dummy
+#SIM_MOD = ff
+
+SIM_SRC = c++
+#SIM_SRC = c
 
 # ------------  verilog testbench + sources  -----------------------------------
-SIM_NAME        = tb_apb_stim
+SIM_NAME        = tb_$(SIM_MOD)
 TOPLEVEL        = $(SIM_NAME) $(DUMP_MOD_NAME)
-VLOG_SOURCES    = $(wildcard ./apb-verilog/*.v)
+VLOG_SOURCES    = $(wildcard ./$(SIM_MOD)-verilog/*.v)
 VLOG_INCDIRS    =
 
 # ------------  stimc_sources  -------------------------------------------------
-STIMC_MODULES   = apb_stim
-STIMC_DIRS      = ./stimc++ ./apb-stimc++
+STIMC_MODULES   = $(SIM_MOD)
+STIMC_DIRS      = ./stim$(SIM_SRC) ./$(SIM_MOD)-stim$(SIM_SRC)
 STIMC_SOURCES   = $(wildcard $(addsuffix /*.c*, $(STIMC_DIRS)))
 
 # ------------  gtkwavefile & dumpfile  ----------------------------------------
@@ -142,6 +148,7 @@ gui:
 	gtkwave -a $(GTKWAVEFILE) -f $(DUMPFILE) -O $(GTKWAVE_LOG) &
 
 clean:
+	@rm -f $(DUMP_MOD)
 	@rm -f \
         $(VVP_FILE) $(DUMPFILE) $(GTKWAVE_LOG) $(VVP_LOG)  \
         $(VPI_MODULE) $(STIMC_DEPS) ${STIMC_DEPS:.d=.dep} $(STIMC_OBJECTS) \
