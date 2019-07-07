@@ -53,7 +53,7 @@ class uart_stim : public stimcxx_module {
         void set_mode (double bps, bool flowctrl = false, bool second_stopbit = false, bool parity = false, bool parity_odd = false);
 
         void tx_word (char word, bool wait_done = true);
-        bool rx_word (char &word, bool wait_rx = true);
+        bool rx_word (char &word, bool wait_rx  = true);
 
         void testcontrol ();
 };

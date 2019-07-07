@@ -2,7 +2,7 @@
 # iverilog + stimc(optional) Makefile
 #
 
-SIM_MOD = apb_stim
+#SIM_MOD = apb_stim
 #SIM_MOD = dummy
 #SIM_MOD = ff
 SIM_MOD = uart_stim

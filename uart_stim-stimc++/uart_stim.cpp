@@ -77,6 +77,7 @@ void uart_stim::cts_posedge ()
 static uint32_t gen_parity (uint32_t word_8bit, bool odd = true)
 {
     uint32_t parity;
+
     parity = word_8bit ^ (word_8bit >> 4);
     parity = parity    ^ (parity    >> 2);
     parity = parity    ^ (parity    >> 1);
@@ -97,7 +98,7 @@ void uart_stim::tx_thread ()
 
         if (!state_connected) continue;
 
-        uint32_t word = (uint8_t) this->word_tx;
+        uint32_t word = (uint8_t)this->word_tx;
 
         double bit_time = 1.0 / this->mode_boudrate;
 
@@ -107,8 +108,8 @@ void uart_stim::tx_thread ()
             }
         }
 
-        int seqlen = 10;
-        uint32_t seq = word << 1;
+        int      seqlen = 10;
+        uint32_t seq    = word << 1;
         seq |= 0xf << 9;
 
         if (mode_with_2stoppbits) seqlen++;
@@ -164,7 +165,7 @@ void uart_stim::rx_thread ()
             if ((rx_i & 1) != 1) frame_error = true;
         }
 
-        word_rx_last = word;
+        word_rx_last  = word;
         word_rx_valid = (!parity_error) && (!frame_error);
 
         __sync_synchronize ();
@@ -196,7 +197,7 @@ bool uart_stim::rx_word (char &word, bool wait_rx)
     __sync_synchronize ();
 
     if (word_rx_valid) {
-        word = word_rx_last;
+        word          = word_rx_last;
         word_rx_valid = false;
         return true;
     }
