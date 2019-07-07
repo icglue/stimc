@@ -94,7 +94,7 @@ void uart_stim::tx_thread ()
     while (true) {
         wait (event_tx_start);
 
-        __sync_synchronize ();
+        stimc_thread_fence ();
 
         if (!state_connected) continue;
 
@@ -132,7 +132,7 @@ void uart_stim::rx_thread ()
     while (true) {
         wait (event_rx_start);
 
-        __sync_synchronize ();
+        stimc_thread_fence ();
 
         if (!this->state_connected) continue;
 
@@ -168,7 +168,7 @@ void uart_stim::rx_thread ()
         word_rx_last  = word;
         word_rx_valid = (!parity_error) && (!frame_error);
 
-        __sync_synchronize ();
+        stimc_thread_fence ();
 
         event_rx_word.trigger ();
     }
@@ -177,9 +177,9 @@ void uart_stim::rx_thread ()
 void uart_stim::tx_word (char word, bool wait_done)
 {
     word_tx = word;
-    __sync_synchronize ();
+    stimc_thread_fence ();
     event_tx_start.trigger ();
-    __sync_synchronize ();
+    stimc_thread_fence ();
     if (wait_done) {
         wait (event_tx_done);
     }
@@ -193,7 +193,7 @@ bool uart_stim::rx_word (char &word, bool wait_rx)
         wait (event_rx_word);
     }
 
-    __sync_synchronize ();
+    stimc_thread_fence ();
 
     if (word_rx_valid) {
         word          = word_rx_last;

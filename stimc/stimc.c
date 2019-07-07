@@ -416,7 +416,7 @@ static void stimc_main_queue_run_threads ()
         stimc_thread_queue_enqueue_all (&stimc_main_queue_shadow, &stimc_main_queue);
         stimc_thread_queue_clear (&stimc_main_queue);
 
-        __sync_synchronize ();
+        stimc_thread_fence ();
 
         /* execute threads... */
         assert (stimc_current_thread == NULL);
@@ -431,7 +431,7 @@ static void stimc_main_queue_run_threads ()
 
         stimc_thread_queue_clear (&stimc_main_queue_shadow);
 
-        __sync_synchronize ();
+        stimc_thread_fence ();
     }
 }
 
