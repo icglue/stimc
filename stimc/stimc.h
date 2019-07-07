@@ -68,6 +68,7 @@ double   stimc_time_seconds (void);
 typedef struct stimc_event_s *stimc_event;
 
 stimc_event stimc_event_create (void);
+void        stimc_event_free (stimc_event event);
 void        stimc_wait_event (stimc_event event);
 void        stimc_trigger_event (stimc_event event);
 

@@ -44,15 +44,23 @@ struct stimc_method_wrap {
     void *userdata;
 };
 
+struct stimc_thread_queue_s {
+    size_t       threads_len;
+    size_t       threads_num;
+    coroutine_t *threads;
+    coroutine_t *threads_shadow;
+};
+
 struct stimc_event_s {
-    size_t        threads_len;
-    size_t        threads_num;
-    volatile bool active;
-    coroutine_t  *threads;
-    coroutine_t  *threads_shadow;
+    volatile bool               active;
+    struct stimc_thread_queue_s queue;
 };
 
 static const char *stimc_get_caller_scope (void);
+
+static void stimc_thread_queue_init (struct stimc_thread_queue_s *q);
+static void stimc_thread_queue_free (struct stimc_thread_queue_s *q);
+static void stimc_thread_queue_enqueue (struct stimc_thread_queue_s *q, coroutine_t *thread);
 
 static inline void stimc_valuechange_method_callback_wrapper (struct t_cb_data *cb_data, int edge);
 static PLI_INT32   stimc_posedge_method_callback_wrapper (struct t_cb_data *cb_data);
@@ -319,37 +327,64 @@ double stimc_time_seconds (void)
     return dtime;
 }
 
+static void stimc_thread_queue_init (struct stimc_thread_queue_s *q)
+{
+    q->threads_len    = 16;
+    q->threads_num    = 0;
+    q->threads        = (coroutine_t *)malloc (sizeof (coroutine_t) * (q->threads_len));
+    q->threads_shadow = (coroutine_t *)malloc (sizeof (coroutine_t) * (q->threads_len));
+    q->threads[0]     = NULL;
+}
+
+static void stimc_thread_queue_free (struct stimc_thread_queue_s *q)
+{
+    q->threads_len = 0;
+    q->threads_num = 0;
+    free (q->threads);
+    free (q->threads_shadow);
+}
+
+static void stimc_thread_queue_enqueue (struct stimc_thread_queue_s *q, coroutine_t *thread)
+{
+    /* size check */
+    if (q->threads_num + 1 >= q->threads_len) {
+        if (q->threads_len <= 0) q->threads_len = 1;
+
+        q->threads_len   *= 2;
+        q->threads        = (coroutine_t *)realloc (q->threads,        q->threads_len);
+        q->threads_shadow = (coroutine_t *)realloc (q->threads_shadow, q->threads_len);
+    }
+
+    /* thread data ... */
+    q->threads[q->threads_num] = thread;
+    q->threads_num++;
+    q->threads[q->threads_num] = NULL;
+}
+
 stimc_event stimc_event_create (void)
 {
     stimc_event event = (stimc_event)malloc (sizeof (struct stimc_event_s));
 
-    event->active         = false;
-    event->threads_len    = 16;
-    event->threads_num    = 0;
-    event->threads        = (coroutine_t *)malloc (sizeof (coroutine_t) * (event->threads_len));
-    event->threads_shadow = (coroutine_t *)malloc (sizeof (coroutine_t) * (event->threads_len));
-    event->threads[0]     = NULL;
+    event->active = false;
+    stimc_thread_queue_init (&event->queue);
 
     return event;
 }
 
+void stimc_event_free (stimc_event event)
+{
+    stimc_thread_queue_free (&event->queue);
+    free (event);
+}
+
 void stimc_wait_event (stimc_event event)
 {
-    /* size check */
-    if (event->threads_num + 1 >= event->threads_len) {
-        assert (event->active == false);
-        event->threads_len   *= 2;
-        event->threads        = (coroutine_t *)realloc (event->threads,        event->threads_len);
-        event->threads_shadow = (coroutine_t *)realloc (event->threads_shadow, event->threads_len);
-    }
-
     /* thread data ... */
     coroutine_t *thread = stimc_current_thread;
+
     assert (thread);
 
-    event->threads[event->threads_num] = thread;
-    event->threads_num++;
-    event->threads[event->threads_num] = NULL;
+    stimc_thread_queue_enqueue (&event->queue, thread);
 
     /* thread handling ... */
     stimc_suspend ();
@@ -358,22 +393,22 @@ void stimc_wait_event (stimc_event event)
 void stimc_trigger_event (stimc_event event)
 {
     if (event->active) return;
-    if (event->threads_num == 0) return;
+    if (event->queue.threads_num == 0) return;
 
     /* copy threads to shadow... */
-    for (size_t i = 0; i <= event->threads_num; i++) {
-        event->threads_shadow[i] = event->threads[i];
+    for (size_t i = 0; i <= event->queue.threads_num; i++) {
+        event->queue.threads_shadow[i] = event->queue.threads[i];
     }
 
-    assert (event->threads_shadow [event->threads_num] == NULL);
+    assert (event->queue.threads_shadow [event->queue.threads_num] == NULL);
 
-    event->threads[0]  = NULL;
-    event->threads_num = 0;
+    event->queue.threads[0]  = NULL;
+    event->queue.threads_num = 0;
 
     /* execute threads... */
     coroutine_t *old_thread = stimc_current_thread;
-    for (size_t i = 0; event->threads_shadow[i] != NULL; i++) {
-        coroutine_t *thread = event->threads_shadow[i];
+    for (size_t i = 0; event->queue.threads_shadow[i] != NULL; i++) {
+        coroutine_t *thread = event->queue.threads_shadow[i];
         stimc_current_thread = thread;
         co_call (thread);
     }
