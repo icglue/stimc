@@ -72,7 +72,7 @@ static PLI_INT32   stimc_change_method_callback_wrapper (struct t_cb_data *cb_da
 static void        stimc_register_valuechange_method (void (*methodfunc)(void *userdata), void *userdata, stimc_net net, int edge);
 static PLI_INT32   stimc_thread_callback_wrapper (struct t_cb_data *cb_data);
 
-static void stimc_suspend (void);
+static inline void stimc_suspend (void);
 
 static vpiHandle stimc_module_handle_init (stimc_module *m, const char *name);
 
@@ -228,9 +228,11 @@ void stimc_register_startup_thread (void (*threadfunc)(void *userdata), void *us
     assert (vpi_register_cb (&data));
 }
 
-static void stimc_suspend (void)
+static inline void stimc_suspend (void)
 {
+    stimc_thread_fence ();
     co_resume ();
+    stimc_thread_fence ();
 }
 
 void stimc_wait_time (uint64_t time, int exp)
@@ -416,22 +418,21 @@ static void stimc_main_queue_run_threads ()
         stimc_thread_queue_enqueue_all (&stimc_main_queue_shadow, &stimc_main_queue);
         stimc_thread_queue_clear (&stimc_main_queue);
 
-        stimc_thread_fence ();
-
         /* execute threads... */
         assert (stimc_current_thread == NULL);
 
         for (size_t i = 0; stimc_main_queue_shadow.threads[i] != NULL; i++) {
             coroutine_t *thread = stimc_main_queue_shadow.threads[i];
             stimc_current_thread = thread;
+
+            stimc_thread_fence ();
             co_call (thread);
+            stimc_thread_fence ();
         }
 
         stimc_current_thread = NULL;
 
         stimc_thread_queue_clear (&stimc_main_queue_shadow);
-
-        stimc_thread_fence ();
     }
 }
 
