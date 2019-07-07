@@ -38,6 +38,44 @@
 #define SOCC_VALVECTOR_MAX_STATIC 8
 #endif
 
+// internal header
+struct stimc_method_wrap {
+    void  (*methodfunc) (void *userdata);
+    void *userdata;
+};
+
+struct stimc_event_s {
+    size_t        threads_len;
+    size_t        threads_num;
+    volatile bool active;
+    coroutine_t  *threads;
+    coroutine_t  *threads_shadow;
+};
+
+static const char *stimc_get_caller_scope (void);
+
+static inline void stimc_valuechange_method_callback_wrapper (struct t_cb_data *cb_data, int edge);
+static PLI_INT32   stimc_posedge_method_callback_wrapper (struct t_cb_data *cb_data);
+static PLI_INT32   stimc_negedge_method_callback_wrapper (struct t_cb_data *cb_data);
+static PLI_INT32   stimc_change_method_callback_wrapper (struct t_cb_data *cb_data);
+static void        stimc_register_valuechange_method (void (*methodfunc)(void *userdata), void *userdata, stimc_net net, int edge);
+static PLI_INT32   stimc_thread_callback_wrapper (struct t_cb_data *cb_data);
+
+static void stimc_suspend (void);
+
+static vpiHandle stimc_module_handle_init (stimc_module *m, const char *name);
+
+static inline void stimc_net_set_xz (stimc_net net, int val);
+static inline void stimc_net_set_uint64_callback_nonblock_gen (PLI_INT32 (*cb_rtn)(struct t_cb_data *), stimc_net net);
+static PLI_INT32   stimc_net_set_x_nonblock_callback_wrapper (struct t_cb_data *cb_data);
+static PLI_INT32   stimc_net_set_z_nonblock_callback_wrapper (struct t_cb_data *cb_data);
+static PLI_INT32   stimc_net_set_uint64_nonblock_callback_wrapper (struct t_cb_data *cb_data);
+static PLI_INT32   stimc_net_set_bits_uint64_nonblock_callback_wrapper (struct t_cb_data *cb_data);
+static PLI_INT32   stimc_net_set_int32_nonblock_callback_wrapper (struct t_cb_data *cb_data);
+
+
+coroutine_t stimc_current_thread = NULL;
+
 static const char *stimc_get_caller_scope (void)
 {
     vpiHandle taskref = vpi_handle (vpiSysTfCall, NULL);
@@ -50,11 +88,6 @@ static const char *stimc_get_caller_scope (void)
 
     return scope_name;
 }
-
-struct stimc_method_wrap {
-    void  (*methodfunc) (void *userdata);
-    void *userdata;
-};
 
 static inline void stimc_valuechange_method_callback_wrapper (struct t_cb_data *cb_data, int edge)
 {
@@ -136,8 +169,6 @@ void stimc_register_change_method  (void (*methodfunc)(void *userdata), void *us
     stimc_register_valuechange_method (methodfunc, userdata, net, 0);
 }
 
-
-coroutine_t stimc_current_thread = NULL;
 
 static PLI_INT32 stimc_thread_callback_wrapper (struct t_cb_data *cb_data)
 {
@@ -287,14 +318,6 @@ double stimc_time_seconds (void)
 
     return dtime;
 }
-
-struct stimc_event_s {
-    size_t        threads_len;
-    size_t        threads_num;
-    volatile bool active;
-    coroutine_t  *threads;
-    coroutine_t  *threads_shadow;
-};
 
 stimc_event stimc_event_create (void)
 {
