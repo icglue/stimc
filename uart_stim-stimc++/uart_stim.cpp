@@ -182,7 +182,6 @@ void uart_stim::tx_word (char word, bool wait_done)
     __sync_synchronize ();
     if (wait_done) {
         wait (event_tx_done);
-        wait (0, SC_US);
     }
 }
 
