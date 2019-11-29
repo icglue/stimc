@@ -40,6 +40,14 @@ void uart_stim::set_mode (double bps, bool flowctrl, bool second_stopbit, bool p
     this->mode_with_2stoppbits = second_stopbit;
     this->mode_with_parity     = parity;
     this->mode_parity_odd      = parity_odd;
+
+    if (state_connected) {
+        if (mode_with_flowctrl) {
+            rtr_o <<= 1;
+        } else {
+            rtr_o.set_z ();
+        }
+    }
 }
 
 void uart_stim::connect ()
