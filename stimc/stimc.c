@@ -29,13 +29,13 @@
 
 #include <pcl.h>
 
-#ifndef SOCC_THREAD_STACK_SIZE
+#ifndef STIMC_THREAD_STACK_SIZE
 /* default stack size */
-#define SOCC_THREAD_STACK_SIZE    65536
+#define STIMC_THREAD_STACK_SIZE    65536
 #endif
 
-#ifndef SOCC_VALVECTOR_MAX_STATIC
-#define SOCC_VALVECTOR_MAX_STATIC 8
+#ifndef STIMC_VALVECTOR_MAX_STATIC
+#define STIMC_VALVECTOR_MAX_STATIC 8
 #endif
 
 // internal header
@@ -208,7 +208,7 @@ void stimc_register_startup_thread (void (*threadfunc)(void *userdata), void *us
     s_vpi_time  data_time;
     s_vpi_value data_value;
 
-    coroutine_t thread = co_create (threadfunc, userdata, NULL, SOCC_THREAD_STACK_SIZE);
+    coroutine_t thread = co_create (threadfunc, userdata, NULL, STIMC_THREAD_STACK_SIZE);
 
     assert (thread);
 
@@ -541,8 +541,8 @@ static inline void stimc_net_set_xz (stimc_net net, int val)
     }
 
     unsigned vsize = ((size - 1) / 32) + 1;
-    if (vsize <= SOCC_VALVECTOR_MAX_STATIC) {
-        s_vpi_vecval vec[SOCC_VALVECTOR_MAX_STATIC];
+    if (vsize <= STIMC_VALVECTOR_MAX_STATIC) {
+        s_vpi_vecval vec[STIMC_VALVECTOR_MAX_STATIC];
         for (unsigned i = 0; i < vsize; i++) {
             vec[i].aval = (val == vpiZ ? 0x00000000 : 0xffffffff);
             vec[i].bval = 0xffffffff;
@@ -684,8 +684,8 @@ void stimc_net_set_uint64 (stimc_net net, uint64_t value)
     }
 
     unsigned vsize = ((size - 1) / 32) + 1;
-    if (vsize <= SOCC_VALVECTOR_MAX_STATIC) {
-        s_vpi_vecval vec[SOCC_VALVECTOR_MAX_STATIC];
+    if (vsize <= STIMC_VALVECTOR_MAX_STATIC) {
+        s_vpi_vecval vec[STIMC_VALVECTOR_MAX_STATIC];
         for (unsigned i = 0; (i < vsize) && (i < 2); i++) {
             vec[i].aval = (value >> (32 * i)) & 0xffffffff;
             vec[i].bval = 0;
