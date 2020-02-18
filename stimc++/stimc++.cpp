@@ -39,11 +39,13 @@ stimcxx_module::parameter::parameter (stimcxx_module &m, const char *name)
 {
     this->_parameter = stimc_parameter_init (&(m._module), name);
 
-    s_vpi_value v;
-    v.format = vpiIntVal;
-    vpi_get_value (this->_parameter, &v);
-
-    this->_value = v.value.integer;
+    if (stimc_parameter_get_format (this->_parameter) == vpiRealVal) {
+        this->_value_d = stimc_parameter_get_double (this->_parameter);
+        this->_value_i = this->_value_d;
+    } else {
+        this->_value_i = stimc_parameter_get_int32 (this->_parameter);
+        this->_value_d = this->_value_i;
+    }
 }
 
 stimcxx_module::parameter::~parameter ()

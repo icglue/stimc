@@ -163,24 +163,33 @@ class stimcxx_module {
         class parameter {
             protected:
                 stimc_parameter _parameter;
-                int32_t _value;
+                int32_t _value_i;
+                double  _value_d;
             public:
                 parameter (stimcxx_module &m, const char *name);
                 virtual ~parameter ();
 
                 int value ()
                 {
-                    return _value;
+                    return _value_i;
+                }
+                double dvalue ()
+                {
+                    return _value_d;
                 }
                 operator uint64_t ()
                 {
-                    return _value;
+                    return _value_i;
+                }
+                operator double ()
+                {
+                    return _value_d;
                 }
         };
 };
 
-#define STIMCXX_PARAMETER(port) \
-    port (*this, #port)
+#define STIMCXX_PARAMETER(param) \
+    param (*this, #param)
 
 #define STIMCXX_PORT(port) \
     port (*this, #port)

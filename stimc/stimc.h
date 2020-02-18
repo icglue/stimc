@@ -110,6 +110,16 @@ static inline unsigned stimc_net_size (stimc_net net)
     return vpi_get (vpiSize, net->net);
 }
 
+static inline PLI_INT32 stimc_parameter_get_format (stimc_parameter parameter)
+{
+    s_vpi_value v;
+
+    v.format = vpiObjTypeVal;
+    vpi_get_value (parameter, &v);
+
+    return v.format;
+}
+
 static inline uint32_t stimc_parameter_get_int32 (stimc_parameter parameter)
 {
     s_vpi_value v;
@@ -118,6 +128,16 @@ static inline uint32_t stimc_parameter_get_int32 (stimc_parameter parameter)
     vpi_get_value (parameter, &v);
 
     return v.value.integer;
+}
+
+static inline double stimc_parameter_get_double (stimc_parameter parameter)
+{
+    s_vpi_value v;
+
+    v.format = vpiRealVal;
+    vpi_get_value (parameter, &v);
+
+    return v.value.real;
 }
 
 void stimc_net_set_z_nonblock (stimc_net net);
