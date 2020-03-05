@@ -204,7 +204,7 @@ static PLI_INT32 stimc_thread_callback_wrapper (struct t_cb_data *cb_data)
 
 static void stimc_thread_wrap (void *userdata)
 {
-    struct stimc_method_wrap *wrap = (struct stimc_method_wrap *) userdata;
+    struct stimc_method_wrap *wrap = (struct stimc_method_wrap *)userdata;
 
     wrap->methodfunc (wrap->userdata);
 
