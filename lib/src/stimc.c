@@ -202,13 +202,29 @@ static PLI_INT32 stimc_thread_callback_wrapper (struct t_cb_data *cb_data)
     return 0;
 }
 
+static void stimc_thread_wrap (void *userdata)
+{
+    struct stimc_method_wrap *wrap = (struct stimc_method_wrap *) userdata;
+
+    wrap->methodfunc (wrap->userdata);
+
+    free (wrap);
+
+    co_exit ();
+}
+
 void stimc_register_startup_thread (void (*threadfunc)(void *userdata), void *userdata)
 {
     s_cb_data   data;
     s_vpi_time  data_time;
     s_vpi_value data_value;
 
-    coroutine_t thread = co_create (threadfunc, userdata, NULL, STIMC_THREAD_STACK_SIZE);
+    struct stimc_method_wrap *wrap = (struct stimc_method_wrap *)malloc (sizeof (struct stimc_method_wrap));
+
+    wrap->methodfunc = threadfunc;
+    wrap->userdata   = userdata;
+
+    coroutine_t thread = co_create (stimc_thread_wrap, wrap, NULL, STIMC_THREAD_STACK_SIZE);
 
     assert (thread);
 
