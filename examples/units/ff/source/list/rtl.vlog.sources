@@ -1,0 +1,4 @@
+// icglue keep begin sources
+${ICPRO_DIR}/units/ff/source/rtl/verilog/ff.v
+// icglue keep end
+
