@@ -181,6 +181,10 @@ class stimcxx_module {
                 {
                     return _value_i;
                 }
+                operator uint32_t ()
+                {
+                    return _value_i;
+                }
                 operator double ()
                 {
                     return _value_d;
