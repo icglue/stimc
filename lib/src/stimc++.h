@@ -17,6 +17,11 @@
  *
  */
 
+/**
+ * @file
+ * @brief stimc++ (c++ stimc wrapper).
+ */
+
 #ifndef __STIMCXX_H__
 #define __STIMCXX_H__
 

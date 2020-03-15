@@ -17,6 +17,11 @@
  *
  */
 
+/**
+ * @file
+ * @brief stimc core.
+ */
+
 #include "stimc.h"
 
 #include <math.h>

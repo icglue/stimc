@@ -17,6 +17,15 @@
  *
  */
 
+/**
+ * @file
+ * @brief stimc vpi library entry point template.
+ *
+ * You need to provide a "stimc-export.inl" include file
+ * containing all stimc modules to be exported in lines of the form
+ * STIMC_EXPORT (modulename)
+ */
+
 /* declaration */
 #define STIMC_EXPORT(module) \
     void _stimc_module_ ## module ## _register (void);

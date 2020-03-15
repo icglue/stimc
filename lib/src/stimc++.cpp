@@ -17,6 +17,11 @@
  *
  */
 
+/**
+ * @file
+ * @brief stimc++ (c++ stimc wrapper).
+ */
+
 #include "stimc++.h"
 
 stimcxx_module::stimcxx_module ()
