@@ -55,7 +55,7 @@ class stimcxx_module {
         {
             stimc_wait_time_seconds (time_seconds);
         }
-        static void wait (uint64_t time, int exp)
+        static void wait (uint64_t time, enum stimc_time_unit exp)
         {
             stimc_wait_time (time, exp);
         }
@@ -67,7 +67,7 @@ class stimcxx_module {
         {
             return stimc_time_seconds ();
         }
-        static uint64_t time (int exp)
+        static uint64_t time (enum stimc_time_unit exp)
         {
             return stimc_time (exp);
         }

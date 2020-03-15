@@ -52,6 +52,7 @@ typedef struct stimc_net_s *stimc_port;
 
 typedef vpiHandle stimc_parameter;
 
+
 /* methods/threads */
 void stimc_register_posedge_method (void (*methodfunc)(void *userdata), void *userdata, stimc_net net);
 void stimc_register_negedge_method (void (*methodfunc)(void *userdata), void *userdata, stimc_net net);
@@ -60,16 +61,19 @@ void stimc_register_change_method  (void (*methodfunc)(void *userdata), void *us
 void stimc_register_startup_thread (void (*threadfunc)(void *userdata), void *userdata);
 
 /* time/wait */
-#define SC_FS -15
-#define SC_PS -12
-#define SC_NS -9
-#define SC_US -6
-#define SC_MS -3
-#define SC_S  0
-void stimc_wait_time (uint64_t time, int exp);
+enum stimc_time_unit {
+    SC_FS = -15,
+    SC_PS = -12,
+    SC_NS =  -9,
+    SC_US =  -6,
+    SC_MS =  -3,
+    SC_S  =   0,
+};
+
+void stimc_wait_time (uint64_t time, enum stimc_time_unit exp);
 void stimc_wait_time_seconds (double time);
 
-uint64_t stimc_time (int exp);
+uint64_t stimc_time (enum stimc_time_unit exp);
 double   stimc_time_seconds (void);
 
 /* event/wait */

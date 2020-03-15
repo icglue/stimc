@@ -74,6 +74,8 @@ static PLI_INT32   stimc_thread_callback_wrapper (struct t_cb_data *cb_data);
 
 static inline void stimc_suspend (void);
 
+static void stimc_wait_time_int_exp (uint64_t time, int exp);
+
 static vpiHandle stimc_module_handle_init (stimc_module *m, const char *name);
 
 static inline void stimc_net_set_xz (stimc_net net, int val);
@@ -251,7 +253,7 @@ static inline void stimc_suspend (void)
     stimc_thread_fence ();
 }
 
-void stimc_wait_time (uint64_t time, int exp)
+static void stimc_wait_time_int_exp (uint64_t time, int exp)
 {
     /* thread data ... */
     coroutine_t *thread = stimc_current_thread;
@@ -296,6 +298,11 @@ void stimc_wait_time (uint64_t time, int exp)
     stimc_suspend ();
 }
 
+void stimc_wait_time (uint64_t time, enum stimc_time_unit exp)
+{
+    stimc_wait_time_int_exp (time, (int) exp);
+}
+
 void stimc_wait_time_seconds (double time)
 {
     /* time ... */
@@ -307,10 +314,11 @@ void stimc_wait_time_seconds (double time)
     stimc_wait_time (ltime, timeunit_raw);
 }
 
-uint64_t stimc_time (int exp)
+uint64_t stimc_time (enum stimc_time_unit exp)
 {
     /* get time */
     s_vpi_time time;
+    int exp_int = (int) exp;
 
     time.type = vpiSimTime;
     vpi_get_time (NULL, &time);
@@ -322,13 +330,13 @@ uint64_t stimc_time (int exp)
     /* timeunit */
     int timeunit_raw = vpi_get (vpiTimeUnit, NULL);
 
-    while (exp < timeunit_raw) {
+    while (exp_int < timeunit_raw) {
         ltime *= 10;
-        exp++;
+        exp_int++;
     }
-    while (exp > timeunit_raw) {
+    while (exp_int > timeunit_raw) {
         ltime /= 10;
-        exp--;
+        exp_int--;
     }
 
     return ltime;
