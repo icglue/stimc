@@ -312,20 +312,6 @@ namespace stimcxx {
                      * @param lsb Least significant bit of bit range.
                      * @return the subbits handle.
                      */
-                    subbits bits (int msb, int lsb)
-                    {
-                        subbits b (*this, msb, lsb);
-
-                        return b;
-                    }
-
-                    /**
-                     * @brief Optain a new bit range handle to the port.
-                     * @param msb Most significant bit of bit range.
-                     * @param lsb Least significant bit of bit range.
-                     * @return the subbits handle.
-                     * @ref bits.
-                     */
                     subbits operator() (int msb, int lsb)
                     {
                         subbits b (*this, msb, lsb);
