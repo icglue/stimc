@@ -1,5 +1,7 @@
 #include "dummy.hpp"
 
+using namespace stimcxx;
+
 dummy::dummy () :
     STIMCXX_PARAMETER (DATA_W),
     STIMCXX_PORT (clk_i),

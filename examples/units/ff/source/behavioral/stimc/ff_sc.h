@@ -3,7 +3,7 @@
 
 #include "stimc++.h"
 
-class ff_sc : public stimcxx_module {
+class ff_sc : public stimcxx::module {
     private:
         parameter RESET_VAL;
 

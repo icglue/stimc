@@ -24,45 +24,46 @@
 
 #include "stimc++.h"
 
-stimcxx_module::stimcxx_module ()
-{
-    stimc_module_init (&(this->_module));
-}
-
-stimcxx_module::~stimcxx_module ()
-{}
-
-stimcxx_module::port::port (stimcxx_module &m, const char *name)
-{
-    this->_port = stimc_port_init (&(m._module), name);
-}
-
-stimcxx_module::port::~port ()
-{}
-
-stimcxx_module::parameter::parameter (stimcxx_module &m, const char *name)
-{
-    this->_parameter = stimc_parameter_init (&(m._module), name);
-
-    if (stimc_parameter_get_format (this->_parameter) == vpiRealVal) {
-        this->_value_d = stimc_parameter_get_double (this->_parameter);
-        this->_value_i = this->_value_d;
-    } else {
-        this->_value_i = stimc_parameter_get_int32 (this->_parameter);
-        this->_value_d = this->_value_i;
+namespace stimcxx {
+    module::module ()
+    {
+        stimc_module_init (&(this->_module));
     }
-}
 
-stimcxx_module::parameter::~parameter ()
-{}
+    module::~module ()
+    {}
 
-stimcxx_event::stimcxx_event ()
-{
-    this->_event = stimc_event_create ();
-}
+    module::port::port (module &m, const char *name)
+    {
+        this->_port = stimc_port_init (&(m._module), name);
+    }
 
-stimcxx_event::~stimcxx_event ()
-{
-    stimc_event_free (this->_event);
-}
+    module::port::~port ()
+    {}
 
+    module::parameter::parameter (module &m, const char *name)
+    {
+        this->_parameter = stimc_parameter_init (&(m._module), name);
+
+        if (stimc_parameter_get_format (this->_parameter) == vpiRealVal) {
+            this->_value_d = stimc_parameter_get_double (this->_parameter);
+            this->_value_i = this->_value_d;
+        } else {
+            this->_value_i = stimc_parameter_get_int32 (this->_parameter);
+            this->_value_d = this->_value_i;
+        }
+    }
+
+    module::parameter::~parameter ()
+    {}
+
+    event::event ()
+    {
+        this->_event = stimc_event_create ();
+    }
+
+    event::~event ()
+    {
+        stimc_event_free (this->_event);
+    }
+};

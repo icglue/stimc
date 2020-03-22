@@ -3,7 +3,7 @@
 
 #include "stimc++.h"
 
-class dummy : public stimcxx_module {
+class dummy : public stimcxx::module {
     private:
         parameter DATA_W;
 
@@ -12,7 +12,7 @@ class dummy : public stimcxx_module {
         port data_in_i;
         port data_out_o;
 
-        stimcxx_event clk_event;
+        stimcxx::event clk_event;
 
     public:
         dummy ();
