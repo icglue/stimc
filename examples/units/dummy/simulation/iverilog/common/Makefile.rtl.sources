@@ -19,6 +19,7 @@ VLOG_SRC_FILES += $(wildcard sources/*)
 # icglue keep begin stimc
 STIMC_MODULES ?= dummy
 STIMC_DIRS     = \
+	. \
     ${ICPRO_DIR}/resources/stimc/lib/src \
     ${ICPRO_DIR}/units/dummy/source/behavioral/stimc
 STIMC_SOURCES   = $(wildcard $(addsuffix /*.c, $(STIMC_DIRS)) $(addsuffix /*.cpp, $(STIMC_DIRS)))

@@ -47,7 +47,7 @@ module tb_dummy ();
         data_in = 'h12345678;
         #(CLKPERIOD);
         data_in = {DATA_W {1'bz}};
-        #(10*CLKPERIOD);
+        #(150*CLKPERIOD);
         $finish ();
     end
 

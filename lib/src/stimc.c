@@ -85,13 +85,31 @@ static void stimc_wait_time_int_exp (uint64_t time, int exp);
 
 static vpiHandle stimc_module_handle_init (stimc_module *m, const char *name);
 
+enum nba_type {
+    STIMC_NBA_UNUSED_LAST,
+    STIMC_NBA_Z_ALL,
+    STIMC_NBA_X_ALL,
+    STIMC_NBA_VAL_ALL_INT32,
+    STIMC_NBA_VAL_ALL_UINT64,
+    STIMC_NBA_VAL_BITS,
+};
+struct nba_queue_entry {
+    uint64_t      value;
+    enum nba_type type;
+    uint16_t      lsb;
+    uint16_t      msb;
+};
+struct nba_data {
+    vpiHandle               cb_handle;
+    struct nba_queue_entry *queue;
+    unsigned                queue_len;
+    unsigned                queue_num;
+};
+
+static void      stimc_net_nba_queue_append (stimc_net net, struct nba_queue_entry *entry_new);
+static PLI_INT32 stimc_net_nba_callback_wrapper (struct t_cb_data *cb_data);
+
 static inline void stimc_net_set_xz (stimc_net net, int val);
-static inline void stimc_net_set_uint64_callback_nonblock_gen (PLI_INT32 (*cb_rtn)(struct t_cb_data *), stimc_net net);
-static PLI_INT32   stimc_net_set_x_nonblock_callback_wrapper (struct t_cb_data *cb_data);
-static PLI_INT32   stimc_net_set_z_nonblock_callback_wrapper (struct t_cb_data *cb_data);
-static PLI_INT32   stimc_net_set_uint64_nonblock_callback_wrapper (struct t_cb_data *cb_data);
-static PLI_INT32   stimc_net_set_bits_uint64_nonblock_callback_wrapper (struct t_cb_data *cb_data);
-static PLI_INT32   stimc_net_set_int32_nonblock_callback_wrapper (struct t_cb_data *cb_data);
 
 /******************************************************************************************************/
 /* global variables */
@@ -390,7 +408,7 @@ static void stimc_thread_queue_free (struct stimc_thread_queue_s *q)
     q->threads_len = 0;
     q->threads_num = 0;
     free (q->threads);
-    // TODO: free coroutines? (will be no longer reachable)
+    // TODO: extra function to terminate+free coroutines? (will be no longer reachable)
 }
 
 static void stimc_thread_queue_enqueue (struct stimc_thread_queue_s *q, coroutine_t thread)
@@ -559,8 +577,9 @@ stimc_port stimc_port_init (stimc_module *m, const char *name)
 
     // TODO: free in port_free
 
-    result->net           = handle;
-    result->nba_cb_handle = NULL;
+    result->net = handle;
+    result->nba = NULL;
+    // TODO: free in port_free
 
     return result;
 }
@@ -568,6 +587,97 @@ stimc_parameter stimc_parameter_init (stimc_module *m, const char *name)
 {
     return stimc_module_handle_init (m, name);
     // TODO: free in parameter_free
+}
+
+static void stimc_net_nba_queue_append (stimc_net net, struct nba_queue_entry *entry_new)
+{
+    /* init queue if necessary */
+    struct nba_data *nba = net->nba;
+
+    if (nba == NULL) {
+        /* allocate */
+        nba = (struct nba_data *)malloc (sizeof (struct nba_data));
+
+        nba->queue         = (struct nba_queue_entry *)malloc (4 * sizeof (struct nba_queue_entry));
+        nba->queue_len     = 4;
+        nba->queue_num     = 0;
+        nba->queue[0].type = STIMC_NBA_UNUSED_LAST;
+
+        nba->cb_handle = NULL;
+
+        net->nba = nba;
+    } else {
+        /* resize if necessary */
+        if (nba->queue_num + 1 >= nba->queue_len) {
+            nba->queue_len *= 2;
+            nba->queue      = (struct nba_queue_entry *)realloc (nba->queue, nba->queue_len * sizeof (struct nba_queue_entry));
+        }
+    }
+
+    /* add new entry */
+    nba->queue[nba->queue_num] = *entry_new;
+    nba->queue_num++;
+    nba->queue[nba->queue_num].type = STIMC_NBA_UNUSED_LAST;
+
+    /* add handler, if not yet created */
+    if (nba->cb_handle != NULL) return;
+
+    /* new callback */
+    s_cb_data   cb_data;
+    s_vpi_time  cb_data_time;
+    s_vpi_value cb_data_value;
+
+    cb_data.reason        = cbReadWriteSynch;
+    cb_data.cb_rtn        = stimc_net_nba_callback_wrapper;
+    cb_data.obj           = NULL;
+    cb_data.time          = &cb_data_time;
+    cb_data.time->type    = vpiSimTime;
+    cb_data.time->high    = 0;
+    cb_data.time->low     = 0;
+    cb_data.time->real    = 0;
+    cb_data.value         = &cb_data_value;
+    cb_data.value->format = vpiSuppressVal;
+    cb_data.index         = 0;
+    cb_data.user_data     = (PLI_BYTE8 *)net;
+
+    nba->cb_handle = vpi_register_cb (&cb_data);
+    assert (nba->cb_handle);
+}
+
+static PLI_INT32 stimc_net_nba_callback_wrapper (struct t_cb_data *cb_data)
+{
+    stimc_net net = (stimc_net)cb_data->user_data;
+
+    for (struct nba_queue_entry *e = net->nba->queue; e->type != STIMC_NBA_UNUSED_LAST; e++) {
+        switch (e->type) {
+            case STIMC_NBA_Z_ALL:
+                stimc_net_set_z (net);
+                break;
+            case STIMC_NBA_X_ALL:
+                stimc_net_set_x (net);
+                break;
+            case STIMC_NBA_VAL_ALL_INT32:
+                stimc_net_set_int32 (net, e->value);
+                break;
+            case STIMC_NBA_VAL_ALL_UINT64:
+                stimc_net_set_uint64 (net, e->value);
+                break;
+            case STIMC_NBA_VAL_BITS:
+                stimc_net_set_bits_uint64 (net, e->msb, e->lsb, e->value);
+                break;
+            default:
+                /* prevent compiler warning */
+                break;
+        }
+    }
+
+    vpi_remove_cb (net->nba->cb_handle);
+
+    net->nba->cb_handle     = NULL;
+    net->nba->queue_num     = 0;
+    net->nba->queue[0].type = STIMC_NBA_UNUSED_LAST;
+
+    return 0;
 }
 
 static inline void stimc_net_set_xz (stimc_net net, int val)
@@ -780,116 +890,52 @@ uint64_t stimc_net_get_uint64 (stimc_net net)
     return result;
 }
 
-static inline void stimc_net_set_uint64_callback_nonblock_gen (PLI_INT32 (*cb_rtn)(struct t_cb_data *), stimc_net net)
-{
-    s_cb_data   data;
-    s_vpi_time  data_time;
-    s_vpi_value data_value;
-
-    data.reason        = cbReadWriteSynch;
-    data.cb_rtn        = cb_rtn;
-    data.obj           = NULL;
-    data.time          = &data_time;
-    data.time->type    = vpiSimTime;
-    data.time->high    = 0;
-    data.time->low     = 0;
-    data.time->real    = 0;
-    data.value         = &data_value;
-    data.value->format = vpiSuppressVal;
-    data.index         = 0;
-    data.user_data     = (PLI_BYTE8 *)net;
-
-    if (net->nba_cb_handle != NULL) {
-        vpi_remove_cb (net->nba_cb_handle);
-    }
-    net->nba_cb_handle = vpi_register_cb (&data);
-    assert (net->nba_cb_handle);
-}
-
-static PLI_INT32 stimc_net_set_x_nonblock_callback_wrapper (struct t_cb_data *cb_data)
-{
-    stimc_net net = (stimc_net)cb_data->user_data;
-
-    stimc_net_set_x (net);
-    vpi_remove_cb (net->nba_cb_handle);
-    net->nba_cb_handle = NULL;
-
-    return 0;
-}
-
-static PLI_INT32 stimc_net_set_z_nonblock_callback_wrapper (struct t_cb_data *cb_data)
-{
-    stimc_net net = (stimc_net)cb_data->user_data;
-
-    stimc_net_set_z (net);
-    vpi_remove_cb (net->nba_cb_handle);
-    net->nba_cb_handle = NULL;
-
-    return 0;
-}
-
 void stimc_net_set_z_nonblock (stimc_net net)
 {
-    stimc_net_set_uint64_callback_nonblock_gen (stimc_net_set_z_nonblock_callback_wrapper, net);
+    struct nba_queue_entry assign = {
+        .type = STIMC_NBA_Z_ALL,
+    };
+
+    stimc_net_nba_queue_append (net, &assign);
 }
 void stimc_net_set_x_nonblock (stimc_net net)
 {
-    stimc_net_set_uint64_callback_nonblock_gen (stimc_net_set_x_nonblock_callback_wrapper, net);
-}
+    struct nba_queue_entry assign = {
+        .type = STIMC_NBA_X_ALL,
+    };
 
-static PLI_INT32 stimc_net_set_uint64_nonblock_callback_wrapper (struct t_cb_data *cb_data)
-{
-    stimc_net net = (stimc_net)cb_data->user_data;
-
-    stimc_net_set_uint64 (net, net->nba_value);
-    vpi_remove_cb (net->nba_cb_handle);
-    net->nba_cb_handle = NULL;
-
-    return 0;
-}
-
-static PLI_INT32 stimc_net_set_bits_uint64_nonblock_callback_wrapper (struct t_cb_data *cb_data)
-{
-    stimc_net net = (stimc_net)cb_data->user_data;
-
-    stimc_net_set_bits_uint64 (net, net->nba_msb, net->nba_lsb, net->nba_value);
-    vpi_remove_cb (net->nba_cb_handle);
-    net->nba_cb_handle = NULL;
-
-    return 0;
-}
-
-static PLI_INT32 stimc_net_set_int32_nonblock_callback_wrapper (struct t_cb_data *cb_data)
-{
-    stimc_net net = (stimc_net)cb_data->user_data;
-
-    stimc_net_set_int32 (net, net->nba_value);
-    vpi_remove_cb (net->nba_cb_handle);
-    net->nba_cb_handle = NULL;
-
-    return 0;
+    stimc_net_nba_queue_append (net, &assign);
 }
 
 void stimc_net_set_uint64_nonblock (stimc_net net, uint64_t value)
 {
-    net->nba_value = value;
+    struct nba_queue_entry assign = {
+        .value = value,
+        .type  = STIMC_NBA_VAL_ALL_UINT64,
+    };
 
-    stimc_net_set_uint64_callback_nonblock_gen (stimc_net_set_uint64_nonblock_callback_wrapper, net);
+    stimc_net_nba_queue_append (net, &assign);
 }
 
 void stimc_net_set_bits_uint64_nonblock (stimc_net net, unsigned msb, unsigned lsb, uint64_t value)
 {
-    net->nba_value = value;
-    net->nba_msb   = msb;
-    net->nba_lsb   = lsb;
+    struct nba_queue_entry assign = {
+        .value = value,
+        .type  = STIMC_NBA_VAL_BITS,
+        .msb   = msb,
+        .lsb   = lsb,
+    };
 
-    stimc_net_set_uint64_callback_nonblock_gen (stimc_net_set_bits_uint64_nonblock_callback_wrapper, net);
+    stimc_net_nba_queue_append (net, &assign);
 }
 
 void stimc_net_set_int32_nonblock (stimc_net net, int32_t value)
 {
-    net->nba_value = value;
+    struct nba_queue_entry assign = {
+        .value = value,
+        .type  = STIMC_NBA_VAL_ALL_INT32,
+    };
 
-    stimc_net_set_uint64_callback_nonblock_gen (stimc_net_set_int32_nonblock_callback_wrapper, net);
+    stimc_net_nba_queue_append (net, &assign);
 }
 

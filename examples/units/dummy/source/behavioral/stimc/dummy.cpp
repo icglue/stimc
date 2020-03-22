@@ -34,26 +34,8 @@ void dummy::dinchange ()
     }
 }
 
-void dummy::testcontrol ()
-{
-    fprintf (stderr, "DEBUG: testcontrol...\n");
-    data_out_o = 0x0123456789abcdef;
-    wait (1e-9);
-    data_out_o = 0x89abcdef01234567;
-
-    for (int i = 0; i < 100; i++) {
-        wait (clk_event);
-        if (i % 2) {
-            data_out_o(i, i) = 1;
-        } else {
-            if (i % 4) {
-                data_out_o.set_z ();
-            } else {
-                data_out_o.set_x ();
-            }
-        }
-    }
-}
+void __attribute__((weak)) dummy::testcontrol ()
+{}
 
 STIMCXX_INIT (dummy)
 

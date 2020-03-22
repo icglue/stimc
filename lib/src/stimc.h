@@ -59,13 +59,9 @@ extern "C" {
  * Currently both of them are accessed via the same type as vpi does not need to distinguish.
  */
 struct stimc_net_s {
-    vpiHandle net;            /**< @brief vpi handle for access to net/port object */
+    vpiHandle net;        /**< @brief vpi handle for access to net/port object */
 
-    /* TODO: allow more than one callback for multiple bit ranges to be assigned */
-    uint64_t  nba_value;      /**< @brief Value for scheduled non-blocking assignment */
-    unsigned  nba_lsb;        /**< @brief Least significant bit of scheduled non-blocking assignment to bit range */
-    unsigned  nba_msb;        /**< @brief Most significant bit of scheduled non-blocking assignment to bit range */
-    vpiHandle nba_cb_handle;  /**< @brief vpi callback handle for scheduled non-blocking assignment */
+    struct nba_data *nba; /**< @brief Data for scheduled non-blocking assignments */
 };
 typedef struct stimc_net_s *stimc_net;  /**< @brief Net base type. */
 typedef struct stimc_net_s *stimc_port; /**< @brief Port base type. */
