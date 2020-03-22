@@ -84,7 +84,7 @@ class stimcxx_module {
 
     public:
         class port {
-            public:
+            protected:
                 stimc_port _port;
             public:
                 class subbits {
@@ -95,10 +95,6 @@ class stimcxx_module {
                     public:
                         subbits (port &p, int msb, int lsb) :
                             _lsb (lsb), _msb (msb), _p (p) {}
-                        subbits (subbits &b) :
-                            _lsb (b._lsb), _msb (b._msb), _p (b._p) {}
-
-                        virtual ~subbits () {}
 
                         operator uint64_t ()
                         {
@@ -119,7 +115,24 @@ class stimcxx_module {
                 };
             public:
                 port (stimcxx_module &m, const char *name);
-                virtual ~port ();
+
+                port            (const port &p) = delete;
+                port& operator= (const port &p) = delete;
+
+                ~port ();
+
+                void register_posedge_method (void (*callback) (void *p), void *p) {
+                    stimc_register_posedge_method (callback, p, this->_port);
+                }
+
+                void register_negedge_method (void (*callback) (void *p), void *p) {
+                    stimc_register_negedge_method (callback, p, this->_port);
+                }
+
+                void register_change_method (void (*callback) (void *p), void *p) {
+                    stimc_register_change_method (callback, p, this->_port);
+                }
+
 
                 port& operator= (uint64_t value)
                 {
@@ -163,6 +176,13 @@ class stimcxx_module {
 
                     return b;
                 }
+
+                subbits operator() (int msb, int lsb)
+                {
+                    subbits b (*this, msb, lsb);
+
+                    return b;
+                }
         };
 
         class parameter {
@@ -172,7 +192,11 @@ class stimcxx_module {
                 double _value_d;
             public:
                 parameter (stimcxx_module &m, const char *name);
-                virtual ~parameter ();
+
+                parameter            (const parameter &p) = delete;
+                parameter& operator= (const parameter &p) = delete;
+
+                ~parameter ();
 
                 int value ()
                 {
@@ -204,26 +228,26 @@ class stimcxx_module {
     port (*this, #port)
 
 #define STIMCXX_REGISTER_STARTUP_THREAD(thread) \
-    typedef decltype (this) thisptype; \
+    typedef decltype (this) _thisptype; \
     class _stimcxx_thread_init_ ## thread { \
         public: \
             static void callback (void *p) { \
-                thisptype m = (thisptype)p; \
+                _thisptype m = (_thisptype)p; \
                 m->thread (); \
             } \
     }; \
     stimc_register_startup_thread (_stimcxx_thread_init_ ## thread::callback, (void *)this)
 
 #define STIMCXX_REGISTER_METHOD(event, port, func) \
-    typedef decltype (this) thisptype; \
-    class _stimcxx_method_init_ ## event ## func { \
+    typedef decltype (this) _thisptype; \
+    class _stimcxx_method_init_ ## event ## _ ## port ## _ ## func { \
         public: \
             static void callback (void *p) { \
-                thisptype m = (thisptype)p; \
+                _thisptype m = (_thisptype)p; \
                 m->func (); \
             } \
     }; \
-    stimc_register_ ## event ## _method (_stimcxx_method_init_ ## event ## func ::callback, (void *)this, port._port)
+    port.register_ ## event ## _method (_stimcxx_method_init_ ## event ## _ ## port ## _ ## func ::callback, (void *)this)
 
 
 #define STIMCXX_INIT(module) \

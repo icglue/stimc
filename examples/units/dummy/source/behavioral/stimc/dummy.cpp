@@ -42,7 +42,7 @@ void dummy::testcontrol ()
     for (int i = 0; i < 100; i++) {
         wait (clk_event);
         if (i % 2) {
-            data_out_o.bits (i, i) = 1;
+            data_out_o(i, i) = 1;
         } else {
             if (i % 4) {
                 data_out_o.set_z ();
