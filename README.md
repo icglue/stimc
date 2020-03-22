@@ -45,12 +45,13 @@ endmodule
 stimc core is written in c with a thin c++ wrapper,
 so the stimc part of the module can be written in c or c++,
 but c++ will produce more readable code and here the c++ version will be explained.
+The c++ code is wrapped in a `stimcxx` namespace.
 
 #### Module Class
-First a c++ class is needed that inherits `stimcxx_module` (include `stimc++.h`).
+First a c++ class is needed that inherits `stimcxx::module` (include `stimc++.h`).
 For every (used) port of the Verilog shell the class should have a `port` member,
 for every (used) parameter a `parameter` member of the same name as the Verilog pendant.
-Additionally can have `stimcxx_event` members in case waiting on events triggered
+Additionally can have `stimcxx::event` members in case waiting on events triggered
 by individual stimc threads or value-change events on ports is needed (similar to
 SystemC events).
 
@@ -61,7 +62,7 @@ events or immediately reacting (similar to SystemC methods).
 
 An excerpt from the project's examples looks like this:
 ```c++
-class dummy : public stimcxx_module {
+class dummy : public stimcxx::module {
     private:
         parameter DATA_W;
 
@@ -70,7 +71,7 @@ class dummy : public stimcxx_module {
         port data_in_i;
         port data_out_o;
 
-        stimcxx_event clk_event;
+        stimcxx::event clk_event;
 
     public:
         dummy ();
@@ -134,12 +135,12 @@ to Verilog non-blocking assignment, optical similarity to Verilog is intended,
 while risking misinterpretation as shift operation).
 
 In case only a bit-range of a port should be accessed or an integer type is not sufficiently
-wide it is possible to access the ports function `bits(<msb>,<lsb>)` and similarly read from
+wide it is possible to access the ports `operator{} (<msb>,<lsb>)` and similarly read from
 or write to the bit-range.
 Ports also have some helpers to set them to `x` or `z` (`set_x()`, `set_z()` and non-blocking
 versions `nb_set_x()`, `nb_set_z()`) or check if the value contains `x` or `z` values (`is_xz()`).
 
-Furthermore there are helper functions:
+Furthermore there are helper functions in the `stimcxx` namespace:
 - `time()` (simulation time in seconds), `time(<unit>)` (simulation
   time as integer in specified unit, similar to SystemC units are defined as `SC_PS`, `SC_US` and so on).
 - `finish()` to finish simulation.
