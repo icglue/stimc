@@ -43,7 +43,9 @@
 #define STIMC_VALVECTOR_MAX_STATIC 8
 #endif
 
-// internal header
+/******************************************************************************************************/
+/* internal header */
+/******************************************************************************************************/
 struct stimc_method_wrap {
     void  (*methodfunc) (void *userdata);
     void *userdata;
@@ -91,14 +93,18 @@ static PLI_INT32   stimc_net_set_uint64_nonblock_callback_wrapper (struct t_cb_d
 static PLI_INT32   stimc_net_set_bits_uint64_nonblock_callback_wrapper (struct t_cb_data *cb_data);
 static PLI_INT32   stimc_net_set_int32_nonblock_callback_wrapper (struct t_cb_data *cb_data);
 
-// global variables
+/******************************************************************************************************/
+/* global variables */
+/******************************************************************************************************/
 static coroutine_t stimc_current_thread = NULL;
 
 static bool                        stimc_main_queue_setup  = false;
 static struct stimc_thread_queue_s stimc_main_queue        = {0, 0, NULL};
 static struct stimc_thread_queue_s stimc_main_queue_shadow = {0, 0, NULL};
 
-// implementation
+/******************************************************************************************************/
+/* implementation */
+/******************************************************************************************************/
 static const char *stimc_get_caller_scope (void)
 {
     vpiHandle taskref = vpi_handle (vpiSysTfCall, NULL);
@@ -152,6 +158,7 @@ static void stimc_register_valuechange_method (void (*methodfunc)(void *userdata
     s_vpi_value data_value;
 
     struct stimc_method_wrap *wrap = (struct stimc_method_wrap *)malloc (sizeof (struct stimc_method_wrap));
+    // TODO: free at end of simulation? (separate callback?)
 
     wrap->methodfunc = methodfunc;
     wrap->userdata   = userdata;
@@ -382,6 +389,7 @@ static void stimc_thread_queue_free (struct stimc_thread_queue_s *q)
     q->threads_len = 0;
     q->threads_num = 0;
     free (q->threads);
+    // TODO: free coroutines? (will be no longer reachable)
 }
 
 static void stimc_thread_queue_enqueue (struct stimc_thread_queue_s *q, coroutine_t thread)
@@ -431,6 +439,7 @@ static inline void stimc_main_queue_checksetup ()
 {
     if (stimc_main_queue_setup) return;
 
+    // TODO: free at end of simulation?
     stimc_thread_queue_init (&stimc_main_queue);
     stimc_thread_queue_init (&stimc_main_queue_shadow);
 
@@ -513,6 +522,7 @@ void stimc_module_init (stimc_module *m)
     assert (m);
     const char *scope = stimc_get_caller_scope ();
 
+    // TODO: free in module_free
     m->id = (char *)malloc (sizeof (char) * (strlen (scope) + 1));
     strcpy (m->id, scope);
 }
@@ -524,6 +534,7 @@ static vpiHandle stimc_module_handle_init (stimc_module *m, const char *name)
     size_t scope_len = strlen (scope);
     size_t name_len  = strlen (name);
 
+    // TODO: free in handle_free, call appropriately
     char *net_name = (char *)malloc (sizeof (char) * (scope_len + name_len + 2));
 
     strcpy (net_name, scope);
@@ -542,7 +553,9 @@ static vpiHandle stimc_module_handle_init (stimc_module *m, const char *name)
 stimc_port stimc_port_init (stimc_module *m, const char *name)
 {
     vpiHandle  handle = stimc_module_handle_init (m, name);
+    // TODO: free in port_free
     stimc_port result = (stimc_port)malloc (sizeof (struct stimc_net_s));
+    // TODO: free in port_free
 
     result->net           = handle;
     result->nba_cb_handle = NULL;
@@ -552,6 +565,7 @@ stimc_port stimc_port_init (stimc_module *m, const char *name)
 stimc_parameter stimc_parameter_init (stimc_module *m, const char *name)
 {
     return stimc_module_handle_init (m, name);
+    // TODO: free in parameter_free
 }
 
 static inline void stimc_net_set_xz (stimc_net net, int val)
