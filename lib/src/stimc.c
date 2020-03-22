@@ -158,6 +158,7 @@ static void stimc_register_valuechange_method (void (*methodfunc)(void *userdata
     s_vpi_value data_value;
 
     struct stimc_method_wrap *wrap = (struct stimc_method_wrap *)malloc (sizeof (struct stimc_method_wrap));
+
     // TODO: free at end of simulation? (separate callback?)
 
     wrap->methodfunc = methodfunc;
@@ -312,7 +313,7 @@ static void stimc_wait_time_int_exp (uint64_t time, int exp)
 
 void stimc_wait_time (uint64_t time, enum stimc_time_unit exp)
 {
-    stimc_wait_time_int_exp (time, (int) exp);
+    stimc_wait_time_int_exp (time, (int)exp);
 }
 
 void stimc_wait_time_seconds (double time)
@@ -330,7 +331,7 @@ uint64_t stimc_time (enum stimc_time_unit exp)
 {
     /* get time */
     s_vpi_time time;
-    int exp_int = (int) exp;
+    int        exp_int = (int)exp;
 
     time.type = vpiSimTime;
     vpi_get_time (NULL, &time);
@@ -552,9 +553,10 @@ static vpiHandle stimc_module_handle_init (stimc_module *m, const char *name)
 
 stimc_port stimc_port_init (stimc_module *m, const char *name)
 {
-    vpiHandle  handle = stimc_module_handle_init (m, name);
+    vpiHandle handle = stimc_module_handle_init (m, name);
     // TODO: free in port_free
     stimc_port result = (stimc_port)malloc (sizeof (struct stimc_net_s));
+
     // TODO: free in port_free
 
     result->net           = handle;

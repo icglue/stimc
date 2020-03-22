@@ -67,3 +67,4 @@ namespace stimcxx {
         stimc_event_free (this->_event);
     }
 };
+

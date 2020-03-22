@@ -173,7 +173,8 @@ namespace stimcxx {
                      * Internal helper. For registering from inside a module
                      * use @ref STIMCXX_REGISTER_METHOD for convenience.
                      */
-                    void register_posedge_method (void (*callback) (void *p), void *p) {
+                    void register_posedge_method (void (*callback)(void *p), void *p)
+                    {
                         stimc_register_posedge_method (callback, p, this->_port);
                     }
 
@@ -185,7 +186,8 @@ namespace stimcxx {
                      * Internal helper. For registering from inside a module
                      * use @ref STIMCXX_REGISTER_METHOD for convenience.
                      */
-                    void register_negedge_method (void (*callback) (void *p), void *p) {
+                    void register_negedge_method (void (*callback)(void *p), void *p)
+                    {
                         stimc_register_negedge_method (callback, p, this->_port);
                     }
 
@@ -197,7 +199,8 @@ namespace stimcxx {
                      * Internal helper. For registering from inside a module
                      * use @ref STIMCXX_REGISTER_METHOD for convenience.
                      */
-                    void register_change_method (void (*callback) (void *p), void *p) {
+                    void register_change_method (void (*callback)(void *p), void *p)
+                    {
                         stimc_register_change_method (callback, p, this->_port);
                     }
 
