@@ -385,7 +385,7 @@ void stimc_net_set_x (stimc_net net);
 /**
  * @brief Check for x/z value.
  * @param net Port/net to check.
- * @return true if port/net contains x or z values, falso otherwise.
+ * @return true if port/net contains x or z values, false otherwise.
  */
 bool stimc_net_is_xz (stimc_net net);
 
@@ -397,7 +397,7 @@ bool stimc_net_is_xz (stimc_net net);
  * @param value Value to assign as 64 bit integer.
  * @see stimc_net_set_bits_uint64.
  *
- * Sets sub bit-range of port/net to specified
+ * Sets sub bit range of port/net to specified
  * value similar to using a verilog non-blocking assignment.
  */
 void stimc_net_set_bits_uint64_nonblock (stimc_net net, unsigned msb, unsigned lsb, uint64_t value);
@@ -410,7 +410,7 @@ void stimc_net_set_bits_uint64_nonblock (stimc_net net, unsigned msb, unsigned l
  * @param value Value to assign as 64 bit integer.
  * @see stimc_net_set_bits_uint64_nonblock.
  *
- * Sets sub bit-range of port/net to specified
+ * Sets sub bit range of port/net to specified
  * value similar to using a verilog blocking assignment.
  */
 void stimc_net_set_bits_uint64 (stimc_net net, unsigned msb, unsigned lsb, uint64_t value);
