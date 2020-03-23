@@ -27,7 +27,7 @@ void dummy::clock ()
 
 void dummy::dinchange ()
 {
-    if (data_in_i.is_xz ()) {
+    if (data_in_i == X) {
         fprintf (stderr, "DEBUG: data_in changed at time %ldns to <undefined>\n", time (SC_NS));
     } else {
         fprintf (stderr, "DEBUG: data_in changed at time %luns to 0x%08lx\n", time (SC_NS), (uint64_t)data_in_i);

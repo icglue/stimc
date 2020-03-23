@@ -63,6 +63,64 @@ namespace stimcxx {
             }
     };
 
+
+    /**
+     * @brief Convenience type to be able to assign x/z values.
+     *
+     * Not directly mapped to an enum to prevent ambiguity with
+     * integer types.
+     */
+    class bit {
+        protected:
+            /**
+             * @brief The actual representation of x/z/none of them.
+             */
+            enum val {
+                val_X,      /**< @brief x value (verilog-x ~ unknown) */
+                val_Z,      /**< @brief z value (verilog-z ~ high impedance) */
+                val_not_XZ, /**< @brief not x/z for comparison */
+            };
+
+            enum val _v; /**< @brief The actual value */
+
+            /**
+             * @brief Non-public constructor to prevent ambiguity
+             * @param v The represented value.
+             */
+            bit (val v) : _v(v) {}
+        public:
+            /**
+             * @brief Comparison.
+             * @param b bit to compare against.
+             * @return true if equal.
+             * @see @ref module::port::operator==
+             */
+            bool operator==(const bit &b) const {
+                return (b._v == this->_v);
+            }
+
+            /**
+             * @brief Comparison.
+             * @param b bit to compare against.
+             * @return true if non-equal.
+             * @see @ref module::port::operator!=
+             */
+            bool operator!=(const bit &b) const {
+                return (b._v != this->_v);
+            }
+
+            /**
+             * @brief bit representing x value */
+            static bit X()      {return bit(val_X);}
+            static bit Z()      {return bit(val_Z);}
+            static bit not_XZ() {return bit(val_not_XZ);}
+    };
+
+    static const bit X      = bit::X();      /**< @brief x value (verilog-x ~ unknown) */
+    static const bit Z      = bit::Z();      /**< @brief z value (verilog-z ~ high impedance) */
+    static const bit not_XZ = bit::not_XZ(); /**< @brief not x/z for comparison */
+
+
     /**
      * @brief Wrapper class for @ref stimc_module and related functionality.
      */
@@ -220,6 +278,23 @@ namespace stimcxx {
                     }
 
                     /**
+                     * @brief Immediate x/z assignment.
+                     * @see @ref stimc_net_set_x and @ref stimc_net_set_x.
+                     *
+                     * Sets port to unknown/high impedance state similar
+                     * to using a verilog blocking assignment.
+                     */
+                    port& operator= (bit v)
+                    {
+                        if (v == X) {
+                            stimc_net_set_x (_port);
+                        } else if (v == Z) {
+                            stimc_net_set_z (_port);
+                        }
+                        return *this;
+                    }
+
+                    /**
                      * @brief Non-blocking assignment operator to port.
                      * @param value Value to assgin.
                      * @return reference to the port.
@@ -240,6 +315,23 @@ namespace stimcxx {
                     }
 
                     /**
+                     * @brief Non-blocking x/z assignment.
+                     * @see @ref stimc_net_set_x_nonblock and @ref stimc_net_set_z_nonblock.
+                     *
+                     * Sets port to unknown/high impedance state similar
+                     * to using a verilog non-blocking assignment.
+                     */
+                    port& operator<<= (bit v)
+                    {
+                        if (v == X) {
+                            stimc_net_set_x_nonblock (_port);
+                        } else if (v == Z) {
+                            stimc_net_set_z_nonblock (_port);
+                        }
+                        return *this;
+                    }
+
+                    /**
                      * @brief Cast for reading from port as uint64_t.
                      * @return Current value of port as uint64_t.
                      *
@@ -251,63 +343,34 @@ namespace stimcxx {
                         return stimc_net_get_uint64 (_port);
                     }
 
-
                     /**
-                     * @brief Non-blocking z assignment.
-                     * @see stimc_net_set_z_nonblock.
-                     *
-                     * Sets port to high impedance state similar to using
-                     * a verilog non-blocking assignment.
+                     * @brief Check for x/z value in comparisons.
+                     * @return @ref X if port contains x or z values, @ref not_XZ otherwise.
                      */
-                    void nb_set_z ()
+                    operator bit ()
                     {
-                        stimc_net_set_z_nonblock (_port);
+                        if (stimc_net_is_xz (_port)) {
+                            return X;
+                        } else {
+                            return not_XZ;
+                        }
                     }
 
                     /**
-                     * @brief Non-blocking x assignment.
-                     * @see stimc_net_set_x_nonblock.
-                     *
-                     * Sets port to verilog x value similar to using
-                     * a verilog non-blocking assignment.
+                     * @brief Compare against x value.
+                     * @param b Value to compare against (typically @ref X).
+                     * @return true if equal, false otherwise.
+                     * @see @ref operator bit().
                      */
-                    void nb_set_x ()
-                    {
-                        stimc_net_set_x_nonblock (_port);
-                    }
+                    bool operator== (const bit &b) {return ((bit) *this == b);}
 
                     /**
-                     * @brief Immediate z assignment.
-                     * @see stimc_net_set_z.
-                     *
-                     * Sets port to high impedance state similar to using
-                     * a verilog blocking assignment.
+                     * @brief Compare against x value.
+                     * @param b Value to compare against (typically @ref X).
+                     * @return true if equal, false otherwise.
+                     * @see @ref operator bit().
                      */
-                    void set_z ()
-                    {
-                        stimc_net_set_z (_port);
-                    }
-
-                    /**
-                     * @brief Immediate x assignment.
-                     * @see stimc_net_set_x.
-                     *
-                     * Sets port to verilog x value similar to using
-                     * a verilog blocking assignment.
-                     */
-                    void set_x ()
-                    {
-                        stimc_net_set_x (_port);
-                    }
-
-                    /**
-                     * @brief Check for x/z value.
-                     * @return true if port contains x or z values, false otherwise.
-                     */
-                    bool is_xz ()
-                    {
-                        return stimc_net_is_xz (_port);
-                    }
+                    bool operator!= (const bit &b) {return ((bit) *this != b);}
 
                     /**
                      * @brief Optain a new bit range handle to the port.

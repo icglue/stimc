@@ -137,8 +137,8 @@ while risking misinterpretation as shift operation).
 In case only a bit-range of a port should be accessed or an integer type is not sufficiently
 wide it is possible to access the ports `operator{} (<msb>,<lsb>)` and similarly read from
 or write to the bit-range.
-Ports also have some helpers to set them to `x` or `z` (`set_x()`, `set_z()` and non-blocking
-versions `nb_set_x()`, `nb_set_z()`) or check if the value contains `x` or `z` values (`is_xz()`).
+Ports can also be assigned to verilog `x` or `z` values using the similarly named constants `X`
+and `Z` or checked to contain unknown values via comparison against `X`.
 
 Furthermore there are helper functions in the `stimcxx` namespace:
 - `time()` (simulation time in seconds), `time(<unit>)` (simulation

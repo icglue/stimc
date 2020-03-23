@@ -15,9 +15,9 @@ void dummy::testcontrol ()
             data_out_o(i, i) = 1;
         } else {
             if (i % 4) {
-                data_out_o.set_z ();
+                data_out_o = Z;
             } else {
-                data_out_o.set_x ();
+                data_out_o = X;
             }
         }
     }
