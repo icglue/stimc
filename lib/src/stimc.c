@@ -771,11 +771,11 @@ void stimc_net_set_bits_uint64 (stimc_net net, unsigned msb, unsigned lsb, uint6
     unsigned s0     = lsb % 32;
     unsigned jstop  = msb / 32;
 
-    uint64_t mask = ((2 << (msb - lsb)) - 1);
+    uint64_t mask = (lsb == msb ? 1 : ((2 << (msb - lsb)) - 1));
 
     for (unsigned i = 0, j = jstart; (j < vsize) && (j <= jstop) && (i < 3); i++, j++) {
-        uint32_t i_mask;
-        uint32_t i_val;
+        uint64_t i_mask;
+        uint64_t i_val;
 
         if (i == 0) {
             i_mask = mask << s0;
@@ -785,9 +785,9 @@ void stimc_net_set_bits_uint64 (stimc_net net, unsigned msb, unsigned lsb, uint6
             i_val  = (value & mask) >> (32 * i - s0);
         }
 
-        v.value.vector[i].aval &= ~i_mask;
-        v.value.vector[i].aval |=  i_val;
-        v.value.vector[i].bval &= ~i_mask;
+        v.value.vector[j].aval &= ~i_mask;
+        v.value.vector[j].aval |=  i_val;
+        v.value.vector[j].bval &= ~i_mask;
     }
 
     vpi_put_value (net->net, &v, NULL, flags);
@@ -812,9 +812,9 @@ uint64_t stimc_net_get_bits_uint64 (stimc_net net, unsigned lsb, unsigned msb)
 
     for (unsigned i = 0, j = jstart; (j < vsize) && (j <= jstop) && (i < 3); i++, j++) {
         if (i == 0) {
-            result |= (((uint64_t)v.value.vector[i].aval & ~((uint64_t)v.value.vector[i].bval)) >> s0);
+            result |= (((uint64_t)v.value.vector[j].aval & ~((uint64_t)v.value.vector[j].bval)) >> s0);
         } else {
-            result |= (((uint64_t)v.value.vector[i].aval & ~((uint64_t)v.value.vector[i].bval)) << (32 * i - s0));
+            result |= (((uint64_t)v.value.vector[j].aval & ~((uint64_t)v.value.vector[j].bval)) << (32 * i - s0));
         }
     }
 
