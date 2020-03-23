@@ -384,6 +384,18 @@ namespace stimcxx {
 
                         return b;
                     }
+
+                    /**
+                     * @brief Optain a new bit handle to the port.
+                     * @param bit bit of handle.
+                     * @return the subbits handle.
+                     */
+                    subbits operator() (int bit)
+                    {
+                        subbits b (*this, bit, bit);
+
+                        return b;
+                    }
             };
 
             /**

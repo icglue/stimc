@@ -26,7 +26,8 @@ void dummy::testcontrol ()
     data_out_o(31,24)   = 0;
     data_out_o(15,8)    = 0;
     wait (10, SC_NS);
-    data_out_o(23,16) <<= 0xff;
-    data_out_o(7,0)   <<= 0xff;
+    data_out_o(23,16)   <<= 0xff;
+    data_out_o(7,0)     <<= 0xff;
+    data_out_o(127,127) <<= 1;
     wait (10, SC_NS);
 }
