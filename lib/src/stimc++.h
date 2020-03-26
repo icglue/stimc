@@ -87,7 +87,7 @@ namespace stimcxx {
              * @brief Non-public constructor to prevent ambiguity
              * @param v The represented value.
              */
-            bit (val v) : _v(v) {}
+            bit (val v) : _v (v) {}
         public:
             /**
              * @brief Comparison.
@@ -95,7 +95,8 @@ namespace stimcxx {
              * @return true if equal.
              * @see @ref module::port::operator==
              */
-            bool operator==(const bit &b) const {
+            bool operator== (const bit &b) const
+            {
                 return (b._v == this->_v);
             }
 
@@ -105,20 +106,21 @@ namespace stimcxx {
              * @return true if non-equal.
              * @see @ref module::port::operator!=
              */
-            bool operator!=(const bit &b) const {
+            bool operator!= (const bit &b) const
+            {
                 return (b._v != this->_v);
             }
 
             /**
              * @brief bit representing x value */
-            static bit X()      {return bit(val_X);}
-            static bit Z()      {return bit(val_Z);}
-            static bit not_XZ() {return bit(val_not_XZ);}
+            static bit X ()      {return bit (val_X);}
+            static bit Z ()      {return bit (val_Z);}
+            static bit not_XZ () {return bit (val_not_XZ);}
     };
 
-    static const bit X      = bit::X();      /**< @brief x value (verilog-x ~ unknown) */
-    static const bit Z      = bit::Z();      /**< @brief z value (verilog-z ~ high impedance) */
-    static const bit not_XZ = bit::not_XZ(); /**< @brief not x/z for comparison */
+    static const bit X      = bit::X ();      /**< @brief x value (verilog-x ~ unknown) */
+    static const bit Z      = bit::Z ();      /**< @brief z value (verilog-z ~ high impedance) */
+    static const bit not_XZ = bit::not_XZ (); /**< @brief not x/z for comparison */
 
 
     /**
@@ -362,7 +364,7 @@ namespace stimcxx {
                      * @return true if equal, false otherwise.
                      * @see @ref operator bit().
                      */
-                    bool operator== (const bit &b) {return ((bit) *this == b);}
+                    bool operator== (const bit &b) {return ((bit) * this == b);}
 
                     /**
                      * @brief Compare against x value.
@@ -370,7 +372,7 @@ namespace stimcxx {
                      * @return true if equal, false otherwise.
                      * @see @ref operator bit().
                      */
-                    bool operator!= (const bit &b) {return ((bit) *this != b);}
+                    bool operator!= (const bit &b) {return ((bit) * this != b);}
 
                     /**
                      * @brief Optain a new bit range handle to the port.
