@@ -179,6 +179,35 @@ namespace stimcxx {
                             }
 
                             /**
+                             * @brief Check for x/z value in comparisons.
+                             * @return @ref X if port contains x or z values, @ref not_XZ otherwise.
+                             */
+                            operator bit ()
+                            {
+                                if (stimc_net_bits_are_xz (_p._port, _msb, _lsb)) {
+                                    return X;
+                                } else {
+                                    return not_XZ;
+                                }
+                            }
+
+                            /**
+                             * @brief Compare against x value.
+                             * @param b Value to compare against (typically @ref X).
+                             * @return true if equal, false otherwise.
+                             * @see @ref operator bit().
+                             */
+                            bool operator== (const bit &b) {return ((bit)(*this) == b);}
+
+                            /**
+                             * @brief Compare against x value.
+                             * @param b Value to compare against (typically @ref X).
+                             * @return true if equal, false otherwise.
+                             * @see @ref operator bit().
+                             */
+                            bool operator!= (const bit &b) {return ((bit)(*this) != b);}
+
+                            /**
                              * @brief Immediate assignment operator to port bit range.
                              * @param value Value to assgin.
                              * @return reference to the bitrange.
@@ -189,6 +218,23 @@ namespace stimcxx {
                             subbits& operator= (uint64_t value)
                             {
                                 stimc_net_set_bits_uint64 (_p._port, _msb, _lsb, value);
+                                return *this;
+                            }
+
+                            /**
+                             * @brief Immediate x/z assignment.
+                             * @see @ref stimc_net_set_bits_x and @ref stimc_net_set_bits_z.
+                             *
+                             * Sets represented bit range of port to unknown/high impedance
+                             * state similar to using a verilog blocking assignment.
+                             */
+                            subbits& operator= (bit v)
+                            {
+                                if (v == X) {
+                                    stimc_net_set_bits_x (_p._port, _msb, _lsb);
+                                } else if (v == Z) {
+                                    stimc_net_set_bits_z (_p._port, _msb, _lsb);
+                                }
                                 return *this;
                             }
 
@@ -209,6 +255,23 @@ namespace stimcxx {
                             subbits& operator<<= (uint64_t value)
                             {
                                 stimc_net_set_bits_uint64_nonblock (_p._port, _msb, _lsb, value);
+                                return *this;
+                            }
+
+                            /**
+                             * @brief Non-blocking x/z assignment.
+                             * @see @ref stimc_net_set_bits_x_nonblock and @ref stimc_net_set_bits_z_nonblock.
+                             *
+                             * Sets represented bit range of port to unknown/high impedance
+                             * state similar to using a verilog non-blocking assignment.
+                             */
+                            subbits& operator<<= (bit v)
+                            {
+                                if (v == X) {
+                                    stimc_net_set_bits_x_nonblock (_p._port, _msb, _lsb);
+                                } else if (v == Z) {
+                                    stimc_net_set_bits_z_nonblock (_p._port, _msb, _lsb);
+                                }
                                 return *this;
                             }
                     };
@@ -281,7 +344,7 @@ namespace stimcxx {
 
                     /**
                      * @brief Immediate x/z assignment.
-                     * @see @ref stimc_net_set_x and @ref stimc_net_set_x.
+                     * @see @ref stimc_net_set_x and @ref stimc_net_set_z.
                      *
                      * Sets port to unknown/high impedance state similar
                      * to using a verilog blocking assignment.
@@ -364,7 +427,7 @@ namespace stimcxx {
                      * @return true if equal, false otherwise.
                      * @see @ref operator bit().
                      */
-                    bool operator== (const bit &b) {return ((bit) * this == b);}
+                    bool operator== (const bit &b) {return ((bit)(*this) == b);}
 
                     /**
                      * @brief Compare against x value.
@@ -372,7 +435,7 @@ namespace stimcxx {
                      * @return true if equal, false otherwise.
                      * @see @ref operator bit().
                      */
-                    bool operator!= (const bit &b) {return ((bit) * this != b);}
+                    bool operator!= (const bit &b) {return ((bit)(*this) != b);}
 
                     /**
                      * @brief Optain a new bit range handle to the port.

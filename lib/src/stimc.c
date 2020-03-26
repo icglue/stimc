@@ -91,6 +91,8 @@ enum nba_type {
     STIMC_NBA_X_ALL,
     STIMC_NBA_VAL_ALL_INT32,
     STIMC_NBA_VAL_ALL_UINT64,
+    STIMC_NBA_Z_BITS,
+    STIMC_NBA_X_BITS,
     STIMC_NBA_VAL_BITS,
 };
 struct nba_queue_entry {
@@ -110,6 +112,7 @@ static void      stimc_net_nba_queue_append (stimc_net net, struct nba_queue_ent
 static PLI_INT32 stimc_net_nba_callback_wrapper (struct t_cb_data *cb_data);
 
 static inline void stimc_net_set_xz (stimc_net net, int val);
+static inline void stimc_net_set_bits_xz (stimc_net net, unsigned msb, unsigned lsb, int val);
 
 /******************************************************************************************************/
 /* global variables */
@@ -662,11 +665,17 @@ static PLI_INT32 stimc_net_nba_callback_wrapper (struct t_cb_data *cb_data)
             case STIMC_NBA_VAL_ALL_UINT64:
                 stimc_net_set_uint64 (net, e->value);
                 break;
+            case STIMC_NBA_Z_BITS:
+                stimc_net_set_bits_z (net, e->msb, e->lsb);
+                break;
+            case STIMC_NBA_X_BITS:
+                stimc_net_set_bits_x (net, e->msb, e->lsb);
+                break;
             case STIMC_NBA_VAL_BITS:
                 stimc_net_set_bits_uint64 (net, e->msb, e->lsb, e->value);
                 break;
-            default:
-                /* prevent compiler warning */
+            case STIMC_NBA_UNUSED_LAST:
+                /* prevent compiler warning warning */
                 break;
         }
     }
@@ -720,6 +729,52 @@ static inline void stimc_net_set_xz (stimc_net net, int val)
     free (vec);
 }
 
+static inline void stimc_net_set_bits_xz (stimc_net net, unsigned msb, unsigned lsb, int val)
+{
+    if (msb < lsb) return;
+
+    unsigned size = vpi_get (vpiSize, net->net);
+
+    static s_vpi_value v;
+
+    int32_t flags = vpiNoDelay;
+
+    unsigned vsize = ((size - 1) / 32) + 1;
+
+    unsigned jstart = lsb / 32;
+    unsigned s0     = lsb % 32;
+    unsigned jstop  = msb / 32;
+    unsigned se     = msb % 32;
+
+    v.format = vpiVectorVal;
+    vpi_get_value (net->net, &v);
+
+    for (unsigned j = jstart; (j < vsize) && (j <= jstop); j++) {
+        uint32_t i_mask;
+
+        if (j == jstop) {
+            i_mask = (2 << se);
+        } else {
+            i_mask = 0;
+        }
+
+        if (j == jstart) {
+            i_mask -= (1 << s0);
+        } else {
+            i_mask -= 1;
+        }
+
+        if (val == vpiZ) {
+            v.value.vector[j].aval &= ~i_mask;
+        } else {
+            v.value.vector[j].aval |= i_mask;
+        }
+        v.value.vector[j].bval |= i_mask;
+    }
+
+    vpi_put_value (net->net, &v, NULL, flags);
+}
+
 void stimc_net_set_z (stimc_net net)
 {
     stimc_net_set_xz (net, vpiZ);
@@ -754,8 +809,59 @@ bool stimc_net_is_xz (stimc_net net)
     return false;
 }
 
+void stimc_net_set_bits_z (stimc_net net, unsigned msb, unsigned lsb)
+{
+    stimc_net_set_bits_xz (net, msb, lsb, vpiZ);
+}
+
+void stimc_net_set_bits_x (stimc_net net, unsigned msb, unsigned lsb)
+{
+    stimc_net_set_bits_xz (net, msb, lsb, vpiX);
+}
+
+bool stimc_net_bits_are_xz (stimc_net net, unsigned msb, unsigned lsb)
+{
+    if (msb < lsb) return false;
+
+    unsigned size = vpi_get (vpiSize, net->net);
+
+    static s_vpi_value v;
+
+    unsigned vsize = ((size - 1) / 32) + 1;
+
+    unsigned jstart = lsb / 32;
+    unsigned s0     = lsb % 32;
+    unsigned jstop  = msb / 32;
+    unsigned se     = msb % 32;
+
+    v.format = vpiVectorVal;
+    vpi_get_value (net->net, &v);
+
+    for (unsigned j = jstart; (j < vsize) && (j <= jstop); j++) {
+        uint32_t i_mask;
+
+        if (j == jstop) {
+            i_mask = (2 << se);
+        } else {
+            i_mask = 0;
+        }
+
+        if (j == jstart) {
+            i_mask -= (1 << s0);
+        } else {
+            i_mask -= 1;
+        }
+
+        if ((v.value.vector[j].bval & i_mask) != 0) return true;
+    }
+
+    return false;
+}
+
 void stimc_net_set_bits_uint64 (stimc_net net, unsigned msb, unsigned lsb, uint64_t value)
 {
+    if (msb < lsb) return;
+
     unsigned size = vpi_get (vpiSize, net->net);
 
     static s_vpi_value v;
@@ -766,6 +872,8 @@ void stimc_net_set_bits_uint64 (stimc_net net, unsigned msb, unsigned lsb, uint6
 
     v.format = vpiVectorVal;
     vpi_get_value (net->net, &v);
+
+    if ((msb - lsb) > 63) msb = lsb + 63;
 
     unsigned jstart = lsb / 32;
     unsigned s0     = lsb % 32;
@@ -898,10 +1006,33 @@ void stimc_net_set_z_nonblock (stimc_net net)
 
     stimc_net_nba_queue_append (net, &assign);
 }
+
 void stimc_net_set_x_nonblock (stimc_net net)
 {
     struct nba_queue_entry assign = {
         .type = STIMC_NBA_X_ALL,
+    };
+
+    stimc_net_nba_queue_append (net, &assign);
+}
+
+void stimc_net_set_bits_z_nonblock (stimc_net net, unsigned msb, unsigned lsb)
+{
+    struct nba_queue_entry assign = {
+        .type = STIMC_NBA_Z_BITS,
+        .msb  = msb,
+        .lsb  = lsb,
+    };
+
+    stimc_net_nba_queue_append (net, &assign);
+}
+
+void stimc_net_set_bits_x_nonblock (stimc_net net, unsigned msb, unsigned lsb)
+{
+    struct nba_queue_entry assign = {
+        .type = STIMC_NBA_X_BITS,
+        .msb  = msb,
+        .lsb  = lsb,
     };
 
     stimc_net_nba_queue_append (net, &assign);

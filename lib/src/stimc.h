@@ -386,6 +386,63 @@ void stimc_net_set_x (stimc_net net);
 bool stimc_net_is_xz (stimc_net net);
 
 /**
+ * @brief Immediate z assignment to sub bits.
+ * @param net Port/net to assign.
+ * @param msb MSB of bit range.
+ * @param lsb LSB of bit range.
+ * @see @ref stimc_net_set_bits_z_nonblock.
+ *
+ * Sets specified bit range of port/net to high impedance state
+ * similar to using a verilog blocking assignment.
+ */
+void stimc_net_set_bits_z (stimc_net net, unsigned msb, unsigned lsb);
+
+/**
+ * @brief Immediate x assignment to sub bits.
+ * @param net Port/net to assign.
+ * @param msb MSB of bit range.
+ * @param lsb LSB of bit range.
+ * @see @ref stimc_net_set_bits_x_nonblock.
+ *
+ * Sets specified bit range of port/net to unknown state
+ * similar to using a verilog blocking assignment.
+ */
+void stimc_net_set_bits_x (stimc_net net, unsigned msb, unsigned lsb);
+
+/**
+ * @brief Non-blocking z assignment to sub bits.
+ * @param net Port/net to assign.
+ * @param msb MSB of bit range.
+ * @param lsb LSB of bit range.
+ * @see @ref stimc_net_set_bits_z.
+ *
+ * Sets specified bit range of port/net to high impedance state
+ * similar to using a verilog non-blocking assignment.
+ */
+void stimc_net_set_bits_z_nonblock (stimc_net net, unsigned msb, unsigned lsb);
+
+/**
+ * @brief Non-blocking x assignment to sub bits.
+ * @param net Port/net to assign.
+ * @param msb MSB of bit range.
+ * @param lsb LSB of bit range.
+ * @see @ref stimc_net_set_bits_x.
+ *
+ * Sets specified bit range of port/net to unknown state
+ * similar to using a verilog non-blocking assignment.
+ */
+void stimc_net_set_bits_x_nonblock (stimc_net net, unsigned msb, unsigned lsb);
+
+/**
+ * @brief Check for x/z value in sub bits.
+ * @param net Port/net to check.
+ * @param msb MSB of bit range.
+ * @param lsb LSB of bit range.
+ * @return true if port/net contains x or z values in bit range, false otherwise.
+ */
+bool stimc_net_bits_are_xz (stimc_net net, unsigned msb, unsigned lsb);
+
+/**
  * @brief Non-blocking sub bits assignment.
  * @param net Port/net to assign.
  * @param msb MSB of bit range.
