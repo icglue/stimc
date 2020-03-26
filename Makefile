@@ -1,6 +1,6 @@
 #
 #   stimc is a lightweight verilog-vpi wrapper for stimuli generation.
-#   Copyright (C) 2017-2020  Andreas Dixius, Felix Neumärker
+#   Copyright (C) 2019-2020  Andreas Dixius, Felix Neumärker
 #
 #   This program is free software: you can redistribute it and/or modify
 #   it under the terms of the GNU General Public License as published by
