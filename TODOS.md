@@ -1,3 +1,10 @@
 # TODOs
-- document/comment source code
 - provide makefile with system-wide installation?
+- consider free-functionality
+  - some end-of-simulation callback for modules
+  - cleanup coroutines
+  - difficult: memory allocated in threads (will be lost if threads are cancelled)
+  - maybe: some simplified way of adding frees/deletes as end-of-simulation callbacks
+- check what happens in case of simulation $reset
+  - are threads restarted?
+  - double-invocation of input-sensitive methods?

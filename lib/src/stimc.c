@@ -537,6 +537,7 @@ void stimc_trigger_event (stimc_event event)
 void stimc_finish (void)
 {
     vpi_control (vpiFinish, 0);
+    // TODO: return to main thread? - and finish from there...
 }
 
 void stimc_module_init (stimc_module *m)
