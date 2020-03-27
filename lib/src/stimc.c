@@ -511,6 +511,7 @@ stimc_event stimc_event_create (void)
 
 void stimc_event_free (stimc_event event)
 {
+    // TODO: cleanup threads?
     stimc_thread_queue_free (&event->queue);
     free (event);
 }
@@ -549,9 +550,13 @@ void stimc_module_init (stimc_module *m)
     assert (m);
     const char *scope = stimc_get_caller_scope ();
 
-    // TODO: free in module_free
     m->id = (char *)malloc (sizeof (char) * (strlen (scope) + 1));
     strcpy (m->id, scope);
+}
+
+void stimc_module_free (stimc_module *m)
+{
+    free (m->id);
 }
 
 static vpiHandle stimc_module_handle_init (stimc_module *m, const char *name)
@@ -561,7 +566,6 @@ static vpiHandle stimc_module_handle_init (stimc_module *m, const char *name)
     size_t scope_len = strlen (scope);
     size_t name_len  = strlen (name);
 
-    // TODO: free in handle_free, call appropriately
     char *net_name = (char *)malloc (sizeof (char) * (scope_len + name_len + 2));
 
     strcpy (net_name, scope);
@@ -580,21 +584,38 @@ static vpiHandle stimc_module_handle_init (stimc_module *m, const char *name)
 stimc_port stimc_port_init (stimc_module *m, const char *name)
 {
     vpiHandle handle = stimc_module_handle_init (m, name);
-    // TODO: free in port_free
-    stimc_port result = (stimc_port)malloc (sizeof (struct stimc_net_s));
 
-    // TODO: free in port_free
+    stimc_port result = (stimc_port)malloc (sizeof (struct stimc_net_s));
 
     result->net = handle;
     result->nba = NULL;
-    // TODO: free in port_free
 
     return result;
 }
+
+void stimc_port_free (stimc_port p)
+{
+    if (p->nba != NULL) {
+        if (p->nba->cb_handle != NULL) {
+            vpi_remove_cb (p->nba->cb_handle);
+        }
+
+        free (p->nba->queue);
+
+        free (p->nba);
+    }
+
+    free (p);
+}
+
 stimc_parameter stimc_parameter_init (stimc_module *m, const char *name)
 {
     return stimc_module_handle_init (m, name);
-    // TODO: free in parameter_free
+}
+
+void stimc_parameter_free (stimc_parameter p)
+{
+    /* nothing to do, yet*/
 }
 
 static void stimc_net_nba_queue_append (stimc_net net, struct nba_queue_entry *entry_new)

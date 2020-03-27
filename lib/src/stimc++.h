@@ -163,6 +163,8 @@ namespace stimcxx {
                     port_base            (const port_base &p) = delete; /**< @brief Do not copy/change internals */
                     port_base& operator= (const port_base &p) = delete; /**< @brief Do not copy/change internals */
 
+                    ~port_base ();
+
                     /**
                      * @brief Register a callback method for posedge events at port.
                      * @brief callback Method to register.

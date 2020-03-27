@@ -576,6 +576,15 @@ typedef struct stimc_module_s {
 void stimc_module_init (stimc_module *m);
 
 /**
+ * @brief Module type resource free.
+ * @param m Pointer to module to free
+ *
+ * This only frees the resources of the module,
+ * not the actual struct.
+ */
+void stimc_module_free (stimc_module *m);
+
+/**
  * @brief Port creation function.
  * @param m Pointer to module instance the port belongs to.
  * @param name Port name.
@@ -584,12 +593,24 @@ void stimc_module_init (stimc_module *m);
 stimc_port stimc_port_init (stimc_module *m, const char *name);
 
 /**
+ * @brief Port handle free function.
+ * @param p port handle.
+ */
+void stimc_port_free (stimc_port p);
+
+/**
  * @brief Parameter creation function.
  * @param m Pointer to module instance the parameter belongs to.
  * @param name Parameter name.
  * @return a newly created parameter handle for the specified parameter.
  */
 stimc_parameter stimc_parameter_init (stimc_module *m, const char *name);
+
+/**
+ * @brief Parameter handle free function.
+ * @param p parameter handle.
+ */
+void stimc_parameter_free (stimc_parameter p);
 
 /**
  * @brief module initialization routine macro.

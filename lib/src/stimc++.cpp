@@ -31,11 +31,18 @@ namespace stimcxx {
     }
 
     module::~module ()
-    {}
+    {
+        stimc_module_free (&(this->_module));
+    }
 
     module::port_base::port_base (module &m, const char *name)
     {
         this->_port = stimc_port_init (&(m._module), name);
+    }
+
+    module::port_base::~port_base ()
+    {
+        stimc_port_free (this->_port);
     }
 
     module::port::port (module &m, const char *name) :
@@ -60,7 +67,9 @@ namespace stimcxx {
     }
 
     module::parameter::~parameter ()
-    {}
+    {
+        stimc_parameter_free (this->_parameter);
+    }
 
     event::event ()
     {
