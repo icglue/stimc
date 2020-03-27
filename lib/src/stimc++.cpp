@@ -33,12 +33,17 @@ namespace stimcxx {
     module::~module ()
     {}
 
-    module::port::port (module &m, const char *name)
+    module::port_base::port_base (module &m, const char *name)
     {
         this->_port = stimc_port_init (&(m._module), name);
     }
 
-    module::port::~port ()
+    module::port::port (module &m, const char *name) :
+        port_base (m, name)
+    {}
+
+    module::port_real::port_real (module &m, const char *name) :
+        port_base (m, name)
     {}
 
     module::parameter::parameter (module &m, const char *name)

@@ -1,0 +1,38 @@
+# icglue keep begin custom_begin
+# icglue keep end
+
+# icglue keep begin testbench
+SIM_NAME  = tb_ff_real
+TOPLEVEL  = $(SIM_NAME) $(DUMP_MOD_NAME)
+# icglue keep end
+
+# icglue keep begin vsources
+VLOG_SRC_FILES += $(wildcard sources/*)
+# icglue keep end
+
+# icglue keep begin vinclude
+#VLOG_INCDIRS += \
+#    ${ICPRO_DIR}/global_src/verilog \
+#    ${ICPRO_DIR}/units/ff_real/source/rtl/verilog \
+# icglue keep end
+
+# icglue keep begin stimc
+STIMC_MODULES ?= ff_real
+STIMC_DIRS     = \
+    ${ICPRO_DIR}/resources/stimc/lib/src \
+    ${ICPRO_DIR}/units/ff_real/source/behavioral/stimc
+
+STIMC_SOURCES   = $(wildcard $(addsuffix /*.c, $(STIMC_DIRS)) $(addsuffix /*.cpp, $(STIMC_DIRS)))
+# icglue keep end
+
+# icglue keep begin compdeps
+#COMPILE_DEPS += testcase.v
+# icglue keep end
+
+# icglue keep begin rundeps
+#RUN_DEPS += progmem/core.mem
+# icglue keep end
+
+# icglue keep begin custom_end
+# icglue keep end
+

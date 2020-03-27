@@ -242,7 +242,7 @@ void stimc_finish (void);
  * @brief Assign port/net to value.
  * @param net The port/net to assign.
  * @param value The value as 32 bit integer.
- * @see stimc_net_set_uint64, @see stimc_net_set_bits_uint64.
+ * @see @ref stimc_net_set_uint64, @ref stimc_net_set_bits_uint64.
  */
 static inline void stimc_net_set_int32 (stimc_net net, int32_t value)
 {
@@ -257,7 +257,7 @@ static inline void stimc_net_set_int32 (stimc_net net, int32_t value)
  * @brief Assign port/net to value non-blocking.
  * @param net The port/net to assign.
  * @param value The value as 32 bit integer.
- * @see stimc_net_set_uint64_nonblock, @see stimc_net_set_bits_uint64_nonblock.
+ * @see @ref stimc_net_set_uint64_nonblock, @ref stimc_net_set_bits_uint64_nonblock.
  *
  * The assignment will occur similar to verilog non-blocking assignment after current
  * simulator cycle.
@@ -268,7 +268,7 @@ void stimc_net_set_int32_nonblock (stimc_net net, int32_t value);
  * @brief Get port/net value.
  * @param net The port/net to assign.
  * @return Value as 32 bit integer.
- * @see stimc_net_get_uint64, @see stimc_net_get_bits_uint64.
+ * @see @ref stimc_net_get_uint64, @ref stimc_net_get_bits_uint64.
  */
 static inline int32_t stimc_net_get_int32 (stimc_net net)
 {
@@ -341,7 +341,7 @@ static inline double stimc_parameter_get_double (stimc_parameter parameter)
 /**
  * @brief Non-blocking z assignment.
  * @param net Port/net to assign.
- * @see stimc_net_set_z.
+ * @see @ref stimc_net_set_z.
  *
  * Sets port/net to high impedance state similar to using
  * a verilog non-blocking assignment.
@@ -351,7 +351,7 @@ void stimc_net_set_z_nonblock (stimc_net net);
 /**
  * @brief Non-blocking x assignment.
  * @param net Port/net to assign.
- * @see stimc_net_set_x.
+ * @see @ref stimc_net_set_x.
  *
  * Sets port/net to verilog x value similar to using
  * a verilog non-blocking assignment.
@@ -361,7 +361,7 @@ void stimc_net_set_x_nonblock (stimc_net net);
 /**
  * @brief Immediate z assignment.
  * @param net Port/net to assign.
- * @see stimc_net_set_z_nonblock.
+ * @see @ref stimc_net_set_z_nonblock.
  *
  * Sets port/net to high impedance state similar to using
  * a verilog blocking assignment.
@@ -371,7 +371,7 @@ void stimc_net_set_z (stimc_net net);
 /**
  * @brief Immediate x assignment.
  * @param net Port/net to assign.
- * @see stimc_net_set_x_nonblock.
+ * @see @ref stimc_net_set_x_nonblock.
  *
  * Sets port/net to verilog x value similar to using
  * a verilog blocking assignment.
@@ -448,7 +448,7 @@ bool stimc_net_bits_are_xz (stimc_net net, unsigned msb, unsigned lsb);
  * @param msb MSB of bit range.
  * @param lsb LSB of bit range.
  * @param value Value to assign as 64 bit integer.
- * @see stimc_net_set_bits_uint64.
+ * @see @ref stimc_net_set_bits_uint64.
  *
  * Sets sub bit range of port/net to specified
  * value similar to using a verilog non-blocking assignment.
@@ -461,7 +461,7 @@ void stimc_net_set_bits_uint64_nonblock (stimc_net net, unsigned msb, unsigned l
  * @param msb MSB of bit range.
  * @param lsb LSB of bit range.
  * @param value Value to assign as 64 bit integer.
- * @see stimc_net_set_bits_uint64_nonblock.
+ * @see @ref stimc_net_set_bits_uint64_nonblock.
  *
  * Sets sub bit range of port/net to specified
  * value similar to using a verilog blocking assignment.
@@ -481,7 +481,7 @@ uint64_t stimc_net_get_bits_uint64 (stimc_net net, unsigned msb, unsigned lsb);
  * @brief Non-blocking assignment.
  * @param net Port/net to assign.
  * @param value Value to assign as 64 bit integer.
- * @see stimc_net_set_uint64.
+ * @see @ref stimc_net_set_uint64.
  *
  * Sets port/net to specified value
  * similar to using a verilog non-blocking assignment.
@@ -492,7 +492,7 @@ void stimc_net_set_uint64_nonblock (stimc_net net, uint64_t value);
  * @brief Immediate assignment.
  * @param net Port/net to assign.
  * @param value Value to assign as 64 bit integer.
- * @see stimc_net_set_uint64_nonblock.
+ * @see @ref stimc_net_set_uint64_nonblock.
  *
  * Sets port/net to specified value
  * similar to using a verilog blocking assignment.
@@ -500,11 +500,55 @@ void stimc_net_set_uint64_nonblock (stimc_net net, uint64_t value);
 void stimc_net_set_uint64 (stimc_net net, uint64_t value);
 
 /**
+ * @brief Non-blocking real assignment.
+ * @param net Port/net to assign.
+ * @param value Value to assign as double.
+ * @see @ref stimc_net_set_double.
+ *
+ * Sets port/net to specified real value
+ * similar to using a verilog non-blocking assignment.
+ */
+void stimc_net_set_double_nonblock (stimc_net net, double value);
+
+/**
+ * @brief Immediate real assignment.
+ * @param net Port/net to assign.
+ * @param value Value to assign as double.
+ * @see @ref stimc_net_set_double_nonblock.
+ *
+ * Sets port/net to specified real value
+ * similar to using a verilog blocking assignment.
+ */
+static inline void stimc_net_set_double (stimc_net net, double value)
+{
+    s_vpi_value v;
+
+    v.format     = vpiRealVal;
+    v.value.real = value;
+    vpi_put_value (net->net, &v, NULL, vpiNoDelay);
+}
+
+/**
  * @brief Value read.
  * @param net Port/net to read.
  * @return Value as 64 bit integer.
  */
 uint64_t stimc_net_get_uint64 (stimc_net net);
+
+/**
+ * @brief Real value read.
+ * @param net Port/net to read.
+ * @return Value as double.
+ */
+static inline double stimc_net_get_double (stimc_net net)
+{
+    s_vpi_value v;
+
+    v.format = vpiRealVal;
+    vpi_get_value (net->net, &v);
+
+    return v.value.real;
+}
 
 
 /******************************************************************************************************/

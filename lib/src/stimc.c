@@ -94,9 +94,13 @@ enum nba_type {
     STIMC_NBA_Z_BITS,
     STIMC_NBA_X_BITS,
     STIMC_NBA_VAL_BITS,
+    STIMC_NBA_VAL_REAL,
 };
 struct nba_queue_entry {
-    uint64_t      value;
+    union {
+        uint64_t value;
+        double   real_value;
+    };
     enum nba_type type;
     uint16_t      lsb;
     uint16_t      msb;
@@ -675,6 +679,9 @@ static PLI_INT32 stimc_net_nba_callback_wrapper (struct t_cb_data *cb_data)
             case STIMC_NBA_VAL_BITS:
                 stimc_net_set_bits_uint64 (net, e->msb, e->lsb, e->value);
                 break;
+            case STIMC_NBA_VAL_REAL:
+                stimc_net_set_double (net, e->real_value);
+                break;
             case STIMC_NBA_UNUSED_LAST:
                 /* prevent compiler warning warning */
                 break;
@@ -1066,6 +1073,16 @@ void stimc_net_set_int32_nonblock (stimc_net net, int32_t value)
     struct nba_queue_entry assign = {
         .value = value,
         .type  = STIMC_NBA_VAL_ALL_INT32,
+    };
+
+    stimc_net_nba_queue_append (net, &assign);
+}
+
+void stimc_net_set_double_nonblock (stimc_net net, double value)
+{
+    struct nba_queue_entry assign = {
+        .real_value = value,
+        .type       = STIMC_NBA_VAL_REAL,
     };
 
     stimc_net_nba_queue_append (net, &assign);

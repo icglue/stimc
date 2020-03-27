@@ -129,6 +129,7 @@ namespace stimcxx {
     class module {
         private:
             stimc_module _module; /**< @brief The actual @ref stimc_module. */
+
         public:
             module ();
             virtual ~module ();
@@ -142,15 +143,72 @@ namespace stimcxx {
                 return _module.id;
             }
 
+        protected:
+            /**
+             * @brief Wrapper base class for @ref stimc_port.
+             * @see @ref port and @ref port_real for implementations to be used.
+             */
+            class port_base {
+                protected:
+                    stimc_port _port; /**< @brief The actual @ref stimc_port. */
+
+                public:
+                    /**
+                     * @brief Port constructor.
+                     * @param m Parent module of port.
+                     * @param name Name of the port.
+                     */
+                    port_base (module &m, const char *name);
+
+                    port_base            (const port_base &p) = delete; /**< @brief Do not copy/change internals */
+                    port_base& operator= (const port_base &p) = delete; /**< @brief Do not copy/change internals */
+
+                    /**
+                     * @brief Register a callback method for posedge events at port.
+                     * @brief callback Method to register.
+                     * @brief p Data pointer for callback.
+                     *
+                     * Internal helper. For registering from inside a module
+                     * use @ref STIMCXX_REGISTER_METHOD for convenience.
+                     */
+                    void register_posedge_method (void (*callback)(void *p), void *p)
+                    {
+                        stimc_register_posedge_method (callback, p, this->_port);
+                    }
+
+                    /**
+                     * @brief Register a callback method for negedge events at port.
+                     * @brief callback Method to register.
+                     * @brief p Data pointer for callback.
+                     *
+                     * Internal helper. For registering from inside a module
+                     * use @ref STIMCXX_REGISTER_METHOD for convenience.
+                     */
+                    void register_negedge_method (void (*callback)(void *p), void *p)
+                    {
+                        stimc_register_negedge_method (callback, p, this->_port);
+                    }
+
+                    /**
+                     * @brief Register a callback method for negedge events at port.
+                     * @brief callback Method to register.
+                     * @brief p Data pointer for callback.
+                     *
+                     * Internal helper. For registering from inside a module
+                     * use @ref STIMCXX_REGISTER_METHOD for convenience.
+                     */
+                    void register_change_method (void (*callback)(void *p), void *p)
+                    {
+                        stimc_register_change_method (callback, p, this->_port);
+                    }
+            };
+
         public:
             /**
              * @brief Wrapper class for @ref stimc_port.
              */
-            class port {
-                protected:
-                    stimc_port _port; /**< @brief The actual @ref stimc_port. */
+            class port : public port_base {
                 public:
-
                     /**
                      * @brief Helper class for access to bit range of signal.
                      */
@@ -286,47 +344,6 @@ namespace stimcxx {
                     port            (const port &p) = delete; /**< @brief Do not copy/change internals */
                     port& operator= (const port &p) = delete; /**< @brief Do not copy/change internals */
 
-                    ~port ();
-
-                    /**
-                     * @brief Register a callback method for posedge events at port.
-                     * @brief callback Method to register.
-                     * @brief p Data pointer for callback.
-                     *
-                     * Internal helper. For registering from inside a module
-                     * use @ref STIMCXX_REGISTER_METHOD for convenience.
-                     */
-                    void register_posedge_method (void (*callback)(void *p), void *p)
-                    {
-                        stimc_register_posedge_method (callback, p, this->_port);
-                    }
-
-                    /**
-                     * @brief Register a callback method for negedge events at port.
-                     * @brief callback Method to register.
-                     * @brief p Data pointer for callback.
-                     *
-                     * Internal helper. For registering from inside a module
-                     * use @ref STIMCXX_REGISTER_METHOD for convenience.
-                     */
-                    void register_negedge_method (void (*callback)(void *p), void *p)
-                    {
-                        stimc_register_negedge_method (callback, p, this->_port);
-                    }
-
-                    /**
-                     * @brief Register a callback method for negedge events at port.
-                     * @brief callback Method to register.
-                     * @brief p Data pointer for callback.
-                     *
-                     * Internal helper. For registering from inside a module
-                     * use @ref STIMCXX_REGISTER_METHOD for convenience.
-                     */
-                    void register_change_method (void (*callback)(void *p), void *p)
-                    {
-                        stimc_register_change_method (callback, p, this->_port);
-                    }
-
 
                     /**
                      * @brief Immediate assignment operator to port.
@@ -461,6 +478,123 @@ namespace stimcxx {
 
                         return b;
                     }
+            };
+
+            /**
+             * @brief Wrapper class for @ref stimc_port for real values.
+             */
+            class port_real : public port_base {
+                public:
+                    /**
+                     * @brief Port constructor.
+                     * @param m Parent module of port.
+                     * @param name Name of the port.
+                     */
+                    port_real (module &m, const char *name);
+
+                    port_real            (const port_real &p) = delete; /**< @brief Do not copy/change internals */
+                    port_real& operator= (const port_real &p) = delete; /**< @brief Do not copy/change internals */
+
+
+                    /**
+                     * @brief Immediate assignment operator to port.
+                     * @param value Value to assgin.
+                     * @return reference to the port.
+                     *
+                     * Sets port to specified value similar
+                     * to using a verilog blocking assignment.
+                     */
+                    port_real& operator= (double value)
+                    {
+                        stimc_net_set_double (_port, value);
+                        return *this;
+                    }
+
+                    /**
+                     * @brief Immediate x/z assignment.
+                     * @see @ref stimc_net_set_x and @ref stimc_net_set_z.
+                     *
+                     * Sets port to unknown/high impedance state similar
+                     * to using a verilog blocking assignment.
+                     */
+                    port_real& operator= (bit v)
+                    {
+                        if (v == X) {
+                            stimc_net_set_x (_port);
+                        } else if (v == Z) {
+                            stimc_net_set_z (_port);
+                        }
+                        return *this;
+                    }
+
+                    /**
+                     * @brief Non-blocking assignment operator to port.
+                     * @param value Value to assgin.
+                     * @return reference to the port.
+                     *
+                     * Sets port to specified value similar
+                     * to using a verilog non-blocking assignment.
+                     */
+                    port_real& operator<<= (double value)
+                    {
+                        stimc_net_set_double_nonblock (_port, value);
+                        return *this;
+                    }
+
+                    /**
+                     * @brief Non-blocking x/z assignment.
+                     * @see @ref stimc_net_set_x_nonblock and @ref stimc_net_set_z_nonblock.
+                     *
+                     * Sets port to unknown/high impedance state similar
+                     * to using a verilog non-blocking assignment.
+                     */
+                    port_real& operator<<= (bit v)
+                    {
+                        if (v == X) {
+                            stimc_net_set_x_nonblock (_port);
+                        } else if (v == Z) {
+                            stimc_net_set_z_nonblock (_port);
+                        }
+                        return *this;
+                    }
+
+                    /**
+                     * @brief Cast for reading from port as uint64_t.
+                     * @return Current value of port as uint64_t.
+                     */
+                    operator double ()
+                    {
+                        return stimc_net_get_double (_port);
+                    }
+
+                    /**
+                     * @brief Check for x/z value in comparisons.
+                     * @return @ref X if port contains x or z values, @ref not_XZ otherwise.
+                     */
+                    operator bit ()
+                    {
+                        if (stimc_net_is_xz (_port)) {
+                            return X;
+                        } else {
+                            return not_XZ;
+                        }
+                    }
+
+                    /**
+                     * @brief Compare against x value.
+                     * @param b Value to compare against (typically @ref X).
+                     * @return true if equal, false otherwise.
+                     * @see @ref operator bit().
+                     */
+                    bool operator== (const bit &b) {return ((bit)(*this) == b);}
+
+                    /**
+                     * @brief Compare against x value.
+                     * @param b Value to compare against (typically @ref X).
+                     * @return true if equal, false otherwise.
+                     * @see @ref operator bit().
+                     */
+                    bool operator!= (const bit &b) {return ((bit)(*this) != b);}
             };
 
             /**

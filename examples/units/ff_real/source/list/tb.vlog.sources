@@ -1,0 +1,5 @@
+// icglue keep begin sources
+${ICPRO_DIR}/units/ff_real/source/tb/verilog/tb_ff_real.v
+${ICPRO_DIR}/units/ff_real/source/behavioral/verilog/ff_real.v
+// icglue keep end
+
