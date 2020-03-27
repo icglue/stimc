@@ -65,6 +65,7 @@ static const char *stimc_get_caller_scope (void);
 
 static void stimc_thread_queue_init (struct stimc_thread_queue_s *q);
 static void stimc_thread_queue_free (struct stimc_thread_queue_s *q);
+static void stimc_thread_queue_free_threads (struct stimc_thread_queue_s *q);
 static void stimc_thread_queue_enqueue (struct stimc_thread_queue_s *q, coroutine_t thread);
 static void stimc_thread_queue_enqueue_all (struct stimc_thread_queue_s *q, struct stimc_thread_queue_s *source);
 static void stimc_thread_queue_clear (struct stimc_thread_queue_s *q);
@@ -122,6 +123,8 @@ static inline void stimc_net_set_bits_xz (stimc_net net, unsigned msb, unsigned 
 /* global variables */
 /******************************************************************************************************/
 static coroutine_t stimc_current_thread = NULL;
+
+static bool stimc_finish_pending = false;
 
 static bool                        stimc_main_queue_setup  = false;
 static struct stimc_thread_queue_s stimc_main_queue        = {0, 0, NULL};
@@ -332,6 +335,8 @@ static void stimc_wait_time_int_exp (uint64_t time, int exp)
 
     assert (vpi_register_cb (&data));
 
+    // TODO: callback to delete thread + callback in case simulation terminates?
+
     /* thread handling ... */
     stimc_suspend ();
 }
@@ -415,7 +420,17 @@ static void stimc_thread_queue_free (struct stimc_thread_queue_s *q)
     q->threads_len = 0;
     q->threads_num = 0;
     free (q->threads);
-    // TODO: extra function to terminate+free coroutines? (will be no longer reachable)
+
+    q->threads = NULL;
+}
+
+static void stimc_thread_queue_free_threads (struct stimc_thread_queue_s *q)
+{
+    for (size_t i = 0; i < q->threads_num; i++) {
+        coroutine_t c = q->threads[i];
+
+        co_delete (c);
+    }
 }
 
 static void stimc_thread_queue_enqueue (struct stimc_thread_queue_s *q, coroutine_t thread)
@@ -492,6 +507,11 @@ static void stimc_main_queue_run_threads ()
             stimc_thread_fence ();
             co_call (thread);
             stimc_thread_fence ();
+
+            if (stimc_finish_pending) {
+                stimc_finish_pending = false;
+                vpi_control (vpiFinish, 0);
+            }
         }
 
         stimc_current_thread = NULL;
@@ -511,7 +531,7 @@ stimc_event stimc_event_create (void)
 
 void stimc_event_free (stimc_event event)
 {
-    // TODO: cleanup threads?
+    stimc_thread_queue_free_threads (&event->queue);
     stimc_thread_queue_free (&event->queue);
     free (event);
 }
@@ -541,8 +561,12 @@ void stimc_trigger_event (stimc_event event)
 
 void stimc_finish (void)
 {
-    vpi_control (vpiFinish, 0);
-    // TODO: return to main thread? - and finish from there...
+    if (stimc_current_thread == NULL) {
+        vpi_control (vpiFinish, 0);
+    } else {
+        stimc_finish_pending = true;
+        co_exit ();
+    }
 }
 
 void stimc_module_init (stimc_module *m)
@@ -613,7 +637,7 @@ stimc_parameter stimc_parameter_init (stimc_module *m, const char *name)
     return stimc_module_handle_init (m, name);
 }
 
-void stimc_parameter_free (stimc_parameter p)
+void stimc_parameter_free (stimc_parameter p __attribute__((unused)))
 {
     /* nothing to do, yet*/
 }
