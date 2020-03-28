@@ -11,9 +11,9 @@ VLOG_SRC_FILES += $(wildcard sources/*)
 # icglue keep end
 
 # icglue keep begin vinclude
-#VLOG_INCDIRS += \
-#    ${ICPRO_DIR}/global_src/verilog \
-#    ${ICPRO_DIR}/units/ff_real/source/rtl/verilog \
+VLOG_INCDIRS += \
+    ${ICPRO_DIR}/global_src/verilog \
+
 # icglue keep end
 
 # icglue keep begin stimc
@@ -26,7 +26,7 @@ STIMC_SOURCES   = $(wildcard $(addsuffix /*.c, $(STIMC_DIRS)) $(addsuffix /*.cpp
 # icglue keep end
 
 # icglue keep begin compdeps
-#COMPILE_DEPS += testcase.v
+COMPILE_DEPS += testcase.vh
 # icglue keep end
 
 # icglue keep begin rundeps
