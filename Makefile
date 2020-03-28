@@ -25,6 +25,8 @@ BROWSER              ?= firefox
 LOCTOOL              ?= cloc
 LOCSOURCES            = $(wildcard lib/src/*.c lib/src/*.c++ lib/src/*.h)
 
+ICPRO_DIR             = $(CURDIR)/examples
+REGDIR                = $(ICPRO_DIR)/regression
 
 #-------------------------------------------------------
 # documentation
@@ -50,6 +52,18 @@ locall:
 	@$(LOCTOOL) $(LOCSOURCES) $(LOCEXTRA) $(LOCTEMPLATES)
 
 #-------------------------------------------------------
+# Test
+.PHONY: test cleantest
+
+export ICPRO_DIR
+cleantest:
+	@$(MAKE) -sC $(REGDIR) cleanall
+
+test: cleantest
+	@$(MAKE) -sC $(REGDIR)
+	@$(MAKE) -sC $(REGDIR) show | ./scripts/regression_eval.sh
+
+#-------------------------------------------------------
 # directories
 $(DOCDIR):
 	mkdir -p $@
@@ -61,5 +75,5 @@ $(DOCDIR):
 cleandoc:
 	rm -rf $(DOCDIR)
 
-mrproper cleanall: cleandoc
+mrproper cleanall: cleandoc cleantest
 
