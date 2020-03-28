@@ -1,6 +1,7 @@
 `timescale 1ns/1ps
 
 module tb_ff ();
+    `include "tb_selfcheck.vh"
 
     reg reset_n;
     reg clk;
@@ -42,16 +43,12 @@ module tb_ff ();
         reset_n = 1'b0;
         #(3.3*CLKPERIOD);
         reset_n = 1'b1;
-        #(20*CLKPERIOD);
-        $finish();
     end
 
     always #(CLKPERIOD/2.0) begin
         clk = ~clk;
     end
 
-    always @(posedge clk) begin
-        $display ("shiftreg: %08b", shiftreg);
-    end
+    `include "testcase.vh"
 
 endmodule

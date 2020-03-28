@@ -26,6 +26,9 @@ void ff_sc::clock ()
     if (reset_n_i != 0) {
         unsigned v = data_i;
         data_o <<= v;
+    } else {
+        uint64_t rv = RESET_VAL;
+        data_o <<= rv;
     }
 }
 
