@@ -954,7 +954,7 @@ void stimc_net_set_bits_uint64 (stimc_net net, unsigned msb, unsigned lsb, uint6
     vpi_put_value (net->net, &v, NULL, flags);
 }
 
-uint64_t stimc_net_get_bits_uint64 (stimc_net net, unsigned lsb, unsigned msb)
+uint64_t stimc_net_get_bits_uint64 (stimc_net net, unsigned msb, unsigned lsb)
 {
     unsigned size = vpi_get (vpiSize, net->net);
 
@@ -973,9 +973,9 @@ uint64_t stimc_net_get_bits_uint64 (stimc_net net, unsigned lsb, unsigned msb)
 
     for (unsigned i = 0, j = jstart; (j < vsize) && (j <= jstop) && (i < 3); i++, j++) {
         if (i == 0) {
-            result |= (((uint64_t)v.value.vector[j].aval & ~((uint64_t)v.value.vector[j].bval)) >> s0);
+            result |= (((uint64_t)(unsigned)v.value.vector[j].aval & ~((uint64_t)(unsigned)v.value.vector[j].bval)) >> s0);
         } else {
-            result |= (((uint64_t)v.value.vector[j].aval & ~((uint64_t)v.value.vector[j].bval)) << (32 * i - s0));
+            result |= (((uint64_t)(unsigned)v.value.vector[j].aval & ~((uint64_t)(unsigned)v.value.vector[j].bval)) << (32 * i - s0));
         }
     }
 
@@ -1045,7 +1045,7 @@ uint64_t stimc_net_get_uint64 (stimc_net net)
 
     uint64_t result = 0;
     for (unsigned i = 0; (i < vsize) && (i < 2); i++) {
-        result |= (((uint64_t)v.value.vector[i].aval & ~((uint64_t)v.value.vector[i].bval)) << (32 * i));
+        result |= (((uint64_t)(unsigned)v.value.vector[i].aval & ~((uint64_t)(unsigned)v.value.vector[i].bval)) << (32 * i));
     }
 
     return result;
