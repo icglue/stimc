@@ -1,0 +1,15 @@
+os:       linux
+dist:     bionic
+language: minimal
+
+before_install:
+    # build dependencies
+    - sudo apt-get install -y libpcl1 libpcl1-dev
+    # get icarus verilog 10.3 for real wire tests
+    # do not ask for service restarts
+    - sudo add-apt-repository "deb http://us.archive.ubuntu.com/ubuntu/ eoan main universe"
+    - sudo apt-get update -q
+    - sudo DEBIAN_FRONTEND=noninteractive apt-get install -y iverilog
+
+script:
+    - make -j3 test
