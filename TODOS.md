@@ -1,9 +1,4 @@
 # TODOs
-- make test target (with regression of simulations?)
-  - add regression
-  - add test script
-  - make testcases self-checking
-  - add more testcases
 - provide makefile with system-wide installation?
 - consider free-functionality
   - some end-of-simulation callback for modules
