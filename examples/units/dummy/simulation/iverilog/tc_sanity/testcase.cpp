@@ -1,43 +1,91 @@
 #include "dummy.hpp"
+#include "tb_selfcheck.h"
 
 using namespace stimcxx;
 
 void dummy::testcontrol ()
 {
-    fprintf (stderr, "DEBUG: testcontrol...\n");
-    data_out_o = 0x0123456789abcdef;
-    wait (1e-9);
-    data_out_o = 0x89abcdef01234567;
+    unsigned dw = DATA_W;
+    unsigned errors = 0;
 
-    for (int i = 0; i < 100; i++) {
+    fprintf (stderr, "INFO: stimc start: full assignments stimc -> verilog\n");
+    data_out_o = 0x0123456789abcdef;
+    wait (clk_event);
+    data_out_o <<= 0x89abcdef01234567;
+    wait (1e-9);
+    data_out_o = Z;
+    wait (1, SC_NS);
+    data_out_o = X;
+    wait (0.1e-9);
+
+    fprintf (stderr, "INFO: stimc start: single-bit assignment stimc -> verilog\n");
+    for (unsigned i = 0; i < dw; i++) {
         wait (clk_event);
-        if (i % 2) {
-            data_out_o(i, i) = 1;
+
+        data_out_o((dw+i-2)%dw) <<= 0;
+        data_out_o(i)           <<= 1;
+        data_out_o((i+2)%dw)    <<= Z;
+        data_out_o((i+4)%dw)    <<= X;
+    }
+
+    fprintf (stderr, "INFO: stimc start: bit-range assignment stimc -> verilog\n");
+    wait (clk_event);
+    data_out_o <<= 0;
+    for (unsigned i = 0; i < dw-64; i++) {
+        wait (clk_event);
+
+        if (i % 2 == 0) {
+            data_out_o(i+63,i) <<= 0xffffffff0000ffff;
         } else {
-            if (i % 4) {
-                data_out_o = Z;
-            } else {
-                data_out_o = X;
-            }
+            data_out_o(i+63,i) <<= 0xffffffffffff0000;
         }
     }
 
-    wait (10, SC_NS);
-    data_out_o(31,24)   = 0;
-    data_out_o(15,8)    = 0;
-    wait (10, SC_NS);
-    data_out_o(23,16)   <<= 0xff;
-    data_out_o(7,0)     <<= 0xff;
-    data_out_o(120) <<= 1;
-    data_out_o(121)   = Z;
-    data_out_o(122)   = X;
-    data_out_o(123) <<= Z;
-    data_out_o(124) <<= X;
-    wait (10, SC_NS);
-    data_out_o(100,2) <<= X;
+    fprintf (stderr, "INFO: stimc start: verilog -> stimc\n");
+    wait (din_event);
+    wait (din_event);
+    if (data_in_i != X) {
+        fprintf (stderr, "fail: expected data_in_i == X\n");
+        errors++;
+    }
+    wait (din_event);
+    if (data_in_i != X) {
+        fprintf (stderr, "fail: expected data_in_i == X\n");
+        errors++;
+    }
 
-    if (data_in_i(10,0)   == X) {fprintf (stderr, "pass: data-in[10:0] contains x\n");} else {fprintf (stderr, "fail: data-in[10:0] contains x\n");}
-    if (data_in_i(118,19) != X) {fprintf (stderr, "pass: data-in[118:19] contains no x\n");} else {fprintf (stderr, "fail: data-in[118:19] contains no x\n");}
-    if (data_in_i(120,0)   == X) {fprintf (stderr, "pass: data-in[120:0] contains x\n");} else {fprintf (stderr, "fail: data-in[120:0] contains x\n");}
+    wait (din_event);
+    if (data_in_i(10,0) != X) {
+        fprintf (stderr, "fail: data-in[10:0] contains x\n");
+        errors++;
+    }
+    if (data_in_i(118,19) == X) {
+        fprintf (stderr, "fail: data-in[118:19] contains no x\n");
+        errors++;
+    }
+    if (data_in_i(120,0) != X) {
+        fprintf (stderr, "fail: data-in[120:0] contains x\n");
+        errors++;
+    }
+    if (data_in_i(127) != X) {
+        fprintf (stderr, "fail: data-in[127] contains x\n");
+        errors++;
+    }
 
+    wait (din_event);
+    if (data_in_i(127) != 1) {
+        fprintf (stderr, "fail: data-in[127] should be 1\n");
+        errors++;
+    }
+    if (data_in_i(126,63) != 0xfdb97530eca86420) {
+        fprintf (stderr, "fail: data-in[126:63] should be 0xfdb97530eca86420 but is 0x%016lx\n", (uint64_t) data_in_i(126,63));
+        errors++;
+    }
+    if (data_in_i(34,30) != 0x1e) {
+        fprintf (stderr, "fail: data-in[34:40] should be 0x1e but is 0x%02lx\n", (uint64_t) data_in_i(34,30));
+        errors++;
+    }
+
+    wait (200, SC_NS);
+    tb_final_check (1, errors, false);
 }

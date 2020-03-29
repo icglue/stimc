@@ -13,6 +13,7 @@ class dummy : public stimcxx::module {
         port data_out_o;
 
         stimcxx::event clk_event;
+        stimcxx::event din_event;
 
     public:
         dummy ();

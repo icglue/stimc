@@ -11,9 +11,9 @@ VLOG_SRC_FILES += $(wildcard sources/*)
 # icglue keep end
 
 # icglue keep begin vinclude
-#VLOG_INCDIRS += \
-#    ${ICPRO_DIR}/global_src/verilog \
-#    ${ICPRO_DIR}/units/dummy/source/rtl/verilog \
+VLOG_INCDIRS += \
+    ${ICPRO_DIR}/global_src/verilog \
+
 # icglue keep end
 
 # icglue keep begin stimc
@@ -21,7 +21,9 @@ STIMC_MODULES ?= dummy
 STIMC_DIRS     = \
 	. \
     ${ICPRO_DIR}/resources/stimc/lib/src \
-    ${ICPRO_DIR}/units/dummy/source/behavioral/stimc
+    ${ICPRO_DIR}/global_src/stimc \
+    ${ICPRO_DIR}/units/dummy/source/behavioral/stimc \
+
 STIMC_SOURCES   = $(wildcard $(addsuffix /*.c, $(STIMC_DIRS)) $(addsuffix /*.cpp, $(STIMC_DIRS)))
 # icglue keep end
 

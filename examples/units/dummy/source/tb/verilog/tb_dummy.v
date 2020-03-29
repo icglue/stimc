@@ -1,6 +1,7 @@
 `timescale 1ns/1ps
 
 module tb_dummy ();
+    `include "tb_selfcheck.vh"
 
     localparam DATA_W = 128;
 

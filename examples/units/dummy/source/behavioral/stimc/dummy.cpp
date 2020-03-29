@@ -21,7 +21,7 @@ dummy::~dummy ()
 
 void dummy::clock ()
 {
-    fprintf (stderr, "DEBUG: clkedge in %s at time %ldns\n", module_id (), time (SC_NS));
+    //fprintf (stderr, "DEBUG: clkedge in %s at time %ldns\n", module_id (), time (SC_NS));
     clk_event.trigger ();
 }
 
@@ -30,8 +30,9 @@ void dummy::dinchange ()
     if (data_in_i == X) {
         fprintf (stderr, "DEBUG: data_in changed at time %ldns to <undefined>\n", time (SC_NS));
     } else {
-        fprintf (stderr, "DEBUG: data_in changed at time %luns to 0x%08lx\n", time (SC_NS), (uint64_t)data_in_i);
+        fprintf (stderr, "DEBUG: data_in changed at time %luns to 0x%016lx\n", time (SC_NS), (uint64_t)data_in_i);
     }
+    din_event.trigger ();
 }
 
 void __attribute__((weak)) dummy::testcontrol ()
