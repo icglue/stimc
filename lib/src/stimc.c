@@ -233,7 +233,7 @@ void stimc_register_change_method  (void (*methodfunc)(void *userdata), void *us
 
 static PLI_INT32 stimc_thread_callback_wrapper (struct t_cb_data *cb_data)
 {
-    coroutine_t *thread = (coroutine_t)cb_data->user_data;
+    coroutine_t thread = (coroutine_t)cb_data->user_data;
 
     assert (thread);
 
@@ -297,7 +297,7 @@ static inline void stimc_suspend (void)
 static void stimc_wait_time_int_exp (uint64_t time, int exp)
 {
     /* thread data ... */
-    coroutine_t *thread = stimc_current_thread;
+    coroutine_t thread = stimc_current_thread;
 
     assert (thread);
 
