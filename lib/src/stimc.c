@@ -46,11 +46,12 @@
 /******************************************************************************************************/
 /* internal header */
 /******************************************************************************************************/
-struct stimc_method_wrap {
-    void  (*methodfunc) (void *userdata);
-    void *userdata;
-};
 
+/* modules and co */
+static const char *stimc_get_caller_scope (void);
+static vpiHandle   stimc_module_handle_init (stimc_module *m, const char *name);
+
+/* thread queues */
 struct stimc_thread_queue_s {
     size_t       threads_len;
     size_t       threads_num;
@@ -60,8 +61,6 @@ struct stimc_thread_queue_s {
 struct stimc_event_s {
     struct stimc_thread_queue_s queue;
 };
-
-static const char *stimc_get_caller_scope (void);
 
 static void stimc_thread_queue_init (struct stimc_thread_queue_s *q);
 static void stimc_thread_queue_free (struct stimc_thread_queue_s *q);
@@ -73,6 +72,12 @@ static void stimc_thread_queue_clear (struct stimc_thread_queue_s *q);
 static inline void stimc_main_queue_checksetup (void);
 static void        stimc_main_queue_run_threads (void);
 
+/* methods / callbacks */
+struct stimc_callback_wrap {
+    void  (*func) (void *data);
+    void *data;
+};
+
 static inline void stimc_valuechange_method_callback_wrapper (struct t_cb_data *cb_data, int edge);
 static PLI_INT32   stimc_posedge_method_callback_wrapper (struct t_cb_data *cb_data);
 static PLI_INT32   stimc_negedge_method_callback_wrapper (struct t_cb_data *cb_data);
@@ -80,12 +85,13 @@ static PLI_INT32   stimc_change_method_callback_wrapper (struct t_cb_data *cb_da
 static void        stimc_register_valuechange_method (void (*methodfunc)(void *userdata), void *userdata, stimc_net net, int edge);
 static PLI_INT32   stimc_thread_callback_wrapper (struct t_cb_data *cb_data);
 
+/* thread suspend helper function */
 static inline void stimc_suspend (void);
 
+/* common wait function */
 static void stimc_wait_time_int_exp (uint64_t time, int exp);
 
-static vpiHandle stimc_module_handle_init (stimc_module *m, const char *name);
-
+/* non-blocking assignment helpers */
 enum nba_type {
     STIMC_NBA_UNUSED_LAST,
     STIMC_NBA_Z_ALL,
@@ -116,6 +122,7 @@ struct nba_data {
 static void      stimc_net_nba_queue_append (stimc_net net, struct nba_queue_entry *entry_new);
 static PLI_INT32 stimc_net_nba_callback_wrapper (struct t_cb_data *cb_data);
 
+/* common x/z setters */
 static inline void stimc_net_set_xz (stimc_net net, int val);
 static inline void stimc_net_set_bits_xz (stimc_net net, unsigned msb, unsigned lsb, int val);
 
@@ -148,7 +155,7 @@ static const char *stimc_get_caller_scope (void)
 
 static inline void stimc_valuechange_method_callback_wrapper (struct t_cb_data *cb_data, int edge)
 {
-    struct stimc_method_wrap *wrap = (struct stimc_method_wrap *)cb_data->user_data;
+    struct stimc_callback_wrap *wrap = (struct stimc_callback_wrap *)cb_data->user_data;
 
     /* correct edge? */
     if ((edge > 0) && (cb_data->value->value.scalar != vpi1)) {
@@ -158,7 +165,7 @@ static inline void stimc_valuechange_method_callback_wrapper (struct t_cb_data *
         return;
     }
 
-    wrap->methodfunc (wrap->userdata);
+    wrap->func (wrap->data);
 
     stimc_main_queue_run_threads ();
 }
@@ -185,12 +192,12 @@ static void stimc_register_valuechange_method (void (*methodfunc)(void *userdata
     s_vpi_time  data_time;
     s_vpi_value data_value;
 
-    struct stimc_method_wrap *wrap = (struct stimc_method_wrap *)malloc (sizeof (struct stimc_method_wrap));
+    struct stimc_callback_wrap *wrap = (struct stimc_callback_wrap *)malloc (sizeof (struct stimc_callback_wrap));
 
     // TODO: free at end of simulation? (separate callback?)
 
-    wrap->methodfunc = methodfunc;
-    wrap->userdata   = userdata;
+    wrap->func = methodfunc;
+    wrap->data = userdata;
 
     data.reason = cbValueChange;
     if (edge > 0) {
@@ -247,9 +254,9 @@ static PLI_INT32 stimc_thread_callback_wrapper (struct t_cb_data *cb_data)
 
 static void stimc_thread_wrap (void *userdata)
 {
-    struct stimc_method_wrap *wrap = (struct stimc_method_wrap *)userdata;
+    struct stimc_callback_wrap *wrap = (struct stimc_callback_wrap *)userdata;
 
-    wrap->methodfunc (wrap->userdata);
+    wrap->func (wrap->data);
 
     free (wrap);
 
@@ -262,10 +269,10 @@ void stimc_register_startup_thread (void (*threadfunc)(void *userdata), void *us
     s_vpi_time  data_time;
     s_vpi_value data_value;
 
-    struct stimc_method_wrap *wrap = (struct stimc_method_wrap *)malloc (sizeof (struct stimc_method_wrap));
+    struct stimc_callback_wrap *wrap = (struct stimc_callback_wrap *)malloc (sizeof (struct stimc_callback_wrap));
 
-    wrap->methodfunc = threadfunc;
-    wrap->userdata   = userdata;
+    wrap->func = threadfunc;
+    wrap->data = userdata;
 
     coroutine_t thread = co_create (stimc_thread_wrap, wrap, NULL, STIMC_THREAD_STACK_SIZE);
 
