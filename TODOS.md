@@ -3,11 +3,11 @@
 - consider free-functionality
   - [x] some end-of-simulation // before-reset callback for modules + coroutines cleanup
   - [ ] for every thread: cleanup callback linked list, user can add callbacks
-  - [ ] thread wrapper struct with cleanup callbacks + wait callback (to remove)
+  - [x] thread wrapper struct with cleanup callbacks + wait callback (to remove)
   - [x] nba-callbacks: remove with port-free function!
   - [ ] events: add pointer to queue-cleanup struct -> cancel if event deleted
   - [ ] for stimc: cleanup callback list; contains cleanup callbacks for
-    - [ ] every thread (call cleanup callbacks + delete thread)
+    - [x] every thread (call cleanup callbacks + delete thread)
     - [x] every method callback (remove callback)
     - [ ] every module: delete module
     - [ ] events: clear queue (in case event is global variable)

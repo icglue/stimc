@@ -555,8 +555,6 @@ static inline double stimc_net_get_double (stimc_net net)
 /* modules */
 /******************************************************************************************************/
 
-/* TODO: cleanup/free functions */
-
 /**
  * @brief Module type.
  */
