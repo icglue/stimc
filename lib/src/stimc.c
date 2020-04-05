@@ -193,6 +193,7 @@ static void stimc_register_valuechange_method (void (*methodfunc)(void *userdata
     s_vpi_value data_value;
 
     struct stimc_callback_wrap *wrap = (struct stimc_callback_wrap *)malloc (sizeof (struct stimc_callback_wrap));
+    assert (wrap);
 
     // TODO: free at end of simulation? (separate callback?)
 
@@ -270,6 +271,7 @@ void stimc_register_startup_thread (void (*threadfunc)(void *userdata), void *us
     s_vpi_value data_value;
 
     struct stimc_callback_wrap *wrap = (struct stimc_callback_wrap *)malloc (sizeof (struct stimc_callback_wrap));
+    assert (wrap);
 
     wrap->func = threadfunc;
     wrap->data = userdata;
@@ -418,6 +420,7 @@ static void stimc_thread_queue_init (struct stimc_thread_queue_s *q)
 {
     q->threads_len = 16;
     q->threads     = (coroutine_t *)malloc (sizeof (coroutine_t) * (q->threads_len));
+    assert (q->threads);
 
     stimc_thread_queue_clear (q);
 }
@@ -448,6 +451,7 @@ static void stimc_thread_queue_enqueue (struct stimc_thread_queue_s *q, coroutin
 
         q->threads_len *= 2;
         q->threads      = (coroutine_t *)realloc (q->threads, sizeof (coroutine_t) * (q->threads_len));
+        assert (q->threads);
     }
 
     /* thread data ... */
@@ -466,6 +470,7 @@ static void stimc_thread_queue_enqueue_all (struct stimc_thread_queue_s *q, stru
             q->threads_len *= 2;
         }
         q->threads = (coroutine_t *)realloc (q->threads, sizeof (coroutine_t) * q->threads_len);
+        assert (q->threads);
     }
 
     /* thread data ... */
@@ -530,6 +535,7 @@ static void stimc_main_queue_run_threads ()
 stimc_event stimc_event_create (void)
 {
     stimc_event event = (stimc_event)malloc (sizeof (struct stimc_event_s));
+    assert (event);
 
     stimc_thread_queue_init (&event->queue);
 
@@ -582,6 +588,7 @@ void stimc_module_init (stimc_module *m)
     const char *scope = stimc_get_caller_scope ();
 
     m->id = (char *)malloc (sizeof (char) * (strlen (scope) + 1));
+    assert (m->id);
     strcpy (m->id, scope);
 }
 
@@ -598,6 +605,7 @@ static vpiHandle stimc_module_handle_init (stimc_module *m, const char *name)
     size_t name_len  = strlen (name);
 
     char *net_name = (char *)malloc (sizeof (char) * (scope_len + name_len + 2));
+    assert (net_name);
 
     strcpy (net_name, scope);
     net_name[scope_len] = '.';
@@ -617,6 +625,7 @@ stimc_port stimc_port_init (stimc_module *m, const char *name)
     vpiHandle handle = stimc_module_handle_init (m, name);
 
     stimc_port result = (stimc_port)malloc (sizeof (struct stimc_net_s));
+    assert (result);
 
     result->net = handle;
     result->nba = NULL;
@@ -657,11 +666,13 @@ static void stimc_net_nba_queue_append (stimc_net net, struct stimc_nba_queue_en
     if (nba == NULL) {
         /* allocate */
         nba = (struct stimc_nba_data *)malloc (sizeof (struct stimc_nba_data));
+        assert (nba);
 
         nba->queue         = (struct stimc_nba_queue_entry *)malloc (4 * sizeof (struct stimc_nba_queue_entry));
         nba->queue_len     = 4;
         nba->queue_num     = 0;
         nba->queue[0].type = STIMC_NBA_UNUSED_LAST;
+        assert (nba->queue);
 
         nba->cb_handle = NULL;
 
@@ -671,6 +682,7 @@ static void stimc_net_nba_queue_append (stimc_net net, struct stimc_nba_queue_en
         if (nba->queue_num + 1 >= nba->queue_len) {
             nba->queue_len *= 2;
             nba->queue      = (struct stimc_nba_queue_entry *)realloc (nba->queue, nba->queue_len * sizeof (struct stimc_nba_queue_entry));
+            assert (nba->queue);
         }
     }
 
@@ -778,6 +790,7 @@ static inline void stimc_net_set_xz (stimc_net net, int val)
     }
 
     s_vpi_vecval *vec = (s_vpi_vecval *)malloc (vsize * sizeof (s_vpi_vecval));
+    assert (vec);
     for (unsigned i = 0; i < vsize; i++) {
         vec[i].aval = (val == vpiZ ? 0x00000000 : 0xffffffff);
         vec[i].bval = 0xffffffff;
@@ -1024,6 +1037,7 @@ void stimc_net_set_uint64 (stimc_net net, uint64_t value)
     }
 
     s_vpi_vecval *vec = (s_vpi_vecval *)malloc (vsize * sizeof (s_vpi_vecval));
+    assert (vec);
     for (unsigned i = 0; (i < vsize) && (i < 2); i++) {
         vec[i].aval = (value >> (32 * i)) & 0xffffffff;
         vec[i].bval = 0;
