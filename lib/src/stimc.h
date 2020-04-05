@@ -125,6 +125,18 @@ void stimc_register_change_method (void (*methodfunc)(void *userdata), void *use
  */
 void stimc_register_startup_thread (void (*threadfunc)(void *userdata), void *userdata);
 
+/**
+ * @brief Register a function to be called when the current thread is terminated.
+ * @param cleanfunc Callback function accepting a single pointer as argument.
+ * @param userdata Data argument to be handed to cleanfunc on call.
+ *
+ * The callback function will be run when the thread is removed (either because it finished
+ * or because simulation finished). Make sure that it can be called at any point within the
+ * thread where it is suspended and also after it finishes.
+ * @ref stimc_register_thread_cleanup can only be called from within the thread.
+ */
+void stimc_register_thread_cleanup (void (*cleanfunc)(void *userdata), void *userdata);
+
 
 /******************************************************************************************************/
 /* time/wait */
