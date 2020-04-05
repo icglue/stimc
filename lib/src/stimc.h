@@ -59,9 +59,9 @@ extern "C" {
  * Currently both of them are accessed via the same type as vpi does not need to distinguish.
  */
 struct stimc_net_s {
-    vpiHandle net;        /**< @brief vpi handle for access to net/port object */
+    vpiHandle net;              /**< @brief vpi handle for access to net/port object */
 
-    struct nba_data *nba; /**< @brief Data for scheduled non-blocking assignments */
+    struct stimc_nba_data *nba; /**< @brief Data for scheduled non-blocking assignments */
 };
 typedef struct stimc_net_s *stimc_net;  /**< @brief Net base type. */
 typedef struct stimc_net_s *stimc_port; /**< @brief Port base type. */

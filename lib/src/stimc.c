@@ -92,7 +92,7 @@ static inline void stimc_suspend (void);
 static void stimc_wait_time_int_exp (uint64_t time, int exp);
 
 /* non-blocking assignment helpers */
-enum nba_type {
+enum stimc_nba_type {
     STIMC_NBA_UNUSED_LAST,
     STIMC_NBA_Z_ALL,
     STIMC_NBA_X_ALL,
@@ -103,23 +103,23 @@ enum nba_type {
     STIMC_NBA_VAL_BITS,
     STIMC_NBA_VAL_REAL,
 };
-struct nba_queue_entry {
+struct stimc_nba_queue_entry {
     union {
         uint64_t value;
         double   real_value;
     };
-    enum nba_type type;
-    uint16_t      lsb;
-    uint16_t      msb;
+    enum stimc_nba_type type;
+    uint16_t            lsb;
+    uint16_t            msb;
 };
-struct nba_data {
-    vpiHandle               cb_handle;
-    struct nba_queue_entry *queue;
-    unsigned                queue_len;
-    unsigned                queue_num;
+struct stimc_nba_data {
+    vpiHandle                     cb_handle;
+    struct stimc_nba_queue_entry *queue;
+    unsigned                      queue_len;
+    unsigned                      queue_num;
 };
 
-static void      stimc_net_nba_queue_append (stimc_net net, struct nba_queue_entry *entry_new);
+static void      stimc_net_nba_queue_append (stimc_net net, struct stimc_nba_queue_entry *entry_new);
 static PLI_INT32 stimc_net_nba_callback_wrapper (struct t_cb_data *cb_data);
 
 /* common x/z setters */
@@ -649,16 +649,16 @@ void stimc_parameter_free (stimc_parameter p __attribute__((unused)))
     /* nothing to do, yet*/
 }
 
-static void stimc_net_nba_queue_append (stimc_net net, struct nba_queue_entry *entry_new)
+static void stimc_net_nba_queue_append (stimc_net net, struct stimc_nba_queue_entry *entry_new)
 {
     /* init queue if necessary */
-    struct nba_data *nba = net->nba;
+    struct stimc_nba_data *nba = net->nba;
 
     if (nba == NULL) {
         /* allocate */
-        nba = (struct nba_data *)malloc (sizeof (struct nba_data));
+        nba = (struct stimc_nba_data *)malloc (sizeof (struct stimc_nba_data));
 
-        nba->queue         = (struct nba_queue_entry *)malloc (4 * sizeof (struct nba_queue_entry));
+        nba->queue         = (struct stimc_nba_queue_entry *)malloc (4 * sizeof (struct stimc_nba_queue_entry));
         nba->queue_len     = 4;
         nba->queue_num     = 0;
         nba->queue[0].type = STIMC_NBA_UNUSED_LAST;
@@ -670,7 +670,7 @@ static void stimc_net_nba_queue_append (stimc_net net, struct nba_queue_entry *e
         /* resize if necessary */
         if (nba->queue_num + 1 >= nba->queue_len) {
             nba->queue_len *= 2;
-            nba->queue      = (struct nba_queue_entry *)realloc (nba->queue, nba->queue_len * sizeof (struct nba_queue_entry));
+            nba->queue      = (struct stimc_nba_queue_entry *)realloc (nba->queue, nba->queue_len * sizeof (struct stimc_nba_queue_entry));
         }
     }
 
@@ -708,7 +708,7 @@ static PLI_INT32 stimc_net_nba_callback_wrapper (struct t_cb_data *cb_data)
 {
     stimc_net net = (stimc_net)cb_data->user_data;
 
-    for (struct nba_queue_entry *e = net->nba->queue; e->type != STIMC_NBA_UNUSED_LAST; e++) {
+    for (struct stimc_nba_queue_entry *e = net->nba->queue; e->type != STIMC_NBA_UNUSED_LAST; e++) {
         switch (e->type) {
             case STIMC_NBA_Z_ALL:
                 stimc_net_set_z (net);
@@ -1060,7 +1060,7 @@ uint64_t stimc_net_get_uint64 (stimc_net net)
 
 void stimc_net_set_z_nonblock (stimc_net net)
 {
-    struct nba_queue_entry assign = {
+    struct stimc_nba_queue_entry assign = {
         .type = STIMC_NBA_Z_ALL,
     };
 
@@ -1069,7 +1069,7 @@ void stimc_net_set_z_nonblock (stimc_net net)
 
 void stimc_net_set_x_nonblock (stimc_net net)
 {
-    struct nba_queue_entry assign = {
+    struct stimc_nba_queue_entry assign = {
         .type = STIMC_NBA_X_ALL,
     };
 
@@ -1078,7 +1078,7 @@ void stimc_net_set_x_nonblock (stimc_net net)
 
 void stimc_net_set_bits_z_nonblock (stimc_net net, unsigned msb, unsigned lsb)
 {
-    struct nba_queue_entry assign = {
+    struct stimc_nba_queue_entry assign = {
         .type = STIMC_NBA_Z_BITS,
         .msb  = msb,
         .lsb  = lsb,
@@ -1089,7 +1089,7 @@ void stimc_net_set_bits_z_nonblock (stimc_net net, unsigned msb, unsigned lsb)
 
 void stimc_net_set_bits_x_nonblock (stimc_net net, unsigned msb, unsigned lsb)
 {
-    struct nba_queue_entry assign = {
+    struct stimc_nba_queue_entry assign = {
         .type = STIMC_NBA_X_BITS,
         .msb  = msb,
         .lsb  = lsb,
@@ -1100,7 +1100,7 @@ void stimc_net_set_bits_x_nonblock (stimc_net net, unsigned msb, unsigned lsb)
 
 void stimc_net_set_uint64_nonblock (stimc_net net, uint64_t value)
 {
-    struct nba_queue_entry assign = {
+    struct stimc_nba_queue_entry assign = {
         .value = value,
         .type  = STIMC_NBA_VAL_ALL_UINT64,
     };
@@ -1110,7 +1110,7 @@ void stimc_net_set_uint64_nonblock (stimc_net net, uint64_t value)
 
 void stimc_net_set_bits_uint64_nonblock (stimc_net net, unsigned msb, unsigned lsb, uint64_t value)
 {
-    struct nba_queue_entry assign = {
+    struct stimc_nba_queue_entry assign = {
         .value = value,
         .type  = STIMC_NBA_VAL_BITS,
         .msb   = msb,
@@ -1122,7 +1122,7 @@ void stimc_net_set_bits_uint64_nonblock (stimc_net net, unsigned msb, unsigned l
 
 void stimc_net_set_int32_nonblock (stimc_net net, int32_t value)
 {
-    struct nba_queue_entry assign = {
+    struct stimc_nba_queue_entry assign = {
         .value = value,
         .type  = STIMC_NBA_VAL_ALL_INT32,
     };
@@ -1132,7 +1132,7 @@ void stimc_net_set_int32_nonblock (stimc_net net, int32_t value)
 
 void stimc_net_set_double_nonblock (stimc_net net, double value)
 {
-    struct nba_queue_entry assign = {
+    struct stimc_nba_queue_entry assign = {
         .real_value = value,
         .type       = STIMC_NBA_VAL_REAL,
     };
