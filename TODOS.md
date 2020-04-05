@@ -7,11 +7,15 @@
   - [x] thread wrapper struct with cleanup callbacks + wait callback (to remove)
   - [x] nba-callbacks: remove with port-free function!
   - [x] events: add pointer to queue-cleanup struct -> cancel if event deleted
-  - [ ] for stimc: cleanup callback list; contains cleanup callbacks for
+  - [x] for stimc: cleanup callback list; contains cleanup callbacks for
     - [x] every thread (call cleanup callbacks + delete thread)
     - [x] every method callback (remove callback)
-    - [ ] every module: delete module
-    - [ ] every port/parametr: delete
+    - [x] every module: delete module
+    - [x] every port/parameter: delete
     - [x] events: clear queue (in case event is global variable)
     - [x] stimc: remove cleanup callbacks, clean event queue
   - [ ] cleanup order? threads -> methods -> event queues -> modules (+ports) -> stimc-base ?
+  - [ ] cleanup documentation
+- vpi init function for simulators with need for explicit function call.
+  Maybe make vlog startup array static + point startup array to static array
+  to profit from of explicit startup function in case multiple vpi shared objet files exist.

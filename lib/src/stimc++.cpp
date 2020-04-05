@@ -27,12 +27,19 @@
 namespace stimcxx {
     module::module ()
     {
-        stimc_module_init (&(this->_module));
+        stimc_module_init (&(this->_module), module::cleanup, this);
     }
 
     module::~module ()
     {
         stimc_module_free (&(this->_module));
+    }
+
+    void module::cleanup (void *m)
+    {
+        module *mod = (module *)m;
+
+        delete mod;
     }
 
     module::port_base::port_base (module &m, const char *name)

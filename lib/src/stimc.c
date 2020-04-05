@@ -665,7 +665,7 @@ void stimc_finish (void)
     }
 }
 
-void stimc_module_init (stimc_module *m)
+void stimc_module_init (stimc_module *m, void (*cleanfunc)(void *cleandata), void *cleandata)
 {
     assert (m);
     const char *scope = stimc_get_caller_scope ();
@@ -673,6 +673,10 @@ void stimc_module_init (stimc_module *m)
     m->id = (char *)malloc (sizeof (char) * (strlen (scope) + 1));
     assert (m->id);
     strcpy (m->id, scope);
+
+    if (cleanfunc != NULL) {
+        stimc_cleanup_add (cleanfunc, cleandata);
+    }
 }
 
 void stimc_module_free (stimc_module *m)

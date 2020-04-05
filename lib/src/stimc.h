@@ -577,13 +577,15 @@ typedef struct stimc_module_s {
 /**
  * @brief Module type initialization.
  * @param m Pointer to module to initialize
+ * @param cleanfunc Function to call at end of simulation to clean module data.
+ * @param cleandata Data pointer to hand to module cleanup function.
  *
  * Used from within the verilog module initialization
  * system task defined by @ref STIMC_INIT.
  * Do not call from outside as it uses the caller scope
  * to identify the instance.
  */
-void stimc_module_init (stimc_module *m);
+void stimc_module_init (stimc_module *m, void (*cleanfunc)(void *cleandata), void *cleandata);
 
 /**
  * @brief Module type resource free.

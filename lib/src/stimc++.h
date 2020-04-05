@@ -130,6 +130,15 @@ namespace stimcxx {
         private:
             stimc_module _module; /**< @brief The actual @ref stimc_module. */
 
+            /**
+             * @brief Cleanup callback for end of simulation - will delete the module.
+             * @param m Pointer to module to delete.
+             *
+             * Will be handed to @ref stimc_module_init as cleanup callback
+             * in constructor.
+             */
+            static void cleanup (void *m);
+
         public:
             module ();
             virtual ~module ();
