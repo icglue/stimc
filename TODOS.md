@@ -6,11 +6,12 @@
   - [ ] stimc++ thread cleanup convenience version
   - [x] thread wrapper struct with cleanup callbacks + wait callback (to remove)
   - [x] nba-callbacks: remove with port-free function!
-  - [ ] events: add pointer to queue-cleanup struct -> cancel if event deleted
+  - [x] events: add pointer to queue-cleanup struct -> cancel if event deleted
   - [ ] for stimc: cleanup callback list; contains cleanup callbacks for
     - [x] every thread (call cleanup callbacks + delete thread)
     - [x] every method callback (remove callback)
     - [ ] every module: delete module
-    - [ ] events: clear queue (in case event is global variable)
+    - [ ] every port/parametr: delete
+    - [x] events: clear queue (in case event is global variable)
     - [x] stimc: remove cleanup callbacks, clean event queue
   - [ ] cleanup order? threads -> methods -> event queues -> modules (+ports) -> stimc-base ?
