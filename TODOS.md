@@ -3,7 +3,7 @@
 - consider free-functionality
   - [x] some end-of-simulation // before-reset callback for modules + coroutines cleanup
   - [x] for every thread: cleanup callback linked list, user can add callbacks
-  - [ ] stimc++ thread cleanup convenience version
+  - [ ] stimc++ thread cleanup convenience version (lambda expression?, derived cleanup class?)
   - [x] thread wrapper struct with cleanup callbacks + wait callback (to remove)
   - [x] nba-callbacks: remove with port-free function!
   - [x] events: add pointer to queue-cleanup struct -> cancel if event deleted
@@ -14,7 +14,7 @@
     - [x] every port/parameter: delete
     - [x] events: clear queue (in case event is global variable)
     - [x] stimc: remove cleanup callbacks, clean event queue
-  - [ ] cleanup order? threads -> methods -> event queues -> modules (+ports) -> stimc-base ?
+  - [x] cleanup order? threads -> methods -> event queues -> modules (+ports) -> stimc-base ?
   - [ ] cleanup documentation
 - vpi init function for simulators with need for explicit function call.
   Maybe make vlog startup array static + point startup array to static array
