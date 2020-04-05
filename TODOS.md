@@ -2,13 +2,14 @@
 - provide makefile with system-wide installation?
 - consider free-functionality
   - [x] some end-of-simulation // before-reset callback for modules + coroutines cleanup
-  - [ ] difficult: memory allocated in threads (will be lost if threads are cancelled)
-        maybe: some simplified way of adding frees/deletes as end-thread callback
   - [ ] for every thread: cleanup callback linked list, user can add callbacks
+  - [ ] thread wrapper struct with cleanup callbacks + wait callback (to remove)
+  - [x] nba-callbacks: remove with port-free function!
+  - [ ] events: add pointer to queue-cleanup struct -> cancel if event deleted
   - [ ] for stimc: cleanup callback list; contains cleanup callbacks for
     - [ ] every thread (call cleanup callbacks + delete thread)
     - [x] every method callback (remove callback)
-    - [ ] nba-callbacks ??? temporary (circular?) doubly-linked-list for cleanup?
-          remove with port-free function!
     - [ ] every module: delete module
+    - [ ] events: clear queue (in case event is global variable)
     - [x] stimc: remove cleanup callbacks, clean event queue
+  - [ ] cleanup order? threads -> methods -> event queues -> modules (+ports) -> stimc-base ?
