@@ -1254,35 +1254,26 @@ static void stimc_cleanup_init (void)
 
     assert (c_data);
 
-    s_cb_data  data;
-    s_vpi_time data_time;
+    s_cb_data data;
 
-    data.reason     = cbEndOfSimulation;
-    data.cb_rtn     = stimc_cleanup_callback;
-    data.obj        = NULL;
-    data.time       = &data_time;
-    data.time->type = vpiSuppressTime;
-    data.time->high = 0;
-    data.time->low  = 0;
-    data.time->real = 0;
-    data.value      = NULL;
-    data.index      = 0;
-    data.user_data  = NULL;
+    data.reason    = cbEndOfSimulation;
+    data.cb_rtn    = stimc_cleanup_callback;
+    data.obj       = NULL;
+    data.time      = NULL;
+    data.value     = NULL;
+    data.index     = 0;
+    data.user_data = NULL;
 
     c_data->cb_finish = vpi_register_cb (&data);
     assert (c_data->cb_finish);
 
-    data.reason     = cbStartOfReset;
-    data.cb_rtn     = stimc_cleanup_callback;
-    data.obj        = NULL;
-    data.time       = &data_time;
-    data.time->type = vpiSuppressTime;
-    data.time->high = 0;
-    data.time->low  = 0;
-    data.time->real = 0;
-    data.value      = NULL;
-    data.index      = 0;
-    data.user_data  = NULL;
+    data.reason    = cbStartOfReset;
+    data.cb_rtn    = stimc_cleanup_callback;
+    data.obj       = NULL;
+    data.time      = NULL;
+    data.value     = NULL;
+    data.index     = 0;
+    data.user_data = NULL;
 
     c_data->cb_reset = vpi_register_cb (&data);
     /* might not be supported -> NULL ok */
