@@ -87,5 +87,20 @@ namespace stimcxx {
     {
         stimc_event_free (this->_event);
     }
+
+    thread_cleanup::thread_cleanup ()
+    {
+        stimc_register_thread_cleanup (thread_cleanup::cleanup_callback, this);
+    }
+
+    thread_cleanup::~thread_cleanup ()
+    {}
+
+    void thread_cleanup::cleanup_callback (void *cleanup_data)
+    {
+        thread_cleanup *cleanup = (thread_cleanup *)cleanup_data;
+
+        delete cleanup;
+    }
 };
 

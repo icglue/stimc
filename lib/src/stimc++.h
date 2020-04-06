@@ -736,6 +736,43 @@ namespace stimcxx {
     {
         stimc_finish ();
     }
+
+    /**
+     * @brief Helper base class for end-of-thread cleanup functionality.
+     *
+     * Important: Derived objects must be allocated by new,
+     * not on the stack, as they will be deleted on end of simulation
+     * and must persist even in case the function in which they are created
+     * terminates.
+     *
+     * Usage: derive a class, create member variables for data
+     * to clean up at end of thread and provide cleanup functionality
+     * in derived class's destructor.
+     *
+     * Derived objects can only be created within a stimc thread,
+     * as they will register their destruction in @ref cleanup_callback
+     * as stimc end of thread cleanup callback via @ref stimc_register_thread_cleanup.
+     *
+     * Take care of scenarios where cleanup is not yet or no longer necessary
+     * (e.g. data not yet created or already cleaned up by the thread).
+     * E.g. set a pointer to NULL to indicate no cleanup is necessary.
+     */
+    class thread_cleanup {
+        protected:
+            thread_cleanup ();
+            virtual ~thread_cleanup ();
+
+            thread_cleanup            (const thread_cleanup &t) = delete; /**< @brief Do not copy/change internals */
+            thread_cleanup& operator= (const thread_cleanup &t) = delete; /**< @brief Do not copy/change internals */
+        protected:
+            /**
+             * @brief The actual cleanup callback function.
+             * @param cleanup_data casted pointer to @ref thread_cleanup derived object.
+             *
+             * Will delete the specified object.
+             */
+            static void cleanup_callback (void *cleanup_data);
+    };
 };
 
 /**

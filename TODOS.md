@@ -3,7 +3,7 @@
 - consider free-functionality
   - [x] some end-of-simulation // before-reset callback for modules + coroutines cleanup
   - [x] for every thread: cleanup callback linked list, user can add callbacks
-  - [ ] stimc++ thread cleanup convenience version (lambda expression?, derived cleanup class?)
+  - [x] stimc++ thread cleanup convenience version -> cleanup class
   - [x] thread wrapper struct with cleanup callbacks + wait callback (to remove)
   - [x] nba-callbacks: remove with port-free function!
   - [x] events: add pointer to queue-cleanup struct -> cancel if event deleted
