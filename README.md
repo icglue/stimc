@@ -61,7 +61,7 @@ or a SystemC thread) or port event based in which case they are limited to trigg
 events or immediately reacting (similar to SystemC methods).
 
 An excerpt from the project's examples looks like this:
-```c++
+```cpp
 class dummy : public stimcxx::module {
     private:
         parameter DATA_W;
@@ -95,7 +95,7 @@ one of `posedge`, `negedge` or `change` (corresponding to the Verilog posedge, n
 plain `@` events).
 
 The main part of the example constructor looks like this:
-```c++
+```cpp
 dummy::dummy () :
     STIMCXX_PARAMETER (DATA_W),
     STIMCXX_PORT (clk_i),
@@ -156,12 +156,86 @@ It is not possible for a thread to trigger itself as it would either need to fir
 able to trigger) or first trigger (and not yet waiting on the event, so not being resumed on this
 trigger).
 
+#### Cleanup
+In order to free memory and cleanup resources like memory or open files
+when a thread is terminated it is possible to register a cleanup callback.
+This is mainly useful in cases where simulation can be reset as threads will be recreated
+and run after a reset and might cause conflicts with remaining resources from a previous run.
+
+In stimc++ it is possible to wrap this into one or more objects of custom cleanup classes
+inheriting `stimcxx::thread_cleanup` which is created within the thread via `new` and performs
+cleanup tasks in its destructor.
+The creation via new is important, as the object must also remain in case the thread function returns
+and will be destroyed via `delete` in the cleanup process.
+The object must be created within the thread it should cleanup as it will be called when the respective
+thread is deleted.
+Furthermore it is necessary to cover all possible scenarios where the cleanup could happen, which
+is typically whenever the thread is destroyed while suspended (waiting, which might also happen in
+a function calling a wait function) or when the thread function returns.
+In all of these cases the cleanup in the destructor should do the right thing (e.g. free
+allocated resources and ignore not yet allocated or already freed resources).
+
+Here an example with a snippet from a thread and a cleanup class for 2 variables a and b
+being objects of two classes A and B:
+
+```cpp
+/* custom cleanup class */
+class cleanup_ab : protected stimcxx::thread_cleanup {
+    public:
+        A *a;
+        B *b;
+
+        cleanup_ab () : a(NULL), b(NULL) {}
+        ~cleanup_ab () {
+            if (a) delete a;
+            if (b) delete b;
+        }
+};
+
+/* simulation thread of custom module dummy */
+void dummy::testcontrol ()
+{
+    cleanup_ab *cleanup_data = new cleanup_ab ();
+
+    /* ... */
+
+    A *a = new A ();
+    /* from here on, if thread is deleted, a will be deleted */
+    cleanup_data->a = a;
+
+    /* ... */
+
+    B *b = new B ();
+    /* from here on, if thread is deleted, a and b will be deleted */
+    cleanup_data->b = b;
+
+    /* ... */
+
+    delete a;
+    /* a already freed -> do not delete when thread is deleted */
+    cleanup_data->a = NULL;
+
+    /* ... */
+}
+
+```
+
+In case cleanup functionality causes unwanted problems (use after free or similar),
+it is possible to disable it via the `STIMC_DISABLE_CLEANUP` preprocessor define.
+In this case besides memory being leaked, resetting simulation will likely cause problems.
+
 ### Compiling
 For compiling everything (depending on the simulator) you need to build a vpi library
 containing the stimc/stimc++ code, the module code and the `stimc-export.c` providing
 `stimc-export.inl` containing the modules' export-defines in the include path.
 
-## Examples
+## Documentation
+### Documentation
+Doxygen documentation for the code can be built by running `make docs` when doxygen is available.
+To open generated docs run `make showdocs` (will open html documentation in firefox, which
+can be overwritten with `make BROWSER=<browser> showdocs`.
+
+### Examples
 Examples are provided in the examples directory.
 To use it you need icarus verilog, GTKWave and the portable coroutine library (libpcl) installed
 and gcc as compiler.
@@ -172,3 +246,4 @@ The Verilog shell can be found in `source/behavioral/verilog`, the module stimc 
 `source/behavioral/stimc`. To run the example simulation enter the units `simulation/iverilog/tc_sanity`
 testcase directory and run `make`. The code will be compiled, run and GTKWave will be started
 for browsing the simulated waveforms.
+
