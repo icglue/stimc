@@ -16,6 +16,4 @@
     - [x] stimc: remove cleanup callbacks, clean event queue
   - [x] cleanup order? threads -> methods -> event queues -> modules (+ports) -> stimc-base ?
   - [ ] cleanup documentation
-- vpi init function for simulators with need for explicit function call.
-  Maybe make vlog startup array static + point startup array to static array
-  to profit from of explicit startup function in case multiple vpi shared objet files exist.
+

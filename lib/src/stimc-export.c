@@ -36,9 +36,26 @@
 #define STIMC_EXPORT(module) \
     _stimc_module_ ## module ## _register,
 
+/* indirected vlog startup vec */
+static void (*stimc_module_register_list[])(void) = {
+#   include "stimc-export.inl"
+    0,
+};
+
+/**
+ * @briefindirect startup function for
+ * simulators expecting a function name to call
+ */
+void stimc_vpi_init (void)
+{
+    for (unsigned i = 0; stimc_module_register_list[i] != 0; i++) {
+        stimc_module_register_list[i]();
+    }
+}
+
 /* vlog startup vec */
 void (*vlog_startup_routines[])(void) = {
-#   include "stimc-export.inl"
+    stimc_vpi_init,
     0,
 };
 
