@@ -16,4 +16,6 @@
     - [x] stimc: remove cleanup callbacks, clean event queue
   - [x] cleanup order? threads -> methods -> event queues -> modules (+ports) -> stimc-base ?
   - [ ] cleanup documentation
+  - [x] define for disabling cleanup
+- variable/configurable stack size?
 

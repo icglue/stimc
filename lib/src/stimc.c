@@ -36,11 +36,17 @@
 
 #ifndef STIMC_THREAD_STACK_SIZE
 /* default stack size */
-#define STIMC_THREAD_STACK_SIZE    65536
+#define STIMC_THREAD_STACK_SIZE 65536
 #endif
 
 #ifndef STIMC_VALVECTOR_MAX_STATIC
 #define STIMC_VALVECTOR_MAX_STATIC 8
+#endif
+
+#ifdef STIMC_DISABLE_CLEANUP
+#define STIMC_CLEANUP_ARG __attribute__((unused))
+#else
+#define STIMC_CLEANUP_ARG
 #endif
 
 /******************************************************************************************************/
@@ -53,12 +59,14 @@ static vpiHandle   stimc_module_handle_init (stimc_module *m, const char *name);
 
 /* threads */
 struct stimc_thread_s {
-    coroutine_t                 thread;
-    void                        (*func) (void *data);
-    void                       *data;
+    coroutine_t thread;
+    void        (*func) (void *data);
+    void       *data;
+    vpiHandle   call_handle;
+#ifndef STIMC_DISABLE_CLEANUP
     struct stimc_cleanup_entry *cleanup_queue;
-    vpiHandle                   call_handle;
     struct stimc_cleanup_entry *cleanup_self;
+#endif
 };
 
 struct stimc_thread_queue_s {
@@ -69,7 +77,9 @@ struct stimc_thread_queue_s {
 
 struct stimc_event_s {
     struct stimc_thread_queue_s queue;
+#ifndef STIMC_DISABLE_CLEANUP
     struct stimc_cleanup_entry *cleanup_self;
+#endif
 };
 
 static struct stimc_thread_s *stimc_thread_create (void (*threadfunc)(void *userdata), void *userdata);
@@ -142,6 +152,7 @@ static inline void stimc_net_set_xz (stimc_net net, int val);
 static inline void stimc_net_set_bits_xz (stimc_net net, unsigned msb, unsigned lsb, int val);
 
 /* final cleanup */
+#ifndef STIMC_DISABLE_CLEANUP
 struct stimc_cleanup_entry {
     struct stimc_cleanup_entry *next;
 
@@ -166,6 +177,7 @@ static PLI_INT32 stimc_cleanup_callback (struct t_cb_data *cb_data);
 static void stimc_cleanup_callback_wrap (void *userdata);
 static void stimc_cleanup_thread (void *userdata);
 static void stimc_cleanup_event (void *userdata);
+#endif
 
 /******************************************************************************************************/
 /* global variables */
@@ -177,7 +189,9 @@ static bool stimc_finish_pending = false;
 static struct stimc_thread_queue_s stimc_main_queue        = {0, 0, NULL};
 static struct stimc_thread_queue_s stimc_main_queue_shadow = {0, 0, NULL};
 
+#ifndef STIMC_DISABLE_CLEANUP
 static struct stimc_cleanup_entry *stimc_cleanup_queue = NULL;
+#endif
 
 /******************************************************************************************************/
 /* implementation */
@@ -266,7 +280,9 @@ static void stimc_register_valuechange_method (void (*methodfunc)(void *userdata
     wrap->cb_handle = vpi_register_cb (&data);
     assert (wrap->cb_handle);
 
+#ifndef STIMC_DISABLE_CLEANUP
     stimc_cleanup_add (stimc_cleanup_callback_wrap, wrap);
+#endif
 }
 
 void stimc_register_posedge_method (void (*methodfunc)(void *userdata), void *userdata, stimc_net net)
@@ -292,21 +308,26 @@ static struct stimc_thread_s *stimc_thread_create (void (*threadfunc)(void *user
 
     assert (co);
 
-    thread->thread        = co;
-    thread->func          = threadfunc;
-    thread->data          = userdata;
+    thread->thread      = co;
+    thread->func        = threadfunc;
+    thread->data        = userdata;
+    thread->call_handle = NULL;
+
+#ifndef STIMC_DISABLE_CLEANUP
     thread->cleanup_queue = NULL;
-    thread->call_handle   = NULL;
     thread->cleanup_self  = stimc_cleanup_add (stimc_cleanup_thread, thread);
+#endif
 
     return thread;
 }
 
-void stimc_register_thread_cleanup (void (*cleanfunc)(void *userdata), void *userdata)
+void stimc_register_thread_cleanup (void (*cleanfunc)(void *userdata) STIMC_CLEANUP_ARG, void *userdata STIMC_CLEANUP_ARG)
 {
     assert (stimc_current_thread);
 
+#ifndef STIMC_DISABLE_CLEANUP
     stimc_current_thread->cleanup_queue = stimc_cleanup_add_internal (stimc_current_thread->cleanup_queue, cleanfunc, userdata);
+#endif
 }
 
 static void stimc_thread_finish (struct stimc_thread_s *thread)
@@ -316,13 +337,17 @@ static void stimc_thread_finish (struct stimc_thread_s *thread)
     if (thread == NULL) t = stimc_current_thread;
     assert (t);
 
+#ifndef STIMC_DISABLE_CLEANUP
     t->cleanup_self->cancel = true;
+#endif
 
     if (t->call_handle != NULL) {
         vpi_remove_cb (t->call_handle);
     }
 
+#ifndef STIMC_DISABLE_CLEANUP
     stimc_cleanup_run (&(t->cleanup_queue));
+#endif
 
     if (thread == NULL) {
         free (t);
@@ -619,7 +644,9 @@ stimc_event stimc_event_create (void)
 
     stimc_thread_queue_init (&event->queue);
 
+#ifndef STIMC_DISABLE_CLEANUP
     event->cleanup_self = stimc_cleanup_add (stimc_cleanup_event, event);
+#endif
 
     return event;
 }
@@ -628,7 +655,9 @@ void stimc_event_free (stimc_event event)
 {
     stimc_thread_queue_free (&event->queue);
 
+#ifndef STIMC_DISABLE_CLEANUP
     event->cleanup_self->cancel = true;
+#endif
 
     free (event);
 }
@@ -665,7 +694,7 @@ void stimc_finish (void)
     }
 }
 
-void stimc_module_init (stimc_module *m, void (*cleanfunc)(void *cleandata), void *cleandata)
+void stimc_module_init (stimc_module *m, void (*cleanfunc)(void *cleandata) STIMC_CLEANUP_ARG, void *cleandata STIMC_CLEANUP_ARG)
 {
     assert (m);
     const char *scope = stimc_get_caller_scope ();
@@ -674,9 +703,11 @@ void stimc_module_init (stimc_module *m, void (*cleanfunc)(void *cleandata), voi
     assert (m->id);
     strcpy (m->id, scope);
 
+#ifndef STIMC_DISABLE_CLEANUP
     if (cleanfunc != NULL) {
         stimc_cleanup_add (cleanfunc, cleandata);
     }
+#endif
 }
 
 void stimc_module_free (stimc_module *m)
@@ -836,7 +867,7 @@ static PLI_INT32 stimc_net_nba_callback_wrapper (struct t_cb_data *cb_data)
                 stimc_net_set_double (net, e->real_value);
                 break;
             case STIMC_NBA_UNUSED_LAST:
-                /* prevent compiler warning warning */
+                /* prevent compiler warning */
                 break;
         }
     }
@@ -1244,6 +1275,7 @@ void stimc_net_set_double_nonblock (stimc_net net, double value)
 }
 
 
+#ifndef STIMC_DISABLE_CLEANUP
 static void stimc_cleanup_init (void)
 {
     struct stimc_cleanup_data_main *c_data = (struct stimc_cleanup_data_main *)malloc (sizeof (struct stimc_cleanup_data_main));
@@ -1369,4 +1401,5 @@ static void stimc_cleanup_event (void *userdata)
 
     stimc_thread_queue_free (&event->queue);
 }
+#endif
 
