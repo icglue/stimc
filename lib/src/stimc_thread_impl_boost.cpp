@@ -58,7 +58,11 @@ typedef struct stimc_thread_impl_s *stimc_thread_impl;
 static stimc_thread_impl global_thread_current = nullptr;
 
 
+#ifdef STIMC_THREAD_IMPL_BOOST2
 extern "C" stimc_thread_impl stimc_thread_impl_create (void (*func)(void *), void *data, size_t stacksize __attribute__((unused)))
+#else
+extern "C" stimc_thread_impl stimc_thread_impl_create (void (*func)(void *), void *data, size_t stacksize)
+#endif
 {
     struct stimc_thread_impl_s *thread_data = new struct stimc_thread_impl_s;
 
@@ -66,11 +70,17 @@ extern "C" stimc_thread_impl stimc_thread_impl_create (void (*func)(void *), voi
     thread_data->thread = nullptr;
     thread_data->exit   = false;
 
-    coro_t::push_type *thread = new coro_t::push_type ([func, data, thread_data](coro_t::pull_type& main){
-        thread_data->main = &main;
-        main ();
-        func (data);
-    });
+    coro_t::push_type *thread = new coro_t::push_type (
+        [func, data, thread_data](coro_t::pull_type& main){
+            thread_data->main = &main;
+            main ();
+            func (data);
+        }
+#ifdef STIMC_THREAD_IMPL_BOOST1
+        ,
+        boost::coroutines::attributes (stacksize)
+#endif
+    );
 
     thread_data->thread = thread;
 
