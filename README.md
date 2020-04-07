@@ -229,6 +229,12 @@ For compiling everything (depending on the simulator) you need to build a vpi li
 containing the stimc/stimc++ code, the module code and the `stimc-export.c` providing
 `stimc-export.inl` containing the modules' export-defines in the include path.
 
+The vpi library needs to be linked against `pcl` library for thread coroutine implementation.
+Alternatively coroutines can be implemented as boost coroutines (preprocessor define
+`STIMC_THREAD_IMPL_BOOST2` and link against `boost_context` for `boost/coroutine2` implementation
+or define `STIMC_THREAD_IMPL_BOOST1` and link against `boost_coroutine` for `boost/coroutine`
+implementation).
+
 ## Documentation
 ### Documentation
 Doxygen documentation for the code can be built by running `make docs` when doxygen is available.
