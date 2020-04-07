@@ -33,7 +33,7 @@
 
 #include <boost/range.hpp>
 #include <boost/coroutine/asymmetric_coroutine.hpp>
-#include <stdio.h>
+#include <assert.h>
 
 typedef boost::coroutines::coroutine<void> coro_t;
 #endif
@@ -81,13 +81,15 @@ extern "C" stimc_thread_impl stimc_thread_impl_create (void (*func)(void *), voi
 
 extern "C" void stimc_thread_impl_delete (stimc_thread_impl t)
 {
+    assert (global_thread_current == nullptr);
+
     delete t->thread;
     delete t;
 }
 
 extern "C" void stimc_thread_impl_run (stimc_thread_impl t)
 {
-    if (global_thread_current != nullptr) return; // exception!
+    assert (global_thread_current == nullptr);
 
     global_thread_current = t;
 
@@ -95,16 +97,16 @@ extern "C" void stimc_thread_impl_run (stimc_thread_impl t)
 
     thread ();
 
-    if (global_thread_current->exit) {
-        stimc_thread_impl_delete (global_thread_current);
-    }
-
     global_thread_current = nullptr;
+
+    if (t->exit) {
+        stimc_thread_impl_delete (t);
+    }
 }
 
 extern "C" void stimc_thread_impl_suspend (void)
 {
-    if (global_thread_current == nullptr) return; // exception
+    assert (global_thread_current != nullptr);
 
     coro_t::pull_type &main = *(global_thread_current->main);
 
@@ -113,14 +115,13 @@ extern "C" void stimc_thread_impl_suspend (void)
 
 extern "C" void stimc_thread_impl_exit (void)
 {
-    if (global_thread_current == nullptr) return; // exception
+    assert (global_thread_current != nullptr);
 
     global_thread_current->exit = true;
     coro_t::pull_type &main = *(global_thread_current->main);
 
     main ();
 }
-
 
 #endif
 
