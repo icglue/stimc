@@ -32,8 +32,6 @@
 
 #include <assert.h>
 
-#include <pcl.h>
-
 #ifndef STIMC_THREAD_STACK_SIZE
 /* default stack size */
 #define STIMC_THREAD_STACK_SIZE 65536
@@ -53,16 +51,19 @@
 /* internal header */
 /******************************************************************************************************/
 
+#define __STIMC_INTERNAL_HEADER__
+#include "stimc_thread_impl.h"
+
 /* modules and co */
 static const char *stimc_get_caller_scope (void);
 static vpiHandle   stimc_module_handle_init (stimc_module *m, const char *name);
 
 /* threads */
 struct stimc_thread_s {
-    coroutine_t thread;
-    void        (*func) (void *data);
-    void       *data;
-    vpiHandle   call_handle;
+    stimc_thread_impl thread;
+    void              (*func) (void *data);
+    void             *data;
+    vpiHandle         call_handle;
 #ifndef STIMC_DISABLE_CLEANUP
     struct stimc_cleanup_entry *cleanup_queue;
     struct stimc_cleanup_entry *cleanup_self;
@@ -304,11 +305,9 @@ static struct stimc_thread_s *stimc_thread_create (void (*threadfunc)(void *user
 
     assert (thread);
 
-    coroutine_t co = co_create (stimc_thread_wrap, thread, NULL, STIMC_THREAD_STACK_SIZE);
+    stimc_thread_impl ti = stimc_thread_impl_create (stimc_thread_wrap, thread, STIMC_THREAD_STACK_SIZE);
 
-    assert (co);
-
-    thread->thread      = co;
+    thread->thread      = ti;
     thread->func        = threadfunc;
     thread->data        = userdata;
     thread->call_handle = NULL;
@@ -351,11 +350,11 @@ static void stimc_thread_finish (struct stimc_thread_s *thread)
 
     if (thread == NULL) {
         free (t);
-        co_exit ();
+        stimc_thread_impl_exit ();
     } else {
-        coroutine_t co = t->thread;
+        stimc_thread_impl ti = t->thread;
         free (t);
-        co_delete (co);
+        stimc_thread_impl_delete (ti);
     }
 }
 
@@ -418,14 +417,14 @@ void stimc_register_startup_thread (void (*threadfunc)(void *userdata), void *us
 static inline void stimc_run (struct stimc_thread_s *thread)
 {
     stimc_thread_fence ();
-    co_call (thread->thread);
+    stimc_thread_impl_run (thread->thread);
     stimc_thread_fence ();
 }
 
 static inline void stimc_suspend (void)
 {
     stimc_thread_fence ();
-    co_resume ();
+    stimc_thread_impl_suspend ();
     stimc_thread_fence ();
 }
 
