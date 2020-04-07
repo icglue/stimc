@@ -35,7 +35,17 @@
 #endif
 
 #ifdef STIMC_THREAD_IMPL_BOOST
+#define STIMC_THREAD_IMPL_BOOST2
+#endif
+
+#ifdef STIMC_THREAD_IMPL_BOOST1
 #define STIMC_THREAD_IMPL
+#define STIMC_THREAD_IMPL_EXTERNAL
+#endif
+
+#ifdef STIMC_THREAD_IMPL_BOOST2
+#define STIMC_THREAD_IMPL
+#define STIMC_THREAD_IMPL_EXTERNAL
 #endif
 
 #ifndef STIMC_THREAD_IMPL
@@ -84,7 +94,7 @@ static inline void stimc_thread_impl_delete (stimc_thread_impl t)
 #endif
 
 /* Boost threads */
-#ifdef STIMC_THREAD_IMPL_BOOST
+#ifdef STIMC_THREAD_IMPL_EXTERNAL
 typedef void *stimc_thread_impl;
 
 stimc_thread_impl stimc_thread_impl_create (void (*func)(void *), void *data, size_t stacksize);

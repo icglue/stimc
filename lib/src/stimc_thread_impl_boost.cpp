@@ -23,12 +23,30 @@
  */
 
 /* only compile if boost implementation selectod */
+
 #ifdef STIMC_THREAD_IMPL_BOOST
+#define STIMC_THREAD_IMPL_BOOST2
+#endif
+
+#ifdef STIMC_THREAD_IMPL_BOOST1
+#define STIMC_THREAD_IMPL_BOOST_ANY
+
+#include <boost/range.hpp>
+#include <boost/coroutine/asymmetric_coroutine.hpp>
+#include <stdio.h>
+
+typedef boost::coroutines::coroutine<void> coro_t;
+#endif
+
+#ifdef STIMC_THREAD_IMPL_BOOST2
+#define STIMC_THREAD_IMPL_BOOST_ANY
 
 #include <boost/coroutine2/coroutine.hpp>
 
 typedef boost::coroutines2::coroutine<void> coro_t;
+#endif
 
+#ifdef STIMC_THREAD_IMPL_BOOST_ANY
 struct stimc_thread_impl_s {
     coro_t::pull_type *main;
     coro_t::push_type *thread;
