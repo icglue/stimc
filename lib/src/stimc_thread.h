@@ -22,8 +22,8 @@
  * @brief stimc thread implementation.
  */
 
-#ifndef __STIMC_THREAD_IMPL_H__
-#define __STIMC_THREAD_IMPL_H__
+#ifndef __STIMC_THREAD_H__
+#define __STIMC_THREAD_H__
 
 #ifndef __STIMC_INTERNAL_HEADER__
 #error "stimc internal header should not be included outside of stimc core"
@@ -32,6 +32,11 @@
 /* implementation variants - default: pcl */
 #ifdef STIMC_THREAD_IMPL_PCL
 #define STIMC_THREAD_IMPL
+#endif
+
+#ifdef STIMC_THREAD_IMPL_LIBCO
+#define STIMC_THREAD_IMPL
+#define STIMC_THREAD_IMPL_EXTERNAL
 #endif
 
 #ifdef STIMC_THREAD_IMPL_BOOST
@@ -93,7 +98,7 @@ static inline void stimc_thread_impl_delete (stimc_thread_impl t)
 
 #endif
 
-/* Boost threads */
+/* threads implemented in external source file */
 #ifdef STIMC_THREAD_IMPL_EXTERNAL
 typedef void *stimc_thread_impl;
 

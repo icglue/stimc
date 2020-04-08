@@ -52,7 +52,7 @@
 /******************************************************************************************************/
 
 #define __STIMC_INTERNAL_HEADER__
-#include "stimc_thread_impl.h"
+#include "stimc_thread.h"
 
 /* modules and co */
 static const char *stimc_get_caller_scope (void);

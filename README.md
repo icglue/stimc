@@ -233,7 +233,7 @@ The vpi library needs to be linked against `pcl` library for thread coroutine im
 Alternatively coroutines can be implemented as boost coroutines (preprocessor define
 `STIMC_THREAD_IMPL_BOOST2` and link against `boost_context` for `boost/coroutine2` implementation
 or define `STIMC_THREAD_IMPL_BOOST1` and link against `boost_coroutine` for `boost/coroutine`
-implementation).
+implementation) and libco (preprocessor define `STIMC_THREAD_IMPL_LIBCO` and link against `libco`).
 
 ## Documentation
 ### Documentation
