@@ -64,6 +64,7 @@ struct stimc_thread_s {
     void              (*func) (void *data);
     void             *data;
     vpiHandle         call_handle;
+    bool              finished;
 #ifndef STIMC_DISABLE_CLEANUP
     struct stimc_cleanup_entry *cleanup_queue;
     struct stimc_cleanup_entry *cleanup_self;
@@ -311,6 +312,7 @@ static struct stimc_thread_s *stimc_thread_create (void (*threadfunc)(void *user
     thread->func        = threadfunc;
     thread->data        = userdata;
     thread->call_handle = NULL;
+    thread->finished    = false;
 
 #ifndef STIMC_DISABLE_CLEANUP
     thread->cleanup_queue = NULL;
@@ -331,31 +333,23 @@ void stimc_register_thread_cleanup (void (*cleanfunc)(void *userdata) STIMC_CLEA
 
 static void stimc_thread_finish (struct stimc_thread_s *thread)
 {
-    struct stimc_thread_s *t = thread;
-
-    if (thread == NULL) t = stimc_current_thread;
-    assert (t);
+    assert (thread);
 
 #ifndef STIMC_DISABLE_CLEANUP
-    t->cleanup_self->cancel = true;
+    thread->cleanup_self->cancel = true;
 #endif
 
-    if (t->call_handle != NULL) {
-        vpi_remove_cb (t->call_handle);
+    if (thread->call_handle != NULL) {
+        vpi_remove_cb (thread->call_handle);
     }
 
 #ifndef STIMC_DISABLE_CLEANUP
-    stimc_cleanup_run (&(t->cleanup_queue));
+    stimc_cleanup_run (&(thread->cleanup_queue));
 #endif
 
-    if (thread == NULL) {
-        free (t);
-        stimc_thread_impl_exit ();
-    } else {
-        stimc_thread_impl ti = t->thread;
-        free (t);
-        stimc_thread_impl_delete (ti);
-    }
+    stimc_thread_impl ti = thread->thread;
+    free (thread);
+    stimc_thread_impl_delete (ti);
 }
 
 static PLI_INT32 stimc_thread_callback_wrapper (struct t_cb_data *cb_data)
@@ -382,7 +376,8 @@ static void stimc_thread_wrap (void *userdata)
 
     thread->func (thread->data);
 
-    stimc_thread_finish (NULL);
+    thread->finished = true;
+    stimc_suspend ();
 }
 
 void stimc_register_startup_thread (void (*threadfunc)(void *userdata), void *userdata)
@@ -419,6 +414,10 @@ static inline void stimc_run (struct stimc_thread_s *thread)
     stimc_thread_fence ();
     stimc_thread_impl_run (thread->thread);
     stimc_thread_fence ();
+
+    if (thread->finished) {
+        stimc_thread_finish (thread);
+    }
 }
 
 static inline void stimc_suspend (void)
@@ -688,8 +687,9 @@ void stimc_finish (void)
     if (stimc_current_thread == NULL) {
         vpi_control (vpiFinish, 0);
     } else {
-        stimc_finish_pending = true;
-        stimc_thread_finish (NULL);
+        stimc_finish_pending           = true;
+        stimc_current_thread->finished = true;
+        stimc_suspend ();
     }
 }
 

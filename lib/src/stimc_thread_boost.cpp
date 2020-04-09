@@ -50,7 +50,6 @@ typedef boost::coroutines2::coroutine<void> coro_t;
 struct stimc_thread_impl_s {
     coro_t::pull_type *main;
     coro_t::push_type *thread;
-    bool               exit;
     void               (*func) (void *data);
     void              *data;
 };
@@ -69,8 +68,6 @@ static void stimc_thread_impl_boost_wrap (coro_t::pull_type &main)
     main ();
 
     global_thread_current->func (global_thread_current->data);
-
-    global_thread_current->exit = true;
 }
 
 #ifdef STIMC_THREAD_IMPL_BOOST2
@@ -85,7 +82,6 @@ extern "C" stimc_thread_impl stimc_thread_impl_create (void (*func)(void *), voi
     thread_data->thread = nullptr;
     thread_data->func   = func;
     thread_data->data   = data;
-    thread_data->exit   = false;
 
     coro_t::push_type *thread = new coro_t::push_type (
         stimc_thread_impl_boost_wrap
@@ -127,26 +123,12 @@ extern "C" void stimc_thread_impl_run (stimc_thread_impl t)
     thread ();
 
     global_thread_current = nullptr;
-
-    if (t->exit) {
-        stimc_thread_impl_delete (t);
-    }
 }
 
 extern "C" void stimc_thread_impl_suspend (void)
 {
     assert (global_thread_current != nullptr);
 
-    coro_t::pull_type &main = *(global_thread_current->main);
-
-    main ();
-}
-
-extern "C" void stimc_thread_impl_exit (void)
-{
-    assert (global_thread_current != nullptr);
-
-    global_thread_current->exit = true;
     coro_t::pull_type &main = *(global_thread_current->main);
 
     main ();

@@ -34,7 +34,6 @@
 struct stimc_thread_impl_s {
     cothread_t main;
     cothread_t thread;
-    bool       exit;
     void       (*func) (void *data);
     void      *data;
 };
@@ -50,8 +49,6 @@ static void stimc_thread_impl_libco_wrap (void)
 
     global_thread_current->func (global_thread_current->data);
 
-    global_thread_current->exit = true;
-
     co_switch (global_thread_current->main);
 }
 
@@ -63,7 +60,6 @@ stimc_thread_impl stimc_thread_impl_create (void (*func)(void *), void *data, si
     thread_data->thread = co_create (stacksize, stimc_thread_impl_libco_wrap);
     thread_data->func   = func;
     thread_data->data   = data;
-    thread_data->exit   = false;
 
     assert (thread_data->thread);
 
@@ -87,10 +83,6 @@ void stimc_thread_impl_run (stimc_thread_impl t)
     co_switch (t->thread);
 
     global_thread_current = NULL;
-
-    if (t->exit) {
-        stimc_thread_impl_delete (t);
-    }
 }
 
 void stimc_thread_impl_suspend (void)
@@ -103,8 +95,6 @@ void stimc_thread_impl_suspend (void)
 void stimc_thread_impl_exit (void)
 {
     assert (global_thread_current);
-
-    global_thread_current->exit = true;
 
     co_switch (global_thread_current->main);
 }

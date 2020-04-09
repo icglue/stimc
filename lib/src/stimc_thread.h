@@ -86,11 +86,6 @@ static inline void stimc_thread_impl_suspend (void)
     co_resume ();
 }
 
-static inline void stimc_thread_impl_exit (void)
-{
-    co_exit ();
-}
-
 static inline void stimc_thread_impl_delete (stimc_thread_impl t)
 {
     co_delete (t);
@@ -105,7 +100,6 @@ typedef void *stimc_thread_impl;
 stimc_thread_impl stimc_thread_impl_create (void (*func)(void *), void *data, size_t stacksize);
 void              stimc_thread_impl_run (stimc_thread_impl t);
 void              stimc_thread_impl_suspend (void);
-void              stimc_thread_impl_exit (void);
 void              stimc_thread_impl_delete (stimc_thread_impl t);
 #endif
 
