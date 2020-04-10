@@ -119,11 +119,6 @@ void              stimc_thread_impl_delete (stimc_thread_impl t);
 /*******************************************************************************/
 #ifdef STIMC_THREAD_IMPL_PCL
 #include <pcl.h>
-#include <assert.h>
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 typedef coroutine_t stimc_thread_impl;
 
@@ -149,10 +144,6 @@ static inline void stimc_thread_impl_delete (stimc_thread_impl t)
 {
     co_delete (t);
 }
-
-#ifdef __cplusplus
-}
-#endif
 #endif
 
 
@@ -161,18 +152,12 @@ static inline void stimc_thread_impl_delete (stimc_thread_impl t)
 /*******************************************************************************/
 #ifdef STIMC_THREAD_IMPL_LIBCO
 #include <libco.h>
-#include <stdlib.h>
-#include <assert.h>
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 typedef cothread_t stimc_thread_impl;
 
 static stimc_thread_impl stimc_thread_impl_main = NULL;
 
-stimc_thread_impl stimc_thread_impl_create (void (*func)(void), size_t stacksize)
+static inline stimc_thread_impl stimc_thread_impl_create (void (*func)(void), size_t stacksize)
 {
     cothread_t t = co_create (stacksize, func);
 
@@ -180,9 +165,10 @@ stimc_thread_impl stimc_thread_impl_create (void (*func)(void), size_t stacksize
     return t;
 }
 
-void stimc_thread_impl_run (stimc_thread_impl t)
+static inline void stimc_thread_impl_run (stimc_thread_impl t)
 {
-    cothread_t prev        = stimc_thread_impl_main;
+    cothread_t prev = stimc_thread_impl_main;
+
     stimc_thread_impl_main = co_active ();
 
     co_switch (t);
@@ -190,21 +176,17 @@ void stimc_thread_impl_run (stimc_thread_impl t)
     stimc_thread_impl_main = prev;
 }
 
-void stimc_thread_impl_suspend (void)
+static inline void stimc_thread_impl_suspend (void)
 {
     assert (stimc_thread_impl_main);
 
     co_switch (stimc_thread_impl_main);
 }
 
-void stimc_thread_impl_delete (stimc_thread_impl t)
+static inline void stimc_thread_impl_delete (stimc_thread_impl t)
 {
     co_delete (t);
 }
-
-#ifdef __cplusplus
-}
-#endif
 #endif
 
 
