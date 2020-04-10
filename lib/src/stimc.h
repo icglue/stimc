@@ -25,6 +25,9 @@
 #ifndef __STIMC_H__
 #define __STIMC_H__
 
+#if !defined(DISABLE_STIMC_SYS_WAIT_H)
+#   define _SYS_WAIT_H 1
+#endif
 
 #include <vpi_user.h>
 #include <stdlib.h>
@@ -672,6 +675,10 @@ void stimc_parameter_free (stimc_parameter p);
 
 #define STIMC_EXPORT(module) \
     _stimc_module_ ## module ## _register,
+
+typedef void (*stimc_module_register_func_t) (void);
+
+void stimc_register_module (stimc_module_register_func_t stimc_module_register_func);
 
 #ifdef __cplusplus
 }

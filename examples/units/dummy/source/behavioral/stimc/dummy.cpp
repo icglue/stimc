@@ -38,5 +38,9 @@ void dummy::dinchange ()
 void __attribute__((weak)) dummy::testcontrol ()
 {}
 
+#ifndef NO_STIMCXX_EXPORT
+STIMCXX_EXPORT (dummy)
+#else
 STIMCXX_INIT (dummy)
+#endif
 

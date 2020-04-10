@@ -25,6 +25,15 @@ STIMC_DIRS     = \
     ${ICPRO_DIR}/units/dummy/source/behavioral/stimc \
 
 STIMC_SOURCES   = $(wildcard $(addsuffix /*.c, $(STIMC_DIRS)) $(addsuffix /*.cpp, $(STIMC_DIRS)))
+
+CPPFLAGS = $(addprefix -I,$(STIMC_DIRS))
+
+NO_STIMCXX_EXPORT ?= 0
+
+ifeq ($(NO_STIMCXX_EXPORT),1)
+  CPPFLAGS += -DNO_STIMCXX_EXPORT
+  STIMC_DIRS += ${ICPRO_DIR}/resources/stimc/lib/addons
+endif
 # icglue keep end
 
 # icglue keep begin compdeps

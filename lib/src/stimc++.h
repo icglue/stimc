@@ -27,7 +27,6 @@
 
 #include <stimc.h>
 
-
 /**
  * @brief stimc++ namespace.
  */
@@ -888,5 +887,12 @@ namespace stimcxx {
     } \
     }
 
+#define STIMCXX_EXPORT(module) \
+    STIMCXX_INIT (module) \
+    void _stimc_export_module_ ## module (void) \
+    { \
+        stimc_register_module (&_stimc_module_ ## module ## _register); \
+    } \
+    void (*_stimc_do_export_module_ ## module)(void) __attribute__((__used__, section (".init_array"))) = _stimc_export_module_ ## module;
 #endif
 

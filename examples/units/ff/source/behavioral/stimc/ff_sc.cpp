@@ -35,5 +35,9 @@ void ff_sc::clock ()
 void ff_sc::reset_release ()
 {}
 
-STIMCXX_INIT (ff_sc)
+#if !defined NO_STIMCXX_EXPORT
+    STIMCXX_EXPORT (ff_sc)
+#else
+    STIMCXX_INIT (ff_sc)
+#endif
 
