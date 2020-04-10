@@ -119,11 +119,15 @@ void stimc_register_change_method (void (*methodfunc)(void *userdata), void *use
  * @brief Register a function to be started as thread on simulation start.
  * @param threadfunc Callback function accepting a single pointer as argument.
  * @param userdata Data argument to be handed to threadfunc on call.
+ * @param stacksize Size of the thread's stack. Can be 0 (will use a default size then).
  *
  * The callback function will be started as a stimc thread at simulation start.
  * As separate thread it can be suspended and resumed via the different wait functions.
+ *
+ * The stacksize must be large enough for the callstack of the created thread.
+ * Not all thread backends will use this stacksize, some support growing stacks.
  */
-void stimc_register_startup_thread (void (*threadfunc)(void *userdata), void *userdata);
+void stimc_register_startup_thread (void (*threadfunc)(void *userdata), void *userdata, size_t stacksize);
 
 /**
  * @brief Register a function to be called when the current thread is terminated.

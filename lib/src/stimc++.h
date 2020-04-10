@@ -794,13 +794,14 @@ namespace stimcxx {
     port (*this, #port)
 
 /**
- * @brief Convenience wrapper for registering a method as startup thread.
+ * @brief Convenience wrapper for registering a method as startup thread with specified stacksize.
  * @param thread The method to register.
+ * @param stacksize The size of the thread's stack.
  *
  * Wraps @ref stimc_register_startup_thread for registering
  * a method with no parameters as startup thread.
  */
-#define STIMCXX_REGISTER_STARTUP_THREAD(thread) \
+#define STIMCXX_REGISTER_STARTUP_THREAD_STACKSIZE(thread, stacksize) \
     typedef decltype (this) _thisptype; \
     class _stimcxx_thread_init_ ## thread { \
         public: \
@@ -809,7 +810,17 @@ namespace stimcxx {
                 m->thread (); \
             } \
     }; \
-    stimc_register_startup_thread (_stimcxx_thread_init_ ## thread::callback, (void *)this)
+    stimc_register_startup_thread (_stimcxx_thread_init_ ## thread::callback, (void *)this, stacksize)
+
+/**
+ * @brief Convenience wrapper for registering a method as startup thread.
+ * @param thread The method to register.
+ *
+ * Wraps @ref stimc_register_startup_thread for registering
+ * a method with no parameters as startup thread.
+ */
+#define STIMCXX_REGISTER_STARTUP_THREAD(thread) \
+    STIMCXX_REGISTER_STARTUP_THREAD_STACKSIZE (thread, 0)
 
 /**
  * @brief Convenience wrapper for registering a method as event method.

@@ -32,9 +32,9 @@
 
 #include <assert.h>
 
-#ifndef STIMC_THREAD_STACK_SIZE
+#ifndef STIMC_THREAD_STACK_SIZE_DEFAULT
 /* default stack size */
-#define STIMC_THREAD_STACK_SIZE 65536
+#define STIMC_THREAD_STACK_SIZE_DEFAULT 65536
 #endif
 
 #ifndef STIMC_VALVECTOR_MAX_STATIC
@@ -84,7 +84,7 @@ struct stimc_event_s {
 #endif
 };
 
-static struct stimc_thread_s *stimc_thread_create (void (*threadfunc)(void *userdata), void *userdata);
+static struct stimc_thread_s *stimc_thread_create (void (*threadfunc)(void *userdata), void *userdata, size_t stacksize);
 static void                   stimc_thread_finish (struct stimc_thread_s *thread);
 
 static inline void stimc_thread_queue_init (struct stimc_thread_queue_s *q);
@@ -300,13 +300,14 @@ void stimc_register_change_method  (void (*methodfunc)(void *userdata), void *us
     stimc_register_valuechange_method (methodfunc, userdata, net, 0);
 }
 
-static struct stimc_thread_s *stimc_thread_create (void (*threadfunc)(void *userdata), void *userdata)
+static struct stimc_thread_s *stimc_thread_create (void (*threadfunc)(void *userdata), void *userdata, size_t stacksize)
 {
     struct stimc_thread_s *thread = (struct stimc_thread_s *)malloc (sizeof (struct stimc_thread_s));
 
     assert (thread);
 
-    stimc_thread_impl ti = stimc_thread_impl_create (stimc_thread_wrap, STIMC_THREAD_STACK_SIZE);
+    if (stacksize == 0) stacksize = STIMC_THREAD_STACK_SIZE_DEFAULT;
+    stimc_thread_impl ti = stimc_thread_impl_create (stimc_thread_wrap, stacksize);
 
     thread->thread      = ti;
     thread->func        = threadfunc;
@@ -382,13 +383,13 @@ static void stimc_thread_wrap (STIMC_THREAD_ARG_DEF)
     stimc_suspend ();
 }
 
-void stimc_register_startup_thread (void (*threadfunc)(void *userdata), void *userdata)
+void stimc_register_startup_thread (void (*threadfunc)(void *userdata), void *userdata, size_t stacksize)
 {
     s_cb_data   data;
     s_vpi_time  data_time;
     s_vpi_value data_value;
 
-    struct stimc_thread_s *thread = stimc_thread_create (threadfunc, userdata);
+    struct stimc_thread_s *thread = stimc_thread_create (threadfunc, userdata, stacksize);
 
     assert (thread);
 
