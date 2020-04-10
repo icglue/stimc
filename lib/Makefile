@@ -10,7 +10,10 @@ default:
 
 uncrustify:
 	@for f in $$(find . -type f -regex '.*\.\([ch]\(pp\)?\|inl\)') ; do \
-		uncrustify -c .uncrustify.cfg --replace --no-backup $$f ; \
+		uncrustify -l CPP -c .uncrustify.cfg --replace --no-backup $$f ; \
+	done
+	@for f in $$(find . -type f -regex '.*\.c') ; do \
+		uncrustify -l C -c .uncrustify.cfg --replace --no-backup $$f ; \
 	done
 
 
