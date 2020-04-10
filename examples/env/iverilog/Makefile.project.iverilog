@@ -63,7 +63,20 @@ ARCHFLAGS       ?= -mtune=native -march=native
 CFLAGS          ?= -std=gnu99 -fpic -Wstrict-prototypes
 CXXFLAGS        ?= -std=c++11 -fpic
 CPPFLAGS        ?= $(addprefix -I,$(STIMC_DIRS))
-LDFLAGS         ?= -lpcl
+
+# default
+LDFLAGS         += -lpcl
+# variants
+#CPPFLAGS        += -D STIMC_THREAD_IMPL_PCL
+#LDFLAGS         += -lpcl
+#CPPFLAGS        += -D STIMC_THREAD_IMPL_LIBCO
+#LDFLAGS         += -lco
+#CPPFLAGS        += -D STIMC_THREAD_IMPL_BOOST
+#LDFLAGS         += -lboost_context
+#CPPFLAGS        += -D STIMC_THREAD_IMPL_BOOST2
+#LDFLAGS         += -lboost_context
+#CPPFLAGS        += -D STIMC_THREAD_IMPL_BOOST1
+#LDFLAGS         += -lboost_coroutine
 
 ifneq ($(strip $(STIMC_MODULES)),)
   VPI_CPPFLAGS  = $(shell iverilog-vpi --cflags | egrep -o -- '-I\s*\S*')

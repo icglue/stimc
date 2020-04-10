@@ -52,7 +52,7 @@
 /******************************************************************************************************/
 
 #define __STIMC_INTERNAL_HEADER__
-#include "stimc_thread.h"
+#include "stimc_thread.inl"
 
 /* modules and co */
 static const char *stimc_get_caller_scope (void);
@@ -109,7 +109,7 @@ static PLI_INT32   stimc_negedge_method_callback_wrapper (struct t_cb_data *cb_d
 static PLI_INT32   stimc_change_method_callback_wrapper (struct t_cb_data *cb_data);
 static void        stimc_register_valuechange_method (void (*methodfunc)(void *userdata), void *userdata, stimc_net net, int edge);
 static PLI_INT32   stimc_thread_callback_wrapper (struct t_cb_data *cb_data);
-static void        stimc_thread_wrap (void *userdata);
+static void        stimc_thread_wrap (STIMC_THREAD_ARG_DECL);
 
 /* thread helper function */
 static inline void stimc_run (struct stimc_thread_s *thread);
@@ -306,7 +306,7 @@ static struct stimc_thread_s *stimc_thread_create (void (*threadfunc)(void *user
 
     assert (thread);
 
-    stimc_thread_impl ti = stimc_thread_impl_create (stimc_thread_wrap, thread, STIMC_THREAD_STACK_SIZE);
+    stimc_thread_impl ti = stimc_thread_impl_create (stimc_thread_wrap, STIMC_THREAD_STACK_SIZE);
 
     thread->thread      = ti;
     thread->func        = threadfunc;
@@ -370,9 +370,11 @@ static PLI_INT32 stimc_thread_callback_wrapper (struct t_cb_data *cb_data)
     return 0;
 }
 
-static void stimc_thread_wrap (void *userdata)
+static void stimc_thread_wrap (STIMC_THREAD_ARG_DEF)
 {
-    struct stimc_thread_s *thread = (struct stimc_thread_s *)userdata;
+    struct stimc_thread_s *thread = stimc_current_thread;
+
+    assert (thread);
 
     thread->func (thread->data);
 
@@ -411,9 +413,13 @@ void stimc_register_startup_thread (void (*threadfunc)(void *userdata), void *us
 
 static inline void stimc_run (struct stimc_thread_s *thread)
 {
+    stimc_current_thread = thread;
+
     stimc_thread_fence ();
     stimc_thread_impl_run (thread->thread);
     stimc_thread_fence ();
+
+    stimc_current_thread = NULL;
 
     if (thread->finished) {
         stimc_thread_finish (thread);
@@ -617,7 +623,6 @@ static void stimc_main_queue_run_threads ()
 
         for (size_t i = 0; stimc_main_queue_shadow.threads[i] != NULL; i++) {
             struct stimc_thread_s *thread = stimc_main_queue_shadow.threads[i];
-            stimc_current_thread = thread;
 
             stimc_run (thread);
 
@@ -627,8 +632,6 @@ static void stimc_main_queue_run_threads ()
                 break;
             }
         }
-
-        stimc_current_thread = NULL;
 
         stimc_thread_queue_clear (&stimc_main_queue_shadow);
     }

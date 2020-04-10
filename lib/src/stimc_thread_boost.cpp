@@ -22,12 +22,13 @@
  * @brief stimc thread boost implementation.
  */
 
-/* only compile if boost implementation selectod */
-
 #ifdef STIMC_THREAD_IMPL_BOOST
 #define STIMC_THREAD_IMPL_BOOST2
 #endif
 
+/*******************************************************************************/
+/* Boost version specific includes/typedefs */
+/*******************************************************************************/
 #ifdef STIMC_THREAD_IMPL_BOOST1
 #define STIMC_THREAD_IMPL_BOOST_ANY
 
@@ -35,7 +36,7 @@
 #include <boost/coroutine/asymmetric_coroutine.hpp>
 #include <assert.h>
 
-typedef boost::coroutines::coroutine<void> coro_t;
+typedef boost::coroutines::coroutine<void (*)(void)> coro_t;
 #endif
 
 #ifdef STIMC_THREAD_IMPL_BOOST2
@@ -43,47 +44,51 @@ typedef boost::coroutines::coroutine<void> coro_t;
 
 #include <boost/coroutine2/coroutine.hpp>
 
-typedef boost::coroutines2::coroutine<void> coro_t;
+typedef boost::coroutines2::coroutine<void (*)(void)> coro_t;
 #endif
 
+/*******************************************************************************/
+/* only compile something, if any boost version selected */
+/*******************************************************************************/
 #ifdef STIMC_THREAD_IMPL_BOOST_ANY
 struct stimc_thread_impl_s {
-    coro_t::pull_type *main;
     coro_t::push_type *thread;
-    void               (*func) (void *data);
-    void              *data;
+    coro_t::pull_type *main;
 };
 
-typedef struct stimc_thread_impl_s *stimc_thread_impl;
+typedef stimc_thread_impl_s *stimc_thread_impl;
 
-static stimc_thread_impl global_thread_current = nullptr;
+static stimc_thread_impl stimc_thread_impl_current = nullptr;
 
 
 static void stimc_thread_impl_boost_wrap (coro_t::pull_type &main)
 {
-    assert (global_thread_current);
+    assert (stimc_thread_impl_current);
 
-    global_thread_current->main = &main;
+    stimc_thread_impl_current->main = &main;
+    void (*func) (void)             = main.get ();
+
+    assert (func);
 
     main ();
 
-    global_thread_current->func (global_thread_current->data);
+    func ();
 }
 
 #ifdef STIMC_THREAD_IMPL_BOOST2
-extern "C" stimc_thread_impl stimc_thread_impl_create (void (*func)(void *), void *data, size_t stacksize __attribute__((unused)))
+#define STIMC_THREAD_IMPL_STACKSIZE_ATTR __attribute__((unused))
 #else
-extern "C" stimc_thread_impl stimc_thread_impl_create (void (*func)(void *), void *data, size_t stacksize)
+#define STIMC_THREAD_IMPL_STACKSIZE_ATTR
 #endif
+
+extern "C" stimc_thread_impl stimc_thread_impl_create (void (*func)(void), size_t stacksize STIMC_THREAD_IMPL_STACKSIZE_ATTR)
 {
-    struct stimc_thread_impl_s *thread_data = new struct stimc_thread_impl_s;
+    struct stimc_thread_impl_s *t = new struct stimc_thread_impl_s;
 
-    thread_data->main   = nullptr;
-    thread_data->thread = nullptr;
-    thread_data->func   = func;
-    thread_data->data   = data;
+    t->main   = nullptr;
+    t->thread = nullptr;
 
-    coro_t::push_type *thread = new coro_t::push_type (
+    coro_t::push_type *co = new coro_t::push_type (
         stimc_thread_impl_boost_wrap
 #ifdef STIMC_THREAD_IMPL_BOOST1
         ,
@@ -91,48 +96,46 @@ extern "C" stimc_thread_impl stimc_thread_impl_create (void (*func)(void *), voi
 #endif
         );
 
-    thread_data->thread = thread;
+    assert (co);
+    t->thread = co;
 
-    assert (global_thread_current == nullptr);
+    stimc_thread_impl prev = stimc_thread_impl_current;
 
-    global_thread_current = thread_data;
+    stimc_thread_impl_current = t;
+    coro_t::push_type &thread = *co;
 
-    (*thread)();
+    thread (func);
 
-    global_thread_current = nullptr;
+    stimc_thread_impl_current = prev;
 
-    return thread_data;
-}
-
-extern "C" void stimc_thread_impl_delete (stimc_thread_impl t)
-{
-    assert (global_thread_current == nullptr);
-
-    delete t->thread;
-    delete t;
+    return t;
 }
 
 extern "C" void stimc_thread_impl_run (stimc_thread_impl t)
 {
-    assert (global_thread_current == nullptr);
+    stimc_thread_impl prev = stimc_thread_impl_current;
 
-    global_thread_current = t;
-
+    stimc_thread_impl_current = t;
     coro_t::push_type &thread = *(t->thread);
 
-    thread ();
+    thread (nullptr);
 
-    global_thread_current = nullptr;
+    stimc_thread_impl_current = prev;
 }
 
 extern "C" void stimc_thread_impl_suspend (void)
 {
-    assert (global_thread_current != nullptr);
+    assert (stimc_thread_impl_current);
 
-    coro_t::pull_type &main = *(global_thread_current->main);
+    coro_t::pull_type &main = *(stimc_thread_impl_current->main);
 
     main ();
 }
 
+extern "C" void stimc_thread_impl_delete (stimc_thread_impl t)
+{
+    delete t->thread;
+    delete t;
+}
 #endif
 
