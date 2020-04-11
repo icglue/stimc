@@ -119,11 +119,14 @@ void              stimc_thread_impl_delete (stimc_thread_impl t);
 /*******************************************************************************/
 #ifdef STIMC_THREAD_IMPL_PCL
 #include <pcl.h>
+#include <limits.h>
 
 typedef coroutine_t stimc_thread_impl;
 
 static inline stimc_thread_impl stimc_thread_impl_create (void (*func)(STIMC_THREAD_ARG_DECL), size_t stacksize)
 {
+    if (stacksize > (size_t)INT_MAX) stacksize = INT_MAX;
+
     coroutine_t t = co_create (func, NULL, NULL, stacksize);
 
     assert (t);
@@ -152,6 +155,7 @@ static inline void stimc_thread_impl_delete (stimc_thread_impl t)
 /*******************************************************************************/
 #ifdef STIMC_THREAD_IMPL_LIBCO
 #include <libco.h>
+#include <limits.h>
 
 typedef cothread_t stimc_thread_impl;
 
@@ -159,6 +163,8 @@ static stimc_thread_impl stimc_thread_impl_main = NULL;
 
 static inline stimc_thread_impl stimc_thread_impl_create (void (*func)(void), size_t stacksize)
 {
+    if (stacksize > (size_t)UINT_MAX) stacksize = UINT_MAX;
+
     cothread_t t = co_create (stacksize, func);
 
     assert (t);
