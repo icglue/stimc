@@ -1,3 +1,11 @@
 # TODOs
 - provide makefile with system-wide installation?
-
+- extend wait functionality similar to systemc?
+  - combination:
+    - combine waiting (on event) with timeout
+    - combine events (and, or)
+  - implementation:
+    - make it possible to register events to wait for events?
+    - event-combiner?
+      - can register at multiple events + timeout callbacks
+      - removes unused callbacks?
