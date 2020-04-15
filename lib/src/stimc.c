@@ -647,7 +647,7 @@ stimc_event stimc_event_create (void)
     stimc_thread_queue_init (&event->queue);
 
 #ifndef STIMC_DISABLE_CLEANUP
-    event->cleanup_self = stimc_cleanup_add (stimc_cleanup_event, event);
+    event->cleanup_self = NULL;
 #endif
 
     return event;
@@ -658,7 +658,9 @@ void stimc_event_free (stimc_event event)
     stimc_thread_queue_free (&event->queue);
 
 #ifndef STIMC_DISABLE_CLEANUP
-    event->cleanup_self->cancel = true;
+    if (event->cleanup_self != NULL) {
+        event->cleanup_self->cancel = true;
+    }
 #endif
 
     free (event);
@@ -670,6 +672,12 @@ void stimc_wait_event (stimc_event event)
     struct stimc_thread_s *thread = stimc_current_thread;
 
     assert (thread);
+
+#ifndef STIMC_DISABLE_CLEANUP
+    if (event->cleanup_self == NULL) {
+        event->cleanup_self = stimc_cleanup_add (stimc_cleanup_event, event);
+    }
+#endif
 
     stimc_thread_queue_enqueue (&event->queue, thread);
 
@@ -1403,6 +1411,7 @@ static void stimc_cleanup_event (void *userdata)
     struct stimc_event_s *event = (struct stimc_event_s *)userdata;
 
     stimc_thread_queue_free (&event->queue);
+    event->cleanup_self = NULL;
 }
 #endif
 
