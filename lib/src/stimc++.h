@@ -39,7 +39,11 @@ namespace stimcxx {
             stimc_event _event; /**< @brief The actual @ref stimc_event. */
         public:
             event ();
-            virtual ~event ();
+
+            event            (const event &e) = delete; /**< @brief Do not copy/change internals */
+            event& operator= (const event &e) = delete; /**< @brief Do not copy/change internals */
+
+            ~event ();
 
             /**
              * @brief Wait for event to be triggered.
@@ -140,6 +144,10 @@ namespace stimcxx {
 
         public:
             module ();
+
+            module            (const module &m) = delete; /**< @brief Do not copy/change internals */
+            module& operator= (const module &m) = delete; /**< @brief Do not copy/change internals */
+
             virtual ~module ();
 
             /**
