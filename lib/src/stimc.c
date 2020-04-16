@@ -565,6 +565,7 @@ static void stimc_thread_queue_prepare (struct stimc_thread_queue_s *q, size_t m
     }
     while (min_len > q->threads_len) {
         q->threads_len *= 2;
+        assert (q->threads_len != 0);
     }
 
     q->threads = (struct stimc_thread_s **)realloc (q->threads, sizeof (struct stimc_thread_s *) * (q->threads_len));
