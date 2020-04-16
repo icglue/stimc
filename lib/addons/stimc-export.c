@@ -26,7 +26,7 @@
  * STIMC_EXPORT (modulename)
  */
 
-typedef void (*stimc_module_register_func_t) (void);
+typedef void (*stimc_vpi_init_register_func_t) (void);
 
 /* declaration */
 #define STIMC_EXPORT(module) \
@@ -39,15 +39,13 @@ typedef void (*stimc_module_register_func_t) (void);
     _stimc_module_ ## module ## _register,
 
 /* indirected vlog startup vec */
-static stimc_module_register_func_t stimc_module_register_list[] = {
+static stimc_vpi_init_register_func_t stimc_module_init_list[] = {
 #   include "stimc-export.inl"
     0,
 };
 
-stimc_module_register_func_t *get_stimc_module_register_list (void);
-
-stimc_module_register_func_t *get_stimc_module_register_list (void)
+stimc_vpi_init_register_func_t *stimc_module_register_list (void)
 {
-    return stimc_module_register_list;
+    return stimc_module_init_list;
 }
 

@@ -673,12 +673,25 @@ void stimc_parameter_free (stimc_parameter p);
 \
     static void _stimc_module_ ## module ## _init (void)
 
+typedef void (*stimc_vpi_init_register_func_t) (void);
+
+struct stimc_vpi_init_register_s {
+    stimc_vpi_init_register_func_t    func;
+    struct stimc_vpi_init_register_s *next;
+};
+
+void stimc_vpi_init_register (struct stimc_vpi_init_register_s *entry);
+
 #define STIMC_EXPORT(module) \
-    _stimc_module_ ## module ## _register,
-
-typedef void (*stimc_module_register_func_t) (void);
-
-void stimc_register_module (stimc_module_register_func_t stimc_module_register_func);
+    STIMC_INIT (module) \
+    \
+    static stimc_vpi_init_register_s _stimc_module_ ## module ## _vpi_init_s_ = {_stimc_module_ ## module ## _register, NULL}; \
+    \
+    static void _stimc_module_ ## module ## _vpi_init_f_ (void) \
+    { \
+        stimc_vpi_init_register (&_stimc_module_ ## module ## _vpi_init_s_); \
+    } \
+    static stimc_vpi_init_register_func_t _stimc_module_ ## module ## _do_export_ __attribute__((__used__, section (".init_array"))) = _stimc_module_ ## module ## _vpi_init_f_;
 
 #ifdef __cplusplus
 }
