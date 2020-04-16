@@ -856,13 +856,11 @@ namespace stimcxx {
  * Use to define the initialization code for a stimc++ module via
  * \code{.cpp}
  * STIMCXX_INIT (modulename)
- * {
- *     // body
- * }
  * \endcode
  *
  * stimc++ pendant of @ref STIMC_INIT. @c modulename must be
  * the name of the child class of @ref stimcxx::module.
+ * will be indirectly used by @ref STIMCXX_EXPORT.
  */
 #define STIMCXX_INIT(module) \
     static int _stimcxx_module_ ## module ## _init_cptf (PLI_BYTE8 * user_data __attribute__((unused))) \
@@ -895,6 +893,13 @@ namespace stimcxx {
     } \
     }
 
+/**
+ * @brief stimc++ module initialization routine export macro.
+ *
+ * Used to define the initialization code for a stimc++ module via
+ * @ref STIMCXX_INIT and register the necessary functions for loading
+ * with the vpi library.
+ */
 #define STIMCXX_EXPORT(module) \
     STIMCXX_INIT (module) \
     \

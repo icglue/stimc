@@ -641,6 +641,7 @@ void stimc_parameter_free (stimc_parameter p);
  *     // body
  * }
  * \endcode
+ * will be indirectly used by @ref STIMC_EXPORT.
  */
 #define STIMC_INIT(module) \
     static void _stimc_module_ ## module ## _init (void); \
@@ -682,6 +683,13 @@ struct stimc_vpi_init_register_s {
 
 void stimc_vpi_init_register (struct stimc_vpi_init_register_s *entry);
 
+/**
+ * @brief stimc module initialization routine export macro.
+ *
+ * Used to define the initialization code for a stimc module via
+ * @ref STIMC_INIT and register the necessary functions for loading
+ * with the vpi library.
+ */
 #define STIMC_EXPORT(module) \
     STIMC_INIT (module) \
     \

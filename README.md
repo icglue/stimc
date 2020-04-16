@@ -116,13 +116,8 @@ be called and a stimc thread will be created and run at simulation start calling
 
 #### Initialization
 To provide the Verilog initializer system task and functionality
-the preprocessor define `STIMCXX_INIT (<module-name>)` (without semi colon)
+the preprocessor define `STIMCXX_EXPORT (<module-name>)` (without semi colon)
 should be put at some place in the code.
-
-Additionally for compiling the vpi library an inline include file named
-`stimc-export.inl` should be provided with lines consisting of calls
-to the define `STIMC_EXPORT (<module-name>)` for every module that will
-be compiled within the library.
 
 This will provide the system tasks for all modules on loading the vpi library.
 
