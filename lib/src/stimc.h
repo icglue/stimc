@@ -25,12 +25,8 @@
 #ifndef __STIMC_H__
 #define __STIMC_H__
 
-#if !defined(DISABLE_STIMC_SYS_WAIT_H)
-#   define _SYS_WAIT_H 1
-#endif
-
 #include <vpi_user.h>
-#include <stdlib.h>
+#include <stddef.h>
 #include <stdint.h>
 #include <stdbool.h>
 
