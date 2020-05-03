@@ -495,7 +495,7 @@ void stimc_wait_time_seconds (double time)
 
     time *= pow (10, -timeunit);
     uint64_t ltime = time;
-    stimc_wait_time (ltime, timeunit_raw);
+    stimc_wait_time_int_exp (ltime, timeunit_raw);
 }
 
 uint64_t stimc_time (enum stimc_time_unit exp)
