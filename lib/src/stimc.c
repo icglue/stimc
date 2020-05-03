@@ -570,8 +570,6 @@ static void stimc_thread_queue_prepare (struct stimc_thread_queue_s *q, size_t m
 
     q->threads = (struct stimc_thread_s **)realloc (q->threads, sizeof (struct stimc_thread_s *) * (q->threads_len));
     assert (q->threads);
-
-    q->threads[q->threads_num] = NULL;
 }
 
 static void stimc_thread_queue_free (struct stimc_thread_queue_s *q)
@@ -585,31 +583,27 @@ static void stimc_thread_queue_free (struct stimc_thread_queue_s *q)
 
 static void stimc_thread_queue_enqueue (struct stimc_thread_queue_s *q, struct stimc_thread_s *thread)
 {
-    stimc_thread_queue_prepare (q, q->threads_num + 2);
+    stimc_thread_queue_prepare (q, q->threads_num + 1);
 
     /* thread data ... */
     q->threads[q->threads_num] = thread;
     q->threads_num++;
-    q->threads[q->threads_num] = NULL;
 }
 
 static void stimc_thread_queue_enqueue_all (struct stimc_thread_queue_s *q, struct stimc_thread_queue_s *source)
 {
-    stimc_thread_queue_prepare (q, q->threads_num + source->threads_num + 1);
+    stimc_thread_queue_prepare (q, q->threads_num + source->threads_num);
 
     /* thread data ... */
     for (size_t i = 0; i < source->threads_num; i++) {
         q->threads[q->threads_num] = source->threads[i];
         q->threads_num++;
     }
-
-    q->threads[q->threads_num] = NULL;
 }
 
 static void stimc_thread_queue_clear (struct stimc_thread_queue_s *q)
 {
     q->threads_num = 0;
-    q->threads[0]  = NULL;
 }
 
 static void stimc_main_queue_run_threads ()
@@ -623,7 +617,7 @@ static void stimc_main_queue_run_threads ()
         /* execute threads... */
         assert (stimc_current_thread == NULL);
 
-        for (size_t i = 0; stimc_main_queue_shadow.threads[i] != NULL; i++) {
+        for (size_t i = 0; i < stimc_main_queue_shadow.threads_num; i++) {
             struct stimc_thread_s *thread = stimc_main_queue_shadow.threads[i];
 
             stimc_run (thread);
