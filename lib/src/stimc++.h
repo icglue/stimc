@@ -56,6 +56,33 @@ namespace stimcxx {
             }
 
             /**
+             * @brief Wait for event to be triggered or specified timeout.
+             * @param time_seconds Amount of time in seconds for timeout.
+             *
+             * @return true in case of timeout.
+             *
+             * Inline wrapper for @ref stimc_wait_event_timeout_seconds.
+             */
+            bool wait (double time_seconds)
+            {
+                return stimc_wait_event_timeout_seconds (_event, time_seconds);
+            }
+
+            /**
+             * @brief Wait for event to be triggered or specified timeout.
+             * @param time Amount of time in unit specified by @c exp for timeout.
+             * @param exp Time unit (e.g. SC_US).
+             *
+             * @return true in case of timeout.
+             *
+             * Inline wrapper for @ref stimc_wait_event_timeout.
+             */
+            bool wait (uint64_t time, enum stimc_time_unit exp)
+            {
+                return stimc_wait_event_timeout (_event, time, exp);
+            }
+
+            /**
              * @brief Trigger event.
              *
              * Inline wrapper for @ref stimc_trigger_event.
@@ -712,6 +739,31 @@ namespace stimcxx {
     static inline void wait (event &e)
     {
         e.wait ();
+    }
+
+    /**
+     * @brief Inline wait wrapper.
+     * @param e Event to wait for.
+     * @param time_seconds Amount of time in seconds for timeout.
+     * @return true in case of timeout.
+     * Calls @ref event::wait.
+     */
+    static inline bool wait (event &e, double time_seconds)
+    {
+        return e.wait (time_seconds);
+    }
+
+    /**
+     * @brief Inline wait wrapper.
+     * @param e Event to wait for.
+     * @param time Amount of time in unit specified by @c exp for timeout.
+     * @param exp Time unit (e.g. SC_US).
+     * @return true in case of timeout.
+     * Calls @ref event::wait.
+     */
+    static inline bool wait (event &e, uint64_t time, enum stimc_time_unit exp)
+    {
+        return e.wait (time, exp);
     }
 
     /**

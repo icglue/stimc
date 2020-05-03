@@ -230,6 +230,25 @@ void stimc_event_free (stimc_event event);
 void stimc_wait_event (stimc_event event);
 
 /**
+ * @brief Suspend current thread until @c event is triggered or after specified timeout.
+ * @param event The event to wait on.
+ * @param time Amount of time in unit specified by @c exp for timeout.
+ * @param exp Time unit (e.g. SC_US).
+ *
+ * @return true in case of timeout.
+ */
+bool stimc_wait_event_timeout (stimc_event event, uint64_t time, enum stimc_time_unit exp);
+
+/**
+ * @brief Suspend current thread until @c event is triggered or after specified timeout.
+ * @param event The event to wait on.
+ * @param time Amount of time in seconds for timeout.
+ *
+ * @return true in case of timeout.
+ */
+bool stimc_wait_event_timeout_seconds (stimc_event event, double time);
+
+/**
  * @brief Trigger a @ref stimc_event.
  * @param event The event to trigger.
  */
