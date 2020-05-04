@@ -102,6 +102,7 @@ struct stimc_event_s {
 
 static inline void stimc_event_remove_thread (stimc_event event, size_t queue_idx);
 static inline void stimc_event_enqueue_thread (stimc_event event, struct stimc_thread_s *thread);
+static void        stimc_event_thread_queue_free (stimc_event event);
 
 /* methods / callbacks */
 struct stimc_callback_wrap {
@@ -675,9 +676,29 @@ stimc_event stimc_event_create (void)
     return event;
 }
 
+static void stimc_event_thread_queue_free (stimc_event event)
+{
+    /* remove handles */
+    for (size_t i = 0; i < event->queue.threads_num; i++) {
+        struct stimc_thread_s *thread = event->queue.threads[i];
+
+        if (thread == NULL) continue;
+
+        /* in case the thread can still be woken up by timeout,
+         * it will be a timeout */
+        if (thread->call_handle != NULL) {
+            thread->timeout = true;
+        }
+
+        thread->event_handle = NULL;
+    }
+
+    stimc_thread_queue_free (&event->queue);
+}
+
 void stimc_event_free (stimc_event event)
 {
-    stimc_thread_queue_free (&event->queue);
+    stimc_event_thread_queue_free (event);
 
 #ifndef STIMC_DISABLE_CLEANUP
     if (event->cleanup_self != NULL) {
@@ -1491,7 +1512,7 @@ static void stimc_cleanup_event (void *userdata)
 {
     struct stimc_event_s *event = (struct stimc_event_s *)userdata;
 
-    stimc_thread_queue_free (&event->queue);
+    stimc_event_thread_queue_free (event);
     event->cleanup_self = NULL;
 }
 #endif
