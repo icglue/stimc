@@ -69,8 +69,8 @@ struct stimc_thread_s {
     bool              timeout;
     bool              finished;
 #ifndef STIMC_DISABLE_CLEANUP
-    struct stimc_cleanup_entry *cleanup_queue;
-    struct stimc_cleanup_entry *cleanup_self;
+    struct stimc_cleanup_entry_s *cleanup_queue;
+    struct stimc_cleanup_entry_s *cleanup_self;
 #endif
 };
 
@@ -96,7 +96,7 @@ static void stimc_main_queue_run_threads (void);
 struct stimc_event_s {
     struct stimc_thread_queue_s queue;
 #ifndef STIMC_DISABLE_CLEANUP
-    struct stimc_cleanup_entry *cleanup_self;
+    struct stimc_cleanup_entry_s *cleanup_self;
 #endif
 };
 
@@ -163,8 +163,8 @@ static inline void stimc_net_set_bits_xz (stimc_net net, unsigned msb, unsigned 
 
 /* final cleanup */
 #ifndef STIMC_DISABLE_CLEANUP
-struct stimc_cleanup_entry {
-    struct stimc_cleanup_entry *next;
+struct stimc_cleanup_entry_s {
+    struct stimc_cleanup_entry_s *next;
 
     bool  cancel;
     void  (*cb) (void *data);
@@ -172,9 +172,9 @@ struct stimc_cleanup_entry {
 };
 
 static void                               stimc_cleanup_init (void);
-static void                               stimc_cleanup_run (struct stimc_cleanup_entry **queue);
-static struct stimc_cleanup_entry        *stimc_cleanup_add (void (*callback)(void *userdata), void *userdata);
-static inline struct stimc_cleanup_entry *stimc_cleanup_add_internal (struct stimc_cleanup_entry *queue, void (*callback)(void *userdata), void *userdata);
+static void                               stimc_cleanup_run (struct stimc_cleanup_entry_s **queue);
+static struct stimc_cleanup_entry_s        *stimc_cleanup_add (void (*callback)(void *userdata), void *userdata);
+static inline struct stimc_cleanup_entry_s *stimc_cleanup_add_internal (struct stimc_cleanup_entry_s *queue, void (*callback)(void *userdata), void *userdata);
 
 struct stimc_cleanup_data_main {
     vpiHandle cb_finish;
@@ -200,7 +200,7 @@ static struct stimc_thread_queue_s stimc_main_queue        = {0, 0, NULL};
 static struct stimc_thread_queue_s stimc_main_queue_shadow = {0, 0, NULL};
 
 #ifndef STIMC_DISABLE_CLEANUP
-static struct stimc_cleanup_entry *stimc_cleanup_queue = NULL;
+static struct stimc_cleanup_entry_s *stimc_cleanup_queue = NULL;
 #endif
 
 /******************************************************************************************************/
@@ -1423,14 +1423,14 @@ static void stimc_cleanup_init (void)
     stimc_cleanup_queue = stimc_cleanup_add_internal (stimc_cleanup_queue, stimc_cleanup_internal, c_data);
 }
 
-static void stimc_cleanup_run (struct stimc_cleanup_entry **queue)
+static void stimc_cleanup_run (struct stimc_cleanup_entry_s **queue)
 {
     assert (queue);
 
-    struct stimc_cleanup_entry *q = *queue;
+    struct stimc_cleanup_entry_s *q = *queue;
 
     /* call all cleanup callbacks */
-    for (struct stimc_cleanup_entry *e = q; e != NULL; e = e->next) {
+    for (struct stimc_cleanup_entry_s *e = q; e != NULL; e = e->next) {
         if (e->cancel) continue;
 
         e->cb (e->data);
@@ -1438,7 +1438,7 @@ static void stimc_cleanup_run (struct stimc_cleanup_entry **queue)
 
     /* clean list */
     while (q != NULL) {
-        struct stimc_cleanup_entry *e = q;
+        struct stimc_cleanup_entry_s *e = q;
         q = e->next;
         free (e);
     }
@@ -1446,7 +1446,7 @@ static void stimc_cleanup_run (struct stimc_cleanup_entry **queue)
     *queue = NULL;
 }
 
-static struct stimc_cleanup_entry *stimc_cleanup_add (void (*callback)(void *userdata), void *userdata)
+static struct stimc_cleanup_entry_s *stimc_cleanup_add (void (*callback)(void *userdata), void *userdata)
 {
     if (stimc_cleanup_queue == NULL) stimc_cleanup_init ();
 
@@ -1454,9 +1454,9 @@ static struct stimc_cleanup_entry *stimc_cleanup_add (void (*callback)(void *use
     return stimc_cleanup_queue;
 }
 
-static inline struct stimc_cleanup_entry *stimc_cleanup_add_internal (struct stimc_cleanup_entry *queue, void (*callback)(void *userdata), void *userdata)
+static inline struct stimc_cleanup_entry_s *stimc_cleanup_add_internal (struct stimc_cleanup_entry_s *queue, void (*callback)(void *userdata), void *userdata)
 {
-    struct stimc_cleanup_entry *e = (struct stimc_cleanup_entry *)malloc (sizeof (struct stimc_cleanup_entry));
+    struct stimc_cleanup_entry_s *e = (struct stimc_cleanup_entry_s *)malloc (sizeof (struct stimc_cleanup_entry_s));
 
     assert (e);
 
