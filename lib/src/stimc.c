@@ -60,14 +60,15 @@ static vpiHandle   stimc_module_handle_init (stimc_module *m, const char *name);
 
 /* threads */
 struct stimc_thread_s {
-    stimc_thread_impl thread;
-    void              (*func) (void *data);
-    void             *data;
-    vpiHandle         call_handle;
-    stimc_event       event_handle;
-    size_t            event_handle_idx;
-    bool              timeout;
-    bool              finished;
+    stimc_thread_impl            thread;
+    void                         (*func) (void *data);
+    void                        *data;
+    vpiHandle                    call_handle;
+    struct stimc_event_handle_s *event_handles;
+    size_t                       event_handles_max;
+    bool                         event_handles_any;
+    bool                         timeout;
+    bool                         finished;
 #ifndef STIMC_DISABLE_CLEANUP
     struct stimc_cleanup_entry_s *cleanup_queue;
     struct stimc_cleanup_entry_s *cleanup_self;
@@ -82,6 +83,10 @@ struct stimc_thread_queue_s {
 
 static struct stimc_thread_s *stimc_thread_create (void (*threadfunc)(void *userdata), void *userdata, size_t stacksize);
 static void                   stimc_thread_finish (struct stimc_thread_s *thread);
+
+static void        stimc_thread_add_event_handle (struct stimc_thread_s *thread, stimc_event event, size_t event_idx);
+static void        stimc_thread_remove_event_handle (struct stimc_thread_s *thread, stimc_event event);
+static inline bool stimc_thread_has_event_handle (struct stimc_thread_s *thread);
 
 static inline void stimc_thread_queue_init (struct stimc_thread_queue_s *q);
 static void        stimc_thread_queue_prepare (struct stimc_thread_queue_s *q, size_t min_len);
@@ -98,6 +103,11 @@ struct stimc_event_s {
 #ifndef STIMC_DISABLE_CLEANUP
     struct stimc_cleanup_entry_s *cleanup_self;
 #endif
+};
+
+struct stimc_event_handle_s {
+    stimc_event event;
+    size_t      idx;
 };
 
 static inline void stimc_event_remove_thread (stimc_event event, size_t queue_idx);
@@ -125,6 +135,7 @@ static inline void stimc_suspend (void);
 
 /* common wait function */
 static void stimc_wait_time_int_exp (uint64_t time, int exp);
+static void stimc_wait_events (struct stimc_thread_s *thread, stimc_event *events, bool any);
 
 /* non-blocking assignment helpers */
 enum stimc_nba_type {
@@ -171,8 +182,8 @@ struct stimc_cleanup_entry_s {
     void *data;
 };
 
-static void                               stimc_cleanup_init (void);
-static void                               stimc_cleanup_run (struct stimc_cleanup_entry_s **queue);
+static void                                 stimc_cleanup_init (void);
+static void                                 stimc_cleanup_run (struct stimc_cleanup_entry_s **queue);
 static struct stimc_cleanup_entry_s        *stimc_cleanup_add (void (*callback)(void *userdata), void *userdata);
 static inline struct stimc_cleanup_entry_s *stimc_cleanup_add_internal (struct stimc_cleanup_entry_s *queue, void (*callback)(void *userdata), void *userdata);
 
@@ -317,14 +328,18 @@ static struct stimc_thread_s *stimc_thread_create (void (*threadfunc)(void *user
     if (stacksize == 0) stacksize = STIMC_THREAD_STACK_SIZE_DEFAULT;
     stimc_thread_impl ti = stimc_thread_impl_create (stimc_thread_wrap, stacksize);
 
-    thread->thread           = ti;
-    thread->func             = threadfunc;
-    thread->data             = userdata;
-    thread->call_handle      = NULL;
-    thread->event_handle     = NULL;
-    thread->event_handle_idx = 0;
-    thread->timeout          = false;
-    thread->finished         = false;
+    thread->thread      = ti;
+    thread->func        = threadfunc;
+    thread->data        = userdata;
+    thread->call_handle = NULL;
+    thread->timeout     = false;
+    thread->finished    = false;
+
+    thread->event_handles_any = true;
+    thread->event_handles     = (struct stimc_event_handle_s *)malloc (sizeof (struct stimc_event_handle_s) * 8);
+    thread->event_handles_max = 7;
+    assert (thread->event_handles);
+    thread->event_handles[0].event = NULL;
 
 #ifndef STIMC_DISABLE_CLEANUP
     thread->cleanup_queue = NULL;
@@ -354,8 +369,9 @@ static void stimc_thread_finish (struct stimc_thread_s *thread)
     if (thread->call_handle != NULL) {
         vpi_remove_cb (thread->call_handle);
     }
-    if (thread->event_handle != NULL) {
-        stimc_event_remove_thread (thread->event_handle, thread->event_handle_idx);
+    for (struct stimc_event_handle_s *h = thread->event_handles; h->event != NULL; h++) {
+        stimc_event_remove_thread (h->event, h->idx);
+        h->event = NULL;
     }
 
 #ifndef STIMC_DISABLE_CLEANUP
@@ -363,8 +379,59 @@ static void stimc_thread_finish (struct stimc_thread_s *thread)
 #endif
 
     stimc_thread_impl ti = thread->thread;
+    free (thread->event_handles);
     free (thread);
     stimc_thread_impl_delete (ti);
+}
+
+static void stimc_thread_add_event_handle (struct stimc_thread_s *thread, stimc_event event, size_t event_idx)
+{
+    size_t idx = 0;
+
+    for (struct stimc_event_handle_s *h = thread->event_handles; h->event != NULL; h++) {
+        idx++;
+    }
+
+    if (idx >= thread->event_handles_max) {
+        size_t alloc_n = thread->event_handles_max + 1;
+        while (idx + 1 >= alloc_n) alloc_n *= 2;
+
+        thread->event_handles = (struct stimc_event_handle_s *)realloc (thread->event_handles, sizeof (struct stimc_event_handle_s) * alloc_n);
+        assert (thread->event_handles);
+        thread->event_handles_max = alloc_n - 1;
+    }
+
+    thread->event_handles[idx] = (struct stimc_event_handle_s) {
+        .event = event,
+        .idx   = event_idx
+    };
+    thread->event_handles[idx + 1].event = NULL;
+}
+
+static void stimc_thread_remove_event_handle (struct stimc_thread_s *thread, stimc_event event)
+{
+    ssize_t idx       = -1;
+    ssize_t idx_event = -1;
+
+    for (struct stimc_event_handle_s *h = thread->event_handles; h->event != NULL; h++) {
+        idx++;
+        if (h->event == event) idx_event = idx;
+    }
+    ssize_t idx_last = idx;
+
+    if (idx_event >= 0) {
+        if (idx_event == idx_last) {
+            thread->event_handles[idx_event].event = NULL;
+        } else {
+            thread->event_handles[idx_event]      = thread->event_handles[idx_last];
+            thread->event_handles[idx_last].event = NULL;
+        }
+    }
+}
+
+static inline bool stimc_thread_has_event_handle (struct stimc_thread_s *thread)
+{
+    return (thread->event_handles[0].event != NULL);
 }
 
 static PLI_INT32 stimc_thread_callback_wrapper (struct t_cb_data *cb_data)
@@ -379,11 +446,11 @@ static PLI_INT32 stimc_thread_callback_wrapper (struct t_cb_data *cb_data)
         vpi_remove_cb (thread->call_handle);
         thread->call_handle = NULL;
     }
-    if (thread->event_handle != NULL) {
+    for (struct stimc_event_handle_s *h = thread->event_handles; h->event != NULL; h++) {
+        stimc_event_remove_thread (h->event, h->idx);
+        h->event = NULL;
         /* if event handle exists, this has to be a timeout callback */
-        stimc_event_remove_thread (thread->event_handle, thread->event_handle_idx);
-        thread->event_handle = NULL;
-        thread->timeout      = true;
+        thread->timeout = true;
     }
 
     stimc_main_queue_run_threads ();
@@ -684,13 +751,14 @@ static void stimc_event_thread_queue_free (stimc_event event)
 
         if (thread == NULL) continue;
 
+        stimc_thread_remove_event_handle (thread, event);
+        if (stimc_thread_has_event_handle (thread)) continue;
+
         /* in case the thread can still be woken up by timeout,
          * it will be a timeout */
         if (thread->call_handle != NULL) {
             thread->timeout = true;
         }
-
-        thread->event_handle = NULL;
     }
 
     stimc_thread_queue_free (&event->queue);
@@ -727,8 +795,15 @@ static inline void stimc_event_enqueue_thread (stimc_event event, struct stimc_t
 
     size_t event_idx = stimc_thread_queue_enqueue (&event->queue, thread);
 
-    thread->event_handle     = event;
-    thread->event_handle_idx = event_idx;
+    stimc_thread_add_event_handle (thread, event, event_idx);
+}
+
+static void stimc_wait_events (struct stimc_thread_s *thread, stimc_event *events, bool any)
+{
+    thread->event_handles_any = any;
+    for (stimc_event *event_p = events; *event_p != NULL; event_p++) {
+        stimc_event_enqueue_thread (*event_p, thread);
+    }
 }
 
 void stimc_wait_event (stimc_event event)
@@ -743,14 +818,38 @@ void stimc_wait_event (stimc_event event)
     stimc_suspend ();
 }
 
+void stimc_wait_events_all (stimc_event *events)
+{
+    struct stimc_thread_s *thread = stimc_current_thread;
+
+    assert (thread);
+
+    stimc_wait_events (thread, events, false);
+
+    /* thread handling ... */
+    stimc_suspend ();
+}
+
+void stimc_wait_events_any (stimc_event *events)
+{
+    struct stimc_thread_s *thread = stimc_current_thread;
+
+    assert (thread);
+
+    stimc_wait_events (thread, events, true);
+
+    /* thread handling ... */
+    stimc_suspend ();
+}
+
 bool stimc_wait_event_timeout (stimc_event event, uint64_t time, enum stimc_time_unit exp)
 {
     struct stimc_thread_s *thread = stimc_current_thread;
 
     assert (thread);
 
-    stimc_event_enqueue_thread (event, thread);
     thread->timeout = false;
+    stimc_event_enqueue_thread (event, thread);
 
     stimc_wait_time (time, exp);
 
@@ -763,8 +862,64 @@ bool stimc_wait_event_timeout_seconds (stimc_event event, double time)
 
     assert (thread);
 
-    stimc_event_enqueue_thread (event, thread);
     thread->timeout = false;
+    stimc_event_enqueue_thread (event, thread);
+
+    stimc_wait_time_seconds (time);
+
+    return (thread->timeout);
+}
+
+bool stimc_wait_events_all_timeout (stimc_event *events, uint64_t time, enum stimc_time_unit exp)
+{
+    struct stimc_thread_s *thread = stimc_current_thread;
+
+    assert (thread);
+
+    thread->timeout = false;
+    stimc_wait_events (thread, events, false);
+
+    stimc_wait_time (time, exp);
+
+    return (thread->timeout);
+}
+
+bool stimc_wait_events_any_timeout (stimc_event *events, uint64_t time, enum stimc_time_unit exp)
+{
+    struct stimc_thread_s *thread = stimc_current_thread;
+
+    assert (thread);
+
+    thread->timeout = false;
+    stimc_wait_events (thread, events, true);
+
+    stimc_wait_time (time, exp);
+
+    return (thread->timeout);
+}
+
+bool stimc_wait_events_all_timeout_seconds (stimc_event *events, double time)
+{
+    struct stimc_thread_s *thread = stimc_current_thread;
+
+    assert (thread);
+
+    thread->timeout = false;
+    stimc_wait_events (thread, events, false);
+
+    stimc_wait_time_seconds (time);
+
+    return (thread->timeout);
+}
+
+bool stimc_wait_events_any_timeout_seconds (stimc_event *events, double time)
+{
+    struct stimc_thread_s *thread = stimc_current_thread;
+
+    assert (thread);
+
+    thread->timeout = false;
+    stimc_wait_events (thread, events, true);
 
     stimc_wait_time_seconds (time);
 
@@ -775,23 +930,36 @@ void stimc_trigger_event (stimc_event event)
 {
     if (event->queue.threads_num == 0) return;
 
-    /* enqueue threads... */
-    stimc_thread_queue_enqueue_all (&stimc_main_queue, &event->queue);
-
     /* disable timeouts, remove handles */
     for (size_t i = 0; i < event->queue.threads_num; i++) {
         struct stimc_thread_s *thread = event->queue.threads[i];
 
         if (thread == NULL) continue;
 
+        stimc_thread_remove_event_handle (thread, event);
+
+        /* was only one of many to wait for? -> do not trigger */
+        if ((!thread->event_handles_any) && stimc_thread_has_event_handle (thread)) {
+            event->queue.threads[i] = NULL;
+            continue;
+        }
+
+        /* triggered by this event -> remove others */
+        for (struct stimc_event_handle_s *h = thread->event_handles; h->event != NULL; h++) {
+            stimc_event_remove_thread (h->event, h->idx);
+        }
+        thread->event_handles[0].event = NULL;
+
+        /* active timeout? -> remove + result */
         if (thread->call_handle != NULL) {
             vpi_remove_cb (thread->call_handle);
             thread->call_handle = NULL;
             thread->timeout     = false;
         }
-
-        thread->event_handle = NULL;
     }
+
+    /* enqueue threads... */
+    stimc_thread_queue_enqueue_all (&stimc_main_queue, &event->queue);
 
     stimc_thread_queue_clear (&event->queue);
 }
