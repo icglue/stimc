@@ -26,11 +26,15 @@
 #define __STIMCXX_H__
 
 #include <stimc.h>
+#include <vector>
 
 /**
  * @brief stimc++ namespace.
  */
 namespace stimcxx {
+    class event_combination_all;
+    class event_combination_any;
+
     /**
      * @brief Wrapper class for @ref stimc_event and related functionality.
      */
@@ -91,7 +95,160 @@ namespace stimcxx {
             {
                 stimc_trigger_event (_event);
             }
+
+            /* TODO: documentation... */
+            event_combination_all operator& (const event &rhs);
+            event_combination_any operator| (const event &rhs);
+
+            friend class event_combination;
     };
+
+    /* TODO: documentation... */
+    class event_combination {
+        protected:
+            std::vector<stimc_event> _events;
+
+        protected:
+            event_combination (const event &e1, const event &e2) :
+                _events ()
+            {
+                _events.push_back (e1._event);
+                _events.push_back (e2._event);
+                _events.push_back (nullptr);
+            }
+
+            event_combination (const event_combination &ec, const event &e) :
+                _events (ec._events)
+            {
+                add (e);
+            }
+
+            event_combination (event_combination &&ec, const event &e) :
+                _events (std::move (ec._events))
+            {
+                add (e);
+            }
+
+            void add (const event &e)
+            {
+                _events.back () = e._event;
+                _events.push_back (nullptr);
+            }
+
+        public:
+            event_combination            (const event_combination &ec) = default;
+            event_combination& operator= (const event_combination &ec) = default;
+            event_combination            (event_combination &&ec)      = default;
+            event_combination& operator= (event_combination &&ec)      = default;
+
+            ~event_combination () = default;
+    };
+
+    /* TODO: documentation... */
+    class event_combination_all : public event_combination {
+        protected:
+            event_combination_all (const event &e1, const event &e2) : event_combination (e1, e2) {};
+            event_combination_all (const event_combination_all &ec, const event &e) : event_combination (ec, e) {};
+            event_combination_all (event_combination_all &&ec, const event &e) : event_combination (std::move (ec), e) {};
+
+        public:
+            event_combination_all            (const event_combination_all &ec) = default;
+            event_combination_all& operator= (const event_combination_all &ec) = default;
+            event_combination_all            (event_combination_all &&ec)      = default;
+            event_combination_all& operator= (event_combination_all &&ec)      = default;
+
+            ~event_combination_all () = default;
+
+            friend class event;
+
+            event_combination_all operator& (event &rhs) const &
+            {
+                event_combination_all ec (*this, rhs);
+
+                return ec;
+            }
+
+            event_combination_all operator& (event &rhs) &&
+            {
+                add (rhs);
+                return std::move(*this);
+            }
+
+            void wait () const
+            {
+                stimc_wait_events_all (&_events[0]);
+            }
+
+            bool wait (double time_seconds) const
+            {
+                return stimc_wait_events_all_timeout_seconds (&_events[0], time_seconds);
+            }
+
+            bool wait (uint64_t time, enum stimc_time_unit exp) const
+            {
+                return stimc_wait_events_all_timeout (&_events[0], time, exp);
+            }
+    };
+
+    inline event_combination_all event::operator& (const event &rhs)
+    {
+        event_combination_all ec (*this, rhs);
+
+        return ec;
+    }
+
+    /* TODO: documentation... */
+    class event_combination_any : public event_combination {
+        protected:
+            event_combination_any (const event &e1, const event &e2) : event_combination (e1, e2) {};
+            event_combination_any (const event_combination_any &ec, const event &e) : event_combination (ec, e) {};
+            event_combination_any (event_combination_any &&ec, const event &e) : event_combination (std::move (ec), e) {};
+
+        public:
+            event_combination_any            (const event_combination_any &ec) = default;
+            event_combination_any& operator= (const event_combination_any &ec) = default;
+            event_combination_any            (event_combination_any &&ec)      = default;
+            event_combination_any& operator= (event_combination_any &&ec)      = default;
+
+            ~event_combination_any () = default;
+
+            friend class event;
+
+            event_combination_any operator| (event &rhs) const &
+            {
+                event_combination_any ec (*this, rhs);
+
+                return ec;
+            }
+
+            event_combination_any operator| (event &rhs) &&
+            {
+                add (rhs);
+                return std::move(*this);
+            }
+
+            void wait () const
+            {
+                stimc_wait_events_any (&_events[0]);
+            }
+
+            bool wait (double time_seconds) const
+            {
+                return stimc_wait_events_any_timeout_seconds (&_events[0], time_seconds);
+            }
+
+            bool wait (uint64_t time, enum stimc_time_unit exp) const
+            {
+                return stimc_wait_events_any_timeout (&_events[0], time, exp);
+            }
+    };
+
+    inline event_combination_any event::operator| (const event &rhs)
+    {
+        event_combination_any ec (*this, rhs);
+
+        return ec;
+    }
 
 
     /**
@@ -764,6 +921,37 @@ namespace stimcxx {
     static inline bool wait (event &e, uint64_t time, enum stimc_time_unit exp)
     {
         return e.wait (time, exp);
+    }
+
+    /* TODO: documentation */
+    static inline void wait (const event_combination_all &ec)
+    {
+        ec.wait ();
+    }
+
+    static inline bool wait (const event_combination_all &ec, double time_seconds)
+    {
+        return ec.wait (time_seconds);
+    }
+
+    static inline bool wait (const event_combination_all &ec, uint64_t time, enum stimc_time_unit exp)
+    {
+        return ec.wait (time, exp);
+    }
+
+    static inline void wait (const event_combination_any &ec)
+    {
+        ec.wait ();
+    }
+
+    static inline bool wait (const event_combination_any &ec, double time_seconds)
+    {
+        return ec.wait (time_seconds);
+    }
+
+    static inline bool wait (const event_combination_any &ec, uint64_t time, enum stimc_time_unit exp)
+    {
+        return ec.wait (time, exp);
     }
 
     /**
