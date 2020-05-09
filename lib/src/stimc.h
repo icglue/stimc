@@ -253,14 +253,14 @@ bool stimc_wait_event_timeout_seconds (stimc_event event, double time);
  *
  * @param events @c NULL terminated list of events.
  */
-void stimc_wait_events_all (stimc_event *events);
+void stimc_wait_events_all (const stimc_event *events);
 
 /**
  * @brief Suspend current thread until any of @c events is triggered.
  *
  * @param events @c NULL terminated list of events.
  */
-void stimc_wait_events_any (stimc_event *events);
+void stimc_wait_events_any (const stimc_event *events);
 
 /**
  * @brief Suspend current thread until all @c events are triggered or until specified timeout.
@@ -271,7 +271,7 @@ void stimc_wait_events_any (stimc_event *events);
  *
  * @return true in case of timeout.
  */
-bool stimc_wait_events_all_timeout (stimc_event *events, uint64_t time, enum stimc_time_unit exp);
+bool stimc_wait_events_all_timeout (const stimc_event *events, uint64_t time, enum stimc_time_unit exp);
 
 /**
  * @brief Suspend current thread until any of @c events is triggered or until specified timeout.
@@ -282,7 +282,7 @@ bool stimc_wait_events_all_timeout (stimc_event *events, uint64_t time, enum sti
  *
  * @return true in case of timeout.
  */
-bool stimc_wait_events_any_timeout (stimc_event *events, uint64_t time, enum stimc_time_unit exp);
+bool stimc_wait_events_any_timeout (const stimc_event *events, uint64_t time, enum stimc_time_unit exp);
 
 /**
  * @brief Suspend current thread until all @c events are triggered or until specified timeout.
@@ -292,7 +292,7 @@ bool stimc_wait_events_any_timeout (stimc_event *events, uint64_t time, enum sti
  *
  * @return true in case of timeout.
  */
-bool stimc_wait_events_all_timeout_seconds (stimc_event *events, double time);
+bool stimc_wait_events_all_timeout_seconds (const stimc_event *events, double time);
 
 /**
  * @brief Suspend current thread until any of @c events is triggered or until specified timeout.
@@ -302,7 +302,7 @@ bool stimc_wait_events_all_timeout_seconds (stimc_event *events, double time);
  *
  * @return true in case of timeout.
  */
-bool stimc_wait_events_any_timeout_seconds (stimc_event *events, double time);
+bool stimc_wait_events_any_timeout_seconds (const stimc_event *events, double time);
 
 /**
  * @brief Trigger a @ref stimc_event.

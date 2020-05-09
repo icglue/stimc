@@ -41,6 +41,10 @@
 #define STIMC_VALVECTOR_MAX_STATIC 8
 #endif
 
+#ifndef STIMC_THREAD_EVENT_HANDLES_INIT
+#define STIMC_THREAD_EVENT_HANDLES_INIT 4
+#endif
+
 #ifdef STIMC_DISABLE_CLEANUP
 #define STIMC_CLEANUP_ARG __attribute__((unused))
 #else
@@ -135,7 +139,7 @@ static inline void stimc_suspend (void);
 
 /* common wait function */
 static void stimc_wait_time_int_exp (uint64_t time, int exp);
-static void stimc_wait_events (struct stimc_thread_s *thread, stimc_event *events, bool any);
+static void stimc_wait_events (struct stimc_thread_s *thread, const stimc_event *events, bool any);
 
 /* non-blocking assignment helpers */
 enum stimc_nba_type {
@@ -336,8 +340,8 @@ static struct stimc_thread_s *stimc_thread_create (void (*threadfunc)(void *user
     thread->finished    = false;
 
     thread->event_handles_any = true;
-    thread->event_handles     = (struct stimc_event_handle_s *)malloc (sizeof (struct stimc_event_handle_s) * 8);
-    thread->event_handles_max = 7;
+    thread->event_handles     = (struct stimc_event_handle_s *)malloc (sizeof (struct stimc_event_handle_s) * STIMC_THREAD_EVENT_HANDLES_INIT);
+    thread->event_handles_max = STIMC_THREAD_EVENT_HANDLES_INIT - 1;
     assert (thread->event_handles);
     thread->event_handles[0].event = NULL;
 
@@ -798,10 +802,13 @@ static inline void stimc_event_enqueue_thread (stimc_event event, struct stimc_t
     stimc_thread_add_event_handle (thread, event, event_idx);
 }
 
-static void stimc_wait_events (struct stimc_thread_s *thread, stimc_event *events, bool any)
+static void stimc_wait_events (struct stimc_thread_s *thread, const stimc_event *events, bool any)
 {
     thread->event_handles_any = any;
-    for (stimc_event *event_p = events; *event_p != NULL; event_p++) {
+
+    assert (events);
+
+    for (const stimc_event *event_p = events; *event_p != NULL; event_p++) {
         stimc_event_enqueue_thread (*event_p, thread);
     }
 }
@@ -818,7 +825,7 @@ void stimc_wait_event (stimc_event event)
     stimc_suspend ();
 }
 
-void stimc_wait_events_all (stimc_event *events)
+void stimc_wait_events_all (const stimc_event *events)
 {
     struct stimc_thread_s *thread = stimc_current_thread;
 
@@ -830,7 +837,7 @@ void stimc_wait_events_all (stimc_event *events)
     stimc_suspend ();
 }
 
-void stimc_wait_events_any (stimc_event *events)
+void stimc_wait_events_any (const stimc_event *events)
 {
     struct stimc_thread_s *thread = stimc_current_thread;
 
@@ -870,7 +877,7 @@ bool stimc_wait_event_timeout_seconds (stimc_event event, double time)
     return (thread->timeout);
 }
 
-bool stimc_wait_events_all_timeout (stimc_event *events, uint64_t time, enum stimc_time_unit exp)
+bool stimc_wait_events_all_timeout (const stimc_event *events, uint64_t time, enum stimc_time_unit exp)
 {
     struct stimc_thread_s *thread = stimc_current_thread;
 
@@ -884,7 +891,7 @@ bool stimc_wait_events_all_timeout (stimc_event *events, uint64_t time, enum sti
     return (thread->timeout);
 }
 
-bool stimc_wait_events_any_timeout (stimc_event *events, uint64_t time, enum stimc_time_unit exp)
+bool stimc_wait_events_any_timeout (const stimc_event *events, uint64_t time, enum stimc_time_unit exp)
 {
     struct stimc_thread_s *thread = stimc_current_thread;
 
@@ -898,7 +905,7 @@ bool stimc_wait_events_any_timeout (stimc_event *events, uint64_t time, enum sti
     return (thread->timeout);
 }
 
-bool stimc_wait_events_all_timeout_seconds (stimc_event *events, double time)
+bool stimc_wait_events_all_timeout_seconds (const stimc_event *events, double time)
 {
     struct stimc_thread_s *thread = stimc_current_thread;
 
@@ -912,7 +919,7 @@ bool stimc_wait_events_all_timeout_seconds (stimc_event *events, double time)
     return (thread->timeout);
 }
 
-bool stimc_wait_events_any_timeout_seconds (stimc_event *events, double time)
+bool stimc_wait_events_any_timeout_seconds (const stimc_event *events, double time)
 {
     struct stimc_thread_s *thread = stimc_current_thread;
 
