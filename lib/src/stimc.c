@@ -41,10 +41,6 @@
 #define STIMC_VALVECTOR_MAX_STATIC 8
 #endif
 
-#ifndef STIMC_THREAD_EVENT_HANDLES_INIT
-#define STIMC_THREAD_EVENT_HANDLES_INIT 4
-#endif
-
 #ifdef STIMC_DISABLE_CLEANUP
 #define STIMC_CLEANUP_ARG __attribute__((unused))
 #else
@@ -64,15 +60,13 @@ static vpiHandle   stimc_module_handle_init (stimc_module *m, const char *name);
 
 /* threads */
 struct stimc_thread_s {
-    stimc_thread_impl            thread;
-    void                         (*func) (void *data);
-    void                        *data;
-    vpiHandle                    call_handle;
-    struct stimc_event_handle_s *event_handles;
-    size_t                       event_handles_max;
-    bool                         event_handles_any;
-    bool                         timeout;
-    bool                         finished;
+    stimc_thread_impl       thread;
+    void                    (*func) (void *data);
+    void                   *data;
+    vpiHandle               call_handle;
+    stimc_event_combination event_combination;
+    bool                    timeout;
+    bool                    finished;
 #ifndef STIMC_DISABLE_CLEANUP
     struct stimc_cleanup_entry_s *cleanup_queue;
     struct stimc_cleanup_entry_s *cleanup_self;
@@ -88,7 +82,6 @@ struct stimc_thread_queue_s {
 static struct stimc_thread_s *stimc_thread_create (void (*threadfunc)(void *userdata), void *userdata, size_t stacksize);
 static void                   stimc_thread_finish (struct stimc_thread_s *thread);
 
-static void        stimc_thread_add_event_handle (struct stimc_thread_s *thread, stimc_event event, size_t event_idx);
 static void        stimc_thread_remove_event_handle (struct stimc_thread_s *thread, stimc_event event);
 static inline bool stimc_thread_has_event_handle (struct stimc_thread_s *thread);
 
@@ -113,6 +106,18 @@ struct stimc_event_handle_s {
     stimc_event event;
     size_t      idx;
 };
+
+struct stimc_event_combination_s {
+    bool                         any;
+    size_t                       max;
+    size_t                       num;
+    struct stimc_event_handle_s *events;
+    /* TODO: cleanup */
+};
+
+static inline void stimc_event_combination_clear (stimc_event_combination combination);
+static inline void stimc_event_combination_prepare (stimc_event_combination combination, size_t min_len);
+static void        stimc_event_combination_append_handle (stimc_event_combination combination, stimc_event event, size_t idx);
 
 static inline void stimc_event_remove_thread (stimc_event event, size_t queue_idx);
 static inline void stimc_event_enqueue_thread (stimc_event event, struct stimc_thread_s *thread);
@@ -139,7 +144,7 @@ static inline void stimc_suspend (void);
 
 /* common wait function */
 static void stimc_wait_time_int_exp (uint64_t time, int exp);
-static void stimc_wait_events (struct stimc_thread_s *thread, const stimc_event *events, bool any);
+static void stimc_event_combination_enqueue_thread (struct stimc_thread_s *thread, const stimc_event_combination combination);
 
 /* non-blocking assignment helpers */
 enum stimc_nba_type {
@@ -339,11 +344,7 @@ static struct stimc_thread_s *stimc_thread_create (void (*threadfunc)(void *user
     thread->timeout     = false;
     thread->finished    = false;
 
-    thread->event_handles_any = true;
-    thread->event_handles     = (struct stimc_event_handle_s *)malloc (sizeof (struct stimc_event_handle_s) * STIMC_THREAD_EVENT_HANDLES_INIT);
-    thread->event_handles_max = STIMC_THREAD_EVENT_HANDLES_INIT - 1;
-    assert (thread->event_handles);
-    thread->event_handles[0].event = NULL;
+    thread->event_combination = stimc_event_combination_create (true);
 
 #ifndef STIMC_DISABLE_CLEANUP
     thread->cleanup_queue = NULL;
@@ -373,7 +374,8 @@ static void stimc_thread_finish (struct stimc_thread_s *thread)
     if (thread->call_handle != NULL) {
         vpi_remove_cb (thread->call_handle);
     }
-    for (struct stimc_event_handle_s *h = thread->event_handles; h->event != NULL; h++) {
+    for (size_t i = 0; i < thread->event_combination->num; i++) {
+        struct stimc_event_handle_s *h = &(thread->event_combination->events[i]);
         stimc_event_remove_thread (h->event, h->idx);
         h->event = NULL;
     }
@@ -383,59 +385,35 @@ static void stimc_thread_finish (struct stimc_thread_s *thread)
 #endif
 
     stimc_thread_impl ti = thread->thread;
-    free (thread->event_handles);
+    stimc_event_combination_free (thread->event_combination);
     free (thread);
     stimc_thread_impl_delete (ti);
 }
 
-static void stimc_thread_add_event_handle (struct stimc_thread_s *thread, stimc_event event, size_t event_idx)
-{
-    size_t idx = 0;
-
-    for (struct stimc_event_handle_s *h = thread->event_handles; h->event != NULL; h++) {
-        idx++;
-    }
-
-    if (idx >= thread->event_handles_max) {
-        size_t alloc_n = thread->event_handles_max + 1;
-        while (idx + 1 >= alloc_n) alloc_n *= 2;
-
-        thread->event_handles = (struct stimc_event_handle_s *)realloc (thread->event_handles, sizeof (struct stimc_event_handle_s) * alloc_n);
-        assert (thread->event_handles);
-        thread->event_handles_max = alloc_n - 1;
-    }
-
-    thread->event_handles[idx] = (struct stimc_event_handle_s) {
-        .event = event,
-        .idx   = event_idx
-    };
-    thread->event_handles[idx + 1].event = NULL;
-}
-
 static void stimc_thread_remove_event_handle (struct stimc_thread_s *thread, stimc_event event)
 {
-    ssize_t idx       = -1;
     ssize_t idx_event = -1;
 
-    for (struct stimc_event_handle_s *h = thread->event_handles; h->event != NULL; h++) {
-        idx++;
-        if (h->event == event) idx_event = idx;
+    for (size_t i = 0; i < thread->event_combination->num; i++) {
+        struct stimc_event_handle_s *h = &(thread->event_combination->events[i]);
+        if (h->event == event) idx_event = i;
     }
-    ssize_t idx_last = idx;
 
     if (idx_event >= 0) {
+        ssize_t idx_last = thread->event_combination->num - 1;
+
         if (idx_event == idx_last) {
-            thread->event_handles[idx_event].event = NULL;
+            thread->event_combination->num--;
         } else {
-            thread->event_handles[idx_event]      = thread->event_handles[idx_last];
-            thread->event_handles[idx_last].event = NULL;
+            thread->event_combination->events[idx_event] = thread->event_combination->events[idx_last];
+            thread->event_combination->num--;
         }
     }
 }
 
 static inline bool stimc_thread_has_event_handle (struct stimc_thread_s *thread)
 {
-    return (thread->event_handles[0].event != NULL);
+    return (thread->event_combination->num > 0);
 }
 
 static PLI_INT32 stimc_thread_callback_wrapper (struct t_cb_data *cb_data)
@@ -450,12 +428,13 @@ static PLI_INT32 stimc_thread_callback_wrapper (struct t_cb_data *cb_data)
         vpi_remove_cb (thread->call_handle);
         thread->call_handle = NULL;
     }
-    for (struct stimc_event_handle_s *h = thread->event_handles; h->event != NULL; h++) {
+    for (size_t i = 0; i < thread->event_combination->num; i++) {
+        struct stimc_event_handle_s *h = &(thread->event_combination->events[i]);
         stimc_event_remove_thread (h->event, h->idx);
-        h->event = NULL;
         /* if event handle exists, this has to be a timeout callback */
         thread->timeout = true;
     }
+    stimc_event_combination_clear (thread->event_combination);
 
     stimc_main_queue_run_threads ();
 
@@ -781,6 +760,82 @@ void stimc_event_free (stimc_event event)
     free (event);
 }
 
+stimc_event_combination stimc_event_combination_create (bool any)
+{
+    stimc_event_combination combination = (stimc_event_combination)malloc (sizeof (struct stimc_event_combination_s));
+
+    assert (combination);
+
+    combination->any    = any;
+    combination->max    = 0;
+    combination->num    = 0;
+    combination->events = NULL;
+
+    return combination;
+}
+
+void stimc_event_combination_free (stimc_event_combination combination)
+{
+    if (combination == NULL) return;
+
+    if (combination->events != NULL) free (combination->events);
+    free (combination);
+}
+
+static inline void stimc_event_combination_clear (stimc_event_combination combination)
+{
+    combination->num = 0;
+}
+
+static inline void stimc_event_combination_prepare (stimc_event_combination combination, size_t min_len)
+{
+    if (min_len <= combination->max) return;
+
+    if (combination->max == 0) {
+        combination->max = 4;
+    }
+    while (min_len > combination->max) {
+        combination->max *= 2;
+        assert (combination->max != 0);
+    }
+
+    combination->events = (struct stimc_event_handle_s *)realloc (combination->events, sizeof (struct stimc_event_handle_s) * (combination->max));
+    assert (combination->events);
+}
+
+static void stimc_event_combination_append_handle (stimc_event_combination combination, stimc_event event, size_t idx)
+{
+    assert (combination);
+    stimc_event_combination_prepare (combination, combination->num + 1);
+
+    combination->events[combination->num] = (struct stimc_event_handle_s) {
+        .event = event,
+        .idx   = idx
+    };
+
+    combination->num++;
+}
+
+void stimc_event_combination_append (stimc_event_combination combination, stimc_event event)
+{
+    stimc_event_combination_append_handle (combination, event, 0);
+}
+
+void stimc_event_combination_copy (stimc_event_combination dst, stimc_event_combination src)
+{
+    assert (dst);
+    stimc_event_combination_clear (dst);
+    if (src == NULL) return;
+
+    stimc_event_combination_prepare (dst, src->max);
+    dst->any = src->any;
+    dst->num = src->num;
+
+    for (size_t i = 0; i < src->num; i++) {
+        dst->events[i] = src->events[i];
+    }
+}
+
 static inline void stimc_event_remove_thread (stimc_event event, size_t queue_idx)
 {
     assert (event);
@@ -799,17 +854,20 @@ static inline void stimc_event_enqueue_thread (stimc_event event, struct stimc_t
 
     size_t event_idx = stimc_thread_queue_enqueue (&event->queue, thread);
 
-    stimc_thread_add_event_handle (thread, event, event_idx);
+    stimc_event_combination_append_handle (thread->event_combination, event, event_idx);
 }
 
-static void stimc_wait_events (struct stimc_thread_s *thread, const stimc_event *events, bool any)
+static void stimc_event_combination_enqueue_thread (struct stimc_thread_s *thread, const stimc_event_combination combination)
 {
-    thread->event_handles_any = any;
+    assert (combination);
 
-    assert (events);
+    stimc_event_combination_prepare (thread->event_combination, combination->max);
+    stimc_event_combination_clear (thread->event_combination);
 
-    for (const stimc_event *event_p = events; *event_p != NULL; event_p++) {
-        stimc_event_enqueue_thread (*event_p, thread);
+    thread->event_combination->any = combination->any;
+
+    for (size_t i = 0; i < combination->num; i++) {
+        stimc_event_enqueue_thread (combination->events[i].event, thread);
     }
 }
 
@@ -819,31 +877,20 @@ void stimc_wait_event (stimc_event event)
 
     assert (thread);
 
+    stimc_event_combination_clear (thread->event_combination);
     stimc_event_enqueue_thread (event, thread);
 
     /* thread handling ... */
     stimc_suspend ();
 }
 
-void stimc_wait_events_all (const stimc_event *events)
+void stimc_wait_event_combination (const stimc_event_combination combination)
 {
     struct stimc_thread_s *thread = stimc_current_thread;
 
     assert (thread);
 
-    stimc_wait_events (thread, events, false);
-
-    /* thread handling ... */
-    stimc_suspend ();
-}
-
-void stimc_wait_events_any (const stimc_event *events)
-{
-    struct stimc_thread_s *thread = stimc_current_thread;
-
-    assert (thread);
-
-    stimc_wait_events (thread, events, true);
+    stimc_event_combination_enqueue_thread (thread, combination);
 
     /* thread handling ... */
     stimc_suspend ();
@@ -877,56 +924,28 @@ bool stimc_wait_event_timeout_seconds (stimc_event event, double time)
     return (thread->timeout);
 }
 
-bool stimc_wait_events_all_timeout (const stimc_event *events, uint64_t time, enum stimc_time_unit exp)
+bool stimc_wait_event_combination_timeout (const stimc_event_combination combination, uint64_t time, enum stimc_time_unit exp)
 {
     struct stimc_thread_s *thread = stimc_current_thread;
 
     assert (thread);
 
     thread->timeout = false;
-    stimc_wait_events (thread, events, false);
+    stimc_event_combination_enqueue_thread (thread, combination);
 
     stimc_wait_time (time, exp);
 
     return (thread->timeout);
 }
 
-bool stimc_wait_events_any_timeout (const stimc_event *events, uint64_t time, enum stimc_time_unit exp)
+bool stimc_wait_event_combination_timeout_seconds (const stimc_event_combination combination, double time)
 {
     struct stimc_thread_s *thread = stimc_current_thread;
 
     assert (thread);
 
     thread->timeout = false;
-    stimc_wait_events (thread, events, true);
-
-    stimc_wait_time (time, exp);
-
-    return (thread->timeout);
-}
-
-bool stimc_wait_events_all_timeout_seconds (const stimc_event *events, double time)
-{
-    struct stimc_thread_s *thread = stimc_current_thread;
-
-    assert (thread);
-
-    thread->timeout = false;
-    stimc_wait_events (thread, events, false);
-
-    stimc_wait_time_seconds (time);
-
-    return (thread->timeout);
-}
-
-bool stimc_wait_events_any_timeout_seconds (const stimc_event *events, double time)
-{
-    struct stimc_thread_s *thread = stimc_current_thread;
-
-    assert (thread);
-
-    thread->timeout = false;
-    stimc_wait_events (thread, events, true);
+    stimc_event_combination_enqueue_thread (thread, combination);
 
     stimc_wait_time_seconds (time);
 
@@ -945,17 +964,18 @@ void stimc_trigger_event (stimc_event event)
 
         stimc_thread_remove_event_handle (thread, event);
 
-        /* was only one of many to wait for? -> do not trigger */
-        if ((!thread->event_handles_any) && stimc_thread_has_event_handle (thread)) {
+        /* was one of many to wait for? -> do not trigger */
+        if ((!thread->event_combination->any) && stimc_thread_has_event_handle (thread)) {
             event->queue.threads[i] = NULL;
             continue;
         }
 
         /* triggered by this event -> remove others */
-        for (struct stimc_event_handle_s *h = thread->event_handles; h->event != NULL; h++) {
+        for (size_t j = 0; j < thread->event_combination->num; j++) {
+            struct stimc_event_handle_s *h = &(thread->event_combination->events[j]);
             stimc_event_remove_thread (h->event, h->idx);
         }
-        thread->event_handles[0].event = NULL;
+        stimc_event_combination_clear (thread->event_combination);
 
         /* active timeout? -> remove + result */
         if (thread->call_handle != NULL) {

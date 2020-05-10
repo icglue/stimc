@@ -221,6 +221,52 @@ stimc_event stimc_event_create (void);
 void stimc_event_free (stimc_event event);
 
 /**
+ * @brief stimc event combination type.
+ *
+ * Multiple @ref stimc_event can be combined into
+ * one event combination to wait for all or any of them.
+ * The type of combination (all/any) is specified on creation
+ * via @ref stimc_event_combination_create.
+ */
+typedef struct stimc_event_combination_s *stimc_event_combination;
+
+/**
+ * @brief Create a new combination of events for waiting.
+ *
+ * @param any true: resume waiting thread if any of the combined events is triggered,
+ *            false: resume waiting thread if all of the combined events are triggered.
+ *
+ * @return newly created combination.
+ */
+stimc_event_combination stimc_event_combination_create (bool any);
+
+/**
+ * @brief Free event combination.
+ *
+ * @param combination @ref stimc_event_combination to free.
+ */
+void stimc_event_combination_free (stimc_event_combination combination);
+
+/**
+ * @brief Append event to combination of events.
+ *
+ * @param combination event combination to append to.
+ * @param event event to append.
+ */
+void stimc_event_combination_append (stimc_event_combination combination, stimc_event event);
+
+/**
+ * @brief Make a copy of an event combination into an existing combination.
+ *
+ * @param dst combination to copy to.
+ * @param src combination to copy from.
+ *
+ * Events in the existing combinations are lost and the type of combination (all/any)
+ * will be overwritten.
+ */
+void stimc_event_combination_copy (stimc_event_combination dst, stimc_event_combination src);
+
+/**
  * @brief Suspend current thread until @c event is triggered.
  * @param event The event to wait on.
  *
@@ -249,60 +295,32 @@ bool stimc_wait_event_timeout (stimc_event event, uint64_t time, enum stimc_time
 bool stimc_wait_event_timeout_seconds (stimc_event event, double time);
 
 /**
- * @brief Suspend current thread until all @c events are triggered.
+ * @brief Suspend current thread until all/any events in @c combination are triggered.
  *
- * @param events @c NULL terminated list of events.
+ * @param combination list of events in @ref stimc_event_combination.
  */
-void stimc_wait_events_all (const stimc_event *events);
+void stimc_wait_event_combination (const stimc_event_combination combination);
 
 /**
- * @brief Suspend current thread until any of @c events is triggered.
+ * @brief Suspend current thread until all/any events in @c combination are triggered or until specified timeout.
  *
- * @param events @c NULL terminated list of events.
- */
-void stimc_wait_events_any (const stimc_event *events);
-
-/**
- * @brief Suspend current thread until all @c events are triggered or until specified timeout.
- *
- * @param events @c NULL terminated list of events.
+ * @param combination list of events in @ref stimc_event_combination.
  * @param time Amount of time in unit specified by @c exp for timeout.
  * @param exp Time unit (e.g. SC_US).
  *
  * @return true in case of timeout.
  */
-bool stimc_wait_events_all_timeout (const stimc_event *events, uint64_t time, enum stimc_time_unit exp);
+bool stimc_wait_event_combination_timeout (const stimc_event_combination combination, uint64_t time, enum stimc_time_unit exp);
 
 /**
- * @brief Suspend current thread until any of @c events is triggered or until specified timeout.
+ * @brief Suspend current thread until all/any events in @c combination are triggered or until specified timeout.
  *
- * @param events @c NULL terminated list of events.
- * @param time Amount of time in unit specified by @c exp for timeout.
- * @param exp Time unit (e.g. SC_US).
- *
- * @return true in case of timeout.
- */
-bool stimc_wait_events_any_timeout (const stimc_event *events, uint64_t time, enum stimc_time_unit exp);
-
-/**
- * @brief Suspend current thread until all @c events are triggered or until specified timeout.
- *
- * @param events @c NULL terminated list of events.
+ * @param combination list of events in @ref stimc_event_combination.
  * @param time Amount of time in seconds for timeout.
  *
  * @return true in case of timeout.
  */
-bool stimc_wait_events_all_timeout_seconds (const stimc_event *events, double time);
-
-/**
- * @brief Suspend current thread until any of @c events is triggered or until specified timeout.
- *
- * @param events @c NULL terminated list of events.
- * @param time Amount of time in seconds for timeout.
- *
- * @return true in case of timeout.
- */
-bool stimc_wait_events_any_timeout_seconds (const stimc_event *events, double time);
+bool stimc_wait_event_combination_timeout_seconds (const stimc_event_combination combination, double time);
 
 /**
  * @brief Trigger a @ref stimc_event.
