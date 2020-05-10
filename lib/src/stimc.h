@@ -298,29 +298,39 @@ bool stimc_wait_event_timeout_seconds (stimc_event event, double time);
  * @brief Suspend current thread until all/any events in @c combination are triggered.
  *
  * @param combination list of events in @ref stimc_event_combination.
+ * @param consume if true, combination will be consumed (and freed) and must not be
+ *        used afterwards.
+ *
+ * @c consume is useful in cases where event-combination should be freed
+ * after wait anyway and will leak in case the thread is never resumed before
+ * and of simulation.
  */
-void stimc_wait_event_combination (const stimc_event_combination combination);
+void stimc_wait_event_combination (stimc_event_combination combination, bool consume);
 
 /**
  * @brief Suspend current thread until all/any events in @c combination are triggered or until specified timeout.
  *
  * @param combination list of events in @ref stimc_event_combination.
+ * @param consume if true, combination will be consumed (and freed) and must not be
+ *        used afterwards. Explanation in @ref stimc_wait_event_combination.
  * @param time Amount of time in unit specified by @c exp for timeout.
  * @param exp Time unit (e.g. SC_US).
  *
  * @return true in case of timeout.
  */
-bool stimc_wait_event_combination_timeout (const stimc_event_combination combination, uint64_t time, enum stimc_time_unit exp);
+bool stimc_wait_event_combination_timeout (stimc_event_combination combination, bool consume, uint64_t time, enum stimc_time_unit exp);
 
 /**
  * @brief Suspend current thread until all/any events in @c combination are triggered or until specified timeout.
  *
  * @param combination list of events in @ref stimc_event_combination.
+ * @param consume if true, combination will be consumed (and freed) and must not be
+ *        used afterwards. Explanation in @ref stimc_wait_event_combination.
  * @param time Amount of time in seconds for timeout.
  *
  * @return true in case of timeout.
  */
-bool stimc_wait_event_combination_timeout_seconds (const stimc_event_combination combination, double time);
+bool stimc_wait_event_combination_timeout_seconds (stimc_event_combination combination, bool consume, double time);
 
 /**
  * @brief Trigger a @ref stimc_event.

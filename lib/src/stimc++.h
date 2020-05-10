@@ -218,7 +218,7 @@ namespace stimcxx {
              */
             ~event_combination ()
             {
-                stimc_event_combination_free (_combination);
+                if (_combination != nullptr) stimc_event_combination_free (_combination);
             }
 
             /**
@@ -226,9 +226,22 @@ namespace stimcxx {
              *
              * Inline wrapper for @ref stimc_wait_event_combination.
              */
-            void wait () const
+            void wait () const &
             {
-                stimc_wait_event_combination (_combination);
+                stimc_wait_event_combination (_combination, false);
+            }
+
+            /**
+             * @brief Wait for events of combination to be triggered based on type of combination (rvalue version).
+             *
+             * Inline wrapper for @ref stimc_wait_event_combination.
+             */
+            void wait () &&
+            {
+                stimc_event_combination c = _combination;
+
+                _combination = nullptr;
+                stimc_wait_event_combination (c, true);
             }
 
             /**
@@ -239,9 +252,26 @@ namespace stimcxx {
              *
              * Inline wrapper for @ref stimc_wait_event_combination_timeout_seconds.
              */
-            bool wait (double time_seconds) const
+            bool wait (double time_seconds) const &
             {
-                return stimc_wait_event_combination_timeout_seconds (_combination, time_seconds);
+                return stimc_wait_event_combination_timeout_seconds (_combination, false, time_seconds);
+            }
+
+            /**
+             * @brief Wait for events of combination to be triggered based on type of combination or specified timeout
+             *        (rvalue version).
+             * @param time_seconds Amount of time in seconds for timeout.
+             *
+             * @return true in case of timeout.
+             *
+             * Inline wrapper for @ref stimc_wait_event_combination_timeout_seconds.
+             */
+            bool wait (double time_seconds) &&
+            {
+                stimc_event_combination c = _combination;
+
+                _combination = nullptr;
+                return stimc_wait_event_combination_timeout_seconds (c, true, time_seconds);
             }
 
             /**
@@ -253,9 +283,27 @@ namespace stimcxx {
              *
              * Inline wrapper for @ref stimc_wait_event_combination_timeout.
              */
-            bool wait (uint64_t time, enum stimc_time_unit exp) const
+            bool wait (uint64_t time, enum stimc_time_unit exp) const &
             {
-                return stimc_wait_event_combination_timeout (_combination, time, exp);
+                return stimc_wait_event_combination_timeout (_combination, false, time, exp);
+            }
+
+            /**
+             * @brief Wait for events of combination to be triggered based on type of combination or specified timeout.
+             *        (rvalue version).
+             * @param time Amount of time in unit specified by @c exp for timeout.
+             * @param exp Time unit (e.g. SC_US).
+             *
+             * @return true in case of timeout.
+             *
+             * Inline wrapper for @ref stimc_wait_event_combination_timeout.
+             */
+            bool wait (uint64_t time, enum stimc_time_unit exp) &&
+            {
+                stimc_event_combination c = _combination;
+
+                _combination = nullptr;
+                return stimc_wait_event_combination_timeout (c, false, time, exp);
             }
     };
 
@@ -1062,6 +1110,41 @@ namespace stimcxx {
     static inline bool wait (event &e, uint64_t time, enum stimc_time_unit exp)
     {
         return e.wait (time, exp);
+    }
+
+    /**
+     * @brief Inline wait wrapper, rvalue version.
+     * @param ec Event combination to wait for.
+     * Calls @ref event_combination::wait.
+     */
+    static inline void wait (event_combination &&ec)
+    {
+        std::move (ec).wait ();
+    }
+
+    /**
+     * @brief Inline wait wrapper, rvalue version.
+     * @param ec Event combination to wait for.
+     * @param time_seconds Amount of time in seconds for timeout.
+     * @return true in case of timeout.
+     * Calls @ref event_combination::wait.
+     */
+    static inline bool wait (event_combination &&ec, double time_seconds)
+    {
+        return std::move (ec).wait (time_seconds);
+    }
+
+    /**
+     * @brief Inline wait wrapper, rvalue version.
+     * @param ec Event combination to wait for.
+     * @param time Amount of time in unit specified by @c exp for timeout.
+     * @param exp Time unit (e.g. SC_US).
+     * @return true in case of timeout.
+     * Calls @ref event_combination::wait.
+     */
+    static inline bool wait (event_combination &&ec, uint64_t time, enum stimc_time_unit exp)
+    {
+        return std::move (ec).wait (time, exp);
     }
 
     /**

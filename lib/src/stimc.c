@@ -112,7 +112,6 @@ struct stimc_event_combination_s {
     size_t                       max;
     size_t                       num;
     struct stimc_event_handle_s *events;
-    /* TODO: cleanup */
 };
 
 static inline void stimc_event_combination_clear (stimc_event_combination combination);
@@ -144,7 +143,7 @@ static inline void stimc_suspend (void);
 
 /* common wait function */
 static void stimc_wait_time_int_exp (uint64_t time, int exp);
-static void stimc_event_combination_enqueue_thread (struct stimc_thread_s *thread, const stimc_event_combination combination);
+static void stimc_event_combination_enqueue_thread (struct stimc_thread_s *thread, stimc_event_combination combination, bool consume);
 
 /* non-blocking assignment helpers */
 enum stimc_nba_type {
@@ -857,7 +856,7 @@ static inline void stimc_event_enqueue_thread (stimc_event event, struct stimc_t
     stimc_event_combination_append_handle (thread->event_combination, event, event_idx);
 }
 
-static void stimc_event_combination_enqueue_thread (struct stimc_thread_s *thread, const stimc_event_combination combination)
+static void stimc_event_combination_enqueue_thread (struct stimc_thread_s *thread, stimc_event_combination combination, bool consume)
 {
     assert (combination);
 
@@ -869,6 +868,8 @@ static void stimc_event_combination_enqueue_thread (struct stimc_thread_s *threa
     for (size_t i = 0; i < combination->num; i++) {
         stimc_event_enqueue_thread (combination->events[i].event, thread);
     }
+
+    if (consume) stimc_event_combination_free (combination);
 }
 
 void stimc_wait_event (stimc_event event)
@@ -884,13 +885,13 @@ void stimc_wait_event (stimc_event event)
     stimc_suspend ();
 }
 
-void stimc_wait_event_combination (const stimc_event_combination combination)
+void stimc_wait_event_combination (const stimc_event_combination combination, bool consume)
 {
     struct stimc_thread_s *thread = stimc_current_thread;
 
     assert (thread);
 
-    stimc_event_combination_enqueue_thread (thread, combination);
+    stimc_event_combination_enqueue_thread (thread, combination, consume);
 
     /* thread handling ... */
     stimc_suspend ();
@@ -924,28 +925,28 @@ bool stimc_wait_event_timeout_seconds (stimc_event event, double time)
     return (thread->timeout);
 }
 
-bool stimc_wait_event_combination_timeout (const stimc_event_combination combination, uint64_t time, enum stimc_time_unit exp)
+bool stimc_wait_event_combination_timeout (const stimc_event_combination combination, bool consume, uint64_t time, enum stimc_time_unit exp)
 {
     struct stimc_thread_s *thread = stimc_current_thread;
 
     assert (thread);
 
     thread->timeout = false;
-    stimc_event_combination_enqueue_thread (thread, combination);
+    stimc_event_combination_enqueue_thread (thread, combination, consume);
 
     stimc_wait_time (time, exp);
 
     return (thread->timeout);
 }
 
-bool stimc_wait_event_combination_timeout_seconds (const stimc_event_combination combination, double time)
+bool stimc_wait_event_combination_timeout_seconds (const stimc_event_combination combination, bool consume, double time)
 {
     struct stimc_thread_s *thread = stimc_current_thread;
 
     assert (thread);
 
     thread->timeout = false;
-    stimc_event_combination_enqueue_thread (thread, combination);
+    stimc_event_combination_enqueue_thread (thread, combination, consume);
 
     stimc_wait_time_seconds (time);
 
