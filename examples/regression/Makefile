@@ -3,6 +3,7 @@ TESTCASES := \
 	ff.tc_sanity \
 	ff_real.tc_sanity \
 	dummy.tc_sanity \
+	dummy.tc_events_1 \
 
 # icglue keep end
 

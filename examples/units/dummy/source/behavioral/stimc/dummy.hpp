@@ -20,6 +20,7 @@ class dummy : public stimcxx::module {
         virtual ~dummy ();
 
         void testcontrol ();
+        void testcontrol2 ();
         void clock ();
         void dinchange ();
 };

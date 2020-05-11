@@ -10,6 +10,7 @@ dummy::dummy () :
     STIMCXX_PORT (data_out_o)
 {
     STIMCXX_REGISTER_STARTUP_THREAD (testcontrol);
+    STIMCXX_REGISTER_STARTUP_THREAD (testcontrol2);
     STIMCXX_REGISTER_METHOD (posedge, clk_i, clock);
     STIMCXX_REGISTER_METHOD (change, data_in_i, dinchange);
 
@@ -36,6 +37,9 @@ void dummy::dinchange ()
 }
 
 void __attribute__((weak)) dummy::testcontrol ()
+{}
+
+void __attribute__((weak)) dummy::testcontrol2 ()
 {}
 
 #ifndef NO_STIMCXX_EXPORT
