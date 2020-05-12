@@ -321,7 +321,7 @@ namespace stimcxx {
                 stimc_event_combination c = _combination;
 
                 _combination = nullptr;
-                return stimc_wait_event_combination_timeout (c, false, time, exp);
+                return stimc_wait_event_combination_timeout (c, true, time, exp);
             }
     };
 
