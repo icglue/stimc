@@ -51,6 +51,8 @@ namespace stimcxx {
 
             event            (const event &e) = delete; /**< @brief Do not copy/change internals */
             event& operator= (const event &e) = delete; /**< @brief Do not copy/change internals */
+            event            (event &&e)      = delete; /**< @brief Do not move/change internals */
+            event& operator= (event &&e)      = delete; /**< @brief Do not move/change internals */
 
             /**
              * @brief Free @ref stimc_event.
@@ -493,7 +495,7 @@ namespace stimcxx {
 
         protected:
             /**
-             * @brief Init module data.
+             * @brief Init module data of @ref stimc_module.
              *
              * Meant as base class - not to be constructed directly.
              */
@@ -505,6 +507,8 @@ namespace stimcxx {
         public:
             module            (const module &m) = delete; /**< @brief Do not copy/change internals */
             module& operator= (const module &m) = delete; /**< @brief Do not copy/change internals */
+            module            (module &&m)      = delete; /**< @brief Do not move/change internals */
+            module& operator= (module &&m)      = delete; /**< @brief Do not move/change internals */
 
             /**
              * @brief Free module resources.
@@ -534,7 +538,7 @@ namespace stimcxx {
 
                 public:
                     /**
-                     * @brief Port constructor.
+                     * @brief Port constructor for @ref stimc_port.
                      * @param m Parent module of port.
                      * @param name Name of the port.
                      */
@@ -544,6 +548,8 @@ namespace stimcxx {
 
                     port_base            (const port_base &p) = delete; /**< @brief Do not copy/change internals */
                     port_base& operator= (const port_base &p) = delete; /**< @brief Do not copy/change internals */
+                    port_base            (port_base &&p)      = delete; /**< @brief Do not move/change internals */
+                    port_base& operator= (port_base &&p)      = delete; /**< @brief Do not move/change internals */
 
                     /**
                      * @brief Destructor.
@@ -618,7 +624,15 @@ namespace stimcxx {
                              * @param lsb Least significant bit.
                              */
                             subbits (port &p, int msb, int lsb) :
-                                _lsb (lsb), _msb (msb), _p (p) {}
+                                _lsb (lsb), _msb (msb), _p (p)
+                            {}
+
+                            subbits            (const subbits &sb) = default; /**< @brief default copy constructor */
+                            subbits& operator= (const subbits &sb) = default; /**< @brief default copy assignment */
+                            subbits            (subbits &&sb)      = default; /**< @brief default move constructor */
+                            subbits& operator= (subbits &&sb)      = default; /**< @brief default move assignment */
+
+                            ~subbits () = default; /**< @brief default destructor */
 
                             /**
                              * @brief Cast for reading from port bit range as uint64_t.
@@ -722,6 +736,8 @@ namespace stimcxx {
 
                     port            (const port &p) = delete; /**< @brief Do not copy/change internals */
                     port& operator= (const port &p) = delete; /**< @brief Do not copy/change internals */
+                    port            (port &&p)      = delete; /**< @brief Do not move/change internals */
+                    port& operator= (port &&p)      = delete; /**< @brief Do not move/change internals */
 
                     ~port () = default; /**< @brief default constructor */
 
@@ -860,6 +876,8 @@ namespace stimcxx {
 
                     port_real            (const port_real &p) = delete; /**< @brief Do not copy/change internals */
                     port_real& operator= (const port_real &p) = delete; /**< @brief Do not copy/change internals */
+                    port_real            (port_real &&p)      = delete; /**< @brief Do not move/change internals */
+                    port_real& operator= (port_real &&p)      = delete; /**< @brief Do not move/change internals */
 
                     ~port_real () = default; /**< @brief default constructor */
 
@@ -976,6 +994,8 @@ namespace stimcxx {
 
                     parameter            (const parameter &p) = delete; /**< @brief Do not copy/change internals */
                     parameter& operator= (const parameter &p) = delete; /**< @brief Do not copy/change internals */
+                    parameter            (parameter &&p)      = delete; /**< @brief Do not move/change internals */
+                    parameter& operator= (parameter &&p)      = delete; /**< @brief Do not move/change internals */
 
                     /**
                      * @brief Simple destructor
@@ -1233,6 +1253,8 @@ namespace stimcxx {
 
             thread_cleanup            (const thread_cleanup &t) = delete; /**< @brief Do not copy/change internals */
             thread_cleanup& operator= (const thread_cleanup &t) = delete; /**< @brief Do not copy/change internals */
+            thread_cleanup            (thread_cleanup &&t)      = delete; /**< @brief Do not move/change internals */
+            thread_cleanup& operator= (thread_cleanup &&t)      = delete; /**< @brief Do not move/change internals */
     };
 }
 
