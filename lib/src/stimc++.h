@@ -42,12 +42,23 @@ namespace stimcxx {
         private:
             stimc_event _event; /**< @brief The actual @ref stimc_event. */
         public:
-            event ();
+            /**
+             * @brief Create @ref stimc_event.
+             */
+            event () :
+                _event (stimc_event_create ())
+            {}
 
             event            (const event &e) = delete; /**< @brief Do not copy/change internals */
             event& operator= (const event &e) = delete; /**< @brief Do not copy/change internals */
 
-            ~event ();
+            /**
+             * @brief Free @ref stimc_event.
+             */
+            ~event ()
+            {
+                stimc_event_free (this->_event);
+            }
 
             /**
              * @brief Wait for event to be triggered.
@@ -216,6 +227,10 @@ namespace stimcxx {
 
             /**
              * @brief Destructor.
+             *
+             * Non-virtual, as the only derived classes @ref event_combination_all
+             * and @ref event_combination_any do not add any resources to be
+             * released.
              */
             ~event_combination ()
             {
@@ -469,15 +484,35 @@ namespace stimcxx {
              * Will be handed to @ref stimc_module_init as cleanup callback
              * in constructor.
              */
-            static void cleanup (void *m);
+            static void cleanup (void *m)
+            {
+                module *mod = (module *)m;
+
+                delete mod;
+            }
+
+        protected:
+            /**
+             * @brief Init module data.
+             *
+             * Meant as base class - not to be constructed directly.
+             */
+            module ()
+            {
+                stimc_module_init (&(this->_module), module::cleanup, this);
+            }
 
         public:
-            module ();
-
             module            (const module &m) = delete; /**< @brief Do not copy/change internals */
             module& operator= (const module &m) = delete; /**< @brief Do not copy/change internals */
 
-            virtual ~module ();
+            /**
+             * @brief Free module resources.
+             */
+            virtual ~module ()
+            {
+                stimc_module_free (&(this->_module));
+            }
 
             /**
              * @brief Get hierarchical identifier for instance of module.
@@ -503,12 +538,23 @@ namespace stimcxx {
                      * @param m Parent module of port.
                      * @param name Name of the port.
                      */
-                    port_base (module &m, const char *name);
+                    port_base (module &m, const char *name) :
+                        _port (stimc_port_init (&(m._module), name))
+                    {}
 
                     port_base            (const port_base &p) = delete; /**< @brief Do not copy/change internals */
                     port_base& operator= (const port_base &p) = delete; /**< @brief Do not copy/change internals */
 
-                    ~port_base ();
+                    /**
+                     * @brief Destructor.
+                     *
+                     * Non-virtual, as derived classes will be used as members
+                     * without slicing in case of destructor call.
+                     */
+                    ~port_base ()
+                    {
+                        stimc_port_free (this->_port);
+                    }
 
                     /**
                      * @brief Register a callback method for posedge events at port.
@@ -670,11 +716,14 @@ namespace stimcxx {
                      * @param m Parent module of port.
                      * @param name Name of the port.
                      */
-                    port (module &m, const char *name);
+                    port (module &m, const char *name) :
+                        port_base (m, name)
+                    {}
 
                     port            (const port &p) = delete; /**< @brief Do not copy/change internals */
                     port& operator= (const port &p) = delete; /**< @brief Do not copy/change internals */
 
+                    ~port () = default; /**< @brief default constructor */
 
                     /**
                      * @brief Immediate assignment operator to port.
@@ -805,11 +854,14 @@ namespace stimcxx {
                      * @param m Parent module of port.
                      * @param name Name of the port.
                      */
-                    port_real (module &m, const char *name);
+                    port_real (module &m, const char *name) :
+                        port_base (m, name)
+                    {}
 
                     port_real            (const port_real &p) = delete; /**< @brief Do not copy/change internals */
                     port_real& operator= (const port_real &p) = delete; /**< @brief Do not copy/change internals */
 
+                    ~port_real () = default; /**< @brief default constructor */
 
                     /**
                      * @brief Immediate assignment operator to port.
@@ -910,12 +962,28 @@ namespace stimcxx {
                      * @param m Parent module of parameter.
                      * @param name Name of the parameter.
                      */
-                    parameter (module &m, const char *name);
+                    parameter (module &m, const char *name) :
+                        _parameter (stimc_parameter_init (&(m._module), name))
+                    {
+                        if (stimc_parameter_get_format (this->_parameter) == vpiRealVal) {
+                            this->_value_d = stimc_parameter_get_double (this->_parameter);
+                            this->_value_i = this->_value_d;
+                        } else {
+                            this->_value_i = stimc_parameter_get_int32 (this->_parameter);
+                            this->_value_d = this->_value_i;
+                        }
+                    }
 
                     parameter            (const parameter &p) = delete; /**< @brief Do not copy/change internals */
                     parameter& operator= (const parameter &p) = delete; /**< @brief Do not copy/change internals */
 
-                    ~parameter ();
+                    /**
+                     * @brief Simple destructor
+                     */
+                    ~parameter ()
+                    {
+                        stimc_parameter_free (this->_parameter);
+                    }
 
                     /**
                      * @brief Integer value of parameter.
@@ -1142,19 +1210,29 @@ namespace stimcxx {
      */
     class thread_cleanup {
         protected:
-            thread_cleanup ();
-            virtual ~thread_cleanup ();
-
-            thread_cleanup            (const thread_cleanup &t) = delete; /**< @brief Do not copy/change internals */
-            thread_cleanup& operator= (const thread_cleanup &t) = delete; /**< @brief Do not copy/change internals */
-        protected:
             /**
              * @brief The actual cleanup callback function.
              * @param cleanup_data casted pointer to @ref thread_cleanup derived object.
              *
              * Will delete the specified object.
              */
-            static void cleanup_callback (void *cleanup_data);
+            static void cleanup_callback (void *cleanup_data)
+            {
+                thread_cleanup *cleanup = (thread_cleanup *)cleanup_data;
+
+                delete cleanup;
+            }
+
+        protected:
+            thread_cleanup ()
+            {
+                stimc_register_thread_cleanup (thread_cleanup::cleanup_callback, this);
+            }
+
+            virtual ~thread_cleanup () = default; /**< @brief Ensure derived destructor is called. */
+
+            thread_cleanup            (const thread_cleanup &t) = delete; /**< @brief Do not copy/change internals */
+            thread_cleanup& operator= (const thread_cleanup &t) = delete; /**< @brief Do not copy/change internals */
     };
 }
 
