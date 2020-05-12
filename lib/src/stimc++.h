@@ -629,9 +629,9 @@ namespace stimcxx {
                             {}
 
                             subbits            (const subbits &sb) = default; /**< @brief default copy constructor */
-                            subbits& operator= (const subbits &sb) = default; /**< @brief default copy assignment */
                             subbits            (subbits &&sb)      = default; /**< @brief default move constructor */
-                            subbits& operator= (subbits &&sb)      = default; /**< @brief default move assignment */
+                            subbits& operator= (const subbits &sb) = delete;  /**< @brief delete assignment - assignment to be used with values */
+                            subbits& operator= (subbits &&sb)      = delete;  /**< @brief delete assignment - assignment to be used with values */
 
                             ~subbits () = default; /**< @brief default destructor */
 
