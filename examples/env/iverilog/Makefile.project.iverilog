@@ -65,18 +65,24 @@ CXXFLAGS        ?= -std=c++11 -fpic -Weffc++
 CPPFLAGS        ?= $(addprefix -I,$(STIMC_DIRS))
 
 # default
+STIMC_THREAD_IMPL ?=pcl
+
+ifeq ($(STIMC_THREAD_IMPL),pcl)
+CPPFLAGS        += -D STIMC_THREAD_IMPL_PCL
 LDFLAGS         += -lpcl
-# variants
-#CPPFLAGS        += -D STIMC_THREAD_IMPL_PCL
-#LDFLAGS         += -lpcl
-#CPPFLAGS        += -D STIMC_THREAD_IMPL_LIBCO
-#LDFLAGS         += -lco
-#CPPFLAGS        += -D STIMC_THREAD_IMPL_BOOST
-#LDFLAGS         += -lboost_context
-#CPPFLAGS        += -D STIMC_THREAD_IMPL_BOOST2
-#LDFLAGS         += -lboost_context
-#CPPFLAGS        += -D STIMC_THREAD_IMPL_BOOST1
-#LDFLAGS         += -lboost_coroutine
+endif
+ifeq ($(STIMC_THREAD_IMPL),libco)
+CPPFLAGS        += -D STIMC_THREAD_IMPL_LIBCO
+LDFLAGS         += -lco
+endif
+ifeq ($(STIMC_THREAD_IMPL),boost2)
+CPPFLAGS        += -D STIMC_THREAD_IMPL_BOOST2
+LDFLAGS         += -lboost_context
+endif
+ifeq ($(STIMC_THREAD_IMPL),boost1)
+CPPFLAGS        += -D STIMC_THREAD_IMPL_BOOST1
+LDFLAGS         += -lboost_coroutine
+endif
 
 ifneq ($(strip $(STIMC_MODULES)),)
   VPI_CPPFLAGS  = $(shell iverilog-vpi --cflags | egrep -o -- '-I\s*\S*')
