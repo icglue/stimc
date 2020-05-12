@@ -391,21 +391,20 @@ static void stimc_thread_finish (struct stimc_thread_s *thread)
 
 static void stimc_thread_remove_event_handle (struct stimc_thread_s *thread, stimc_event event)
 {
-    ssize_t idx_event = -1;
-
     for (size_t i = 0; i < thread->event_combination->num; i++) {
         struct stimc_event_handle_s *h = &(thread->event_combination->events[i]);
-        if (h->event == event) idx_event = i;
-    }
 
-    if (idx_event >= 0) {
-        ssize_t idx_last = thread->event_combination->num - 1;
+        if (h->event == event) {
+            size_t idx_last = thread->event_combination->num - 1;
 
-        if (idx_event == idx_last) {
-            thread->event_combination->num--;
-        } else {
-            thread->event_combination->events[idx_event] = thread->event_combination->events[idx_last];
-            thread->event_combination->num--;
+            if (i == idx_last) {
+                thread->event_combination->num--;
+            } else {
+                thread->event_combination->events[i] = thread->event_combination->events[idx_last];
+                thread->event_combination->num--;
+            }
+
+            break;
         }
     }
 }

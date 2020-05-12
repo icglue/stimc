@@ -60,7 +60,7 @@ STIMC_LDFLAGS   ?= -lpcl
 WARNFLAGS       ?= -Wall -Wextra -Wshadow -pedantic
 OPTFLAGS        ?= -O2 -fdata-sections -ffunction-sections
 ARCHFLAGS       ?= -mtune=native -march=native
-CFLAGS          ?= -std=gnu11 -fpic -Wstrict-prototypes
+CFLAGS          ?= -std=c11 -fpic -Wstrict-prototypes
 CXXFLAGS        ?= -std=c++11 -fpic
 CPPFLAGS        ?= $(addprefix -I,$(STIMC_DIRS))
 
