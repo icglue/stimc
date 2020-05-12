@@ -442,61 +442,16 @@ namespace stimcxx {
 
     /**
      * @brief Convenience type to be able to assign x/z values.
-     *
-     * Not directly mapped to an enum to prevent ambiguity with
-     * integer types.
      */
-    class bit {
-        protected:
-            /**
-             * @brief The actual representation of x/z/none of them.
-             */
-            enum val {
-                val_X,      /**< @brief x value (verilog-x ~ unknown) */
-                val_Z,      /**< @brief z value (verilog-z ~ high impedance) */
-                val_not_XZ, /**< @brief not x/z for comparison */
-            };
-
-            enum val _v; /**< @brief The actual value */
-
-            /**
-             * @brief Non-public constructor to prevent ambiguity
-             * @param v The represented value.
-             */
-            bit (val v) : _v (v) {}
-        public:
-            /**
-             * @brief Comparison.
-             * @param b bit to compare against.
-             * @return true if equal.
-             * @see @ref module::port::operator==
-             */
-            bool operator== (const bit &b) const
-            {
-                return (b._v == this->_v);
-            }
-
-            /**
-             * @brief Comparison.
-             * @param b bit to compare against.
-             * @return true if non-equal.
-             * @see @ref module::port::operator!=
-             */
-            bool operator!= (const bit &b) const
-            {
-                return (b._v != this->_v);
-            }
-
-            /**
-             * @brief bit representing x value */
-            static bit X ()      {return bit (val_X);}
-            static bit Z ()      {return bit (val_Z);}
-            static bit not_XZ () {return bit (val_not_XZ);}
+    enum class bit {
+        X,      /**< @brief x value (verilog-x ~ unknown) */
+        Z,      /**< @brief z value (verilog-z ~ high impedance) */
+        not_XZ, /**< @brief not x/z for comparison */
     };
 
-    static const bit X      = bit::X ();      /**< @brief x value (verilog-x ~ unknown) */
-    static const bit Z      = bit::Z ();      /**< @brief z value (verilog-z ~ high impedance) */
-    static const bit not_XZ = bit::not_XZ (); /**< @brief not x/z for comparison */
+    static const bit X      = bit::X;      /**< @brief x value (verilog-x ~ unknown) */
+    static const bit Z      = bit::Z;      /**< @brief z value (verilog-z ~ high impedance) */
+    static const bit not_XZ = bit::not_XZ; /**< @brief not x/z for comparison */
 
 
     /**
@@ -634,27 +589,11 @@ namespace stimcxx {
                             operator bit ()
                             {
                                 if (stimc_net_bits_are_xz (_p._port, _msb, _lsb)) {
-                                    return X;
+                                    return bit::X;
                                 } else {
-                                    return not_XZ;
+                                    return bit::not_XZ;
                                 }
                             }
-
-                            /**
-                             * @brief Compare against x value.
-                             * @param b Value to compare against (typically @ref X).
-                             * @return true if equal, false otherwise.
-                             * @see @ref operator bit().
-                             */
-                            bool operator== (const bit &b) {return ((bit)(*this) == b);}
-
-                            /**
-                             * @brief Compare against x value.
-                             * @param b Value to compare against (typically @ref X).
-                             * @return true if equal, false otherwise.
-                             * @see @ref operator bit().
-                             */
-                            bool operator!= (const bit &b) {return ((bit)(*this) != b);}
 
                             /**
                              * @brief Immediate assignment operator to port bit range.
@@ -679,9 +618,9 @@ namespace stimcxx {
                              */
                             subbits& operator= (bit v)
                             {
-                                if (v == X) {
+                                if (v == bit::X) {
                                     stimc_net_set_bits_x (_p._port, _msb, _lsb);
-                                } else if (v == Z) {
+                                } else if (v == bit::Z) {
                                     stimc_net_set_bits_z (_p._port, _msb, _lsb);
                                 }
                                 return *this;
@@ -716,9 +655,9 @@ namespace stimcxx {
                              */
                             subbits& operator<<= (bit v)
                             {
-                                if (v == X) {
+                                if (v == bit::X) {
                                     stimc_net_set_bits_x_nonblock (_p._port, _msb, _lsb);
-                                } else if (v == Z) {
+                                } else if (v == bit::Z) {
                                     stimc_net_set_bits_z_nonblock (_p._port, _msb, _lsb);
                                 }
                                 return *this;
@@ -759,9 +698,9 @@ namespace stimcxx {
                      */
                     port& operator= (bit v)
                     {
-                        if (v == X) {
+                        if (v == bit::X) {
                             stimc_net_set_x (_port);
-                        } else if (v == Z) {
+                        } else if (v == bit::Z) {
                             stimc_net_set_z (_port);
                         }
                         return *this;
@@ -796,9 +735,9 @@ namespace stimcxx {
                      */
                     port& operator<<= (bit v)
                     {
-                        if (v == X) {
+                        if (v == bit::X) {
                             stimc_net_set_x_nonblock (_port);
-                        } else if (v == Z) {
+                        } else if (v == bit::Z) {
                             stimc_net_set_z_nonblock (_port);
                         }
                         return *this;
@@ -823,27 +762,11 @@ namespace stimcxx {
                     operator bit ()
                     {
                         if (stimc_net_is_xz (_port)) {
-                            return X;
+                            return bit::X;
                         } else {
-                            return not_XZ;
+                            return bit::not_XZ;
                         }
                     }
-
-                    /**
-                     * @brief Compare against x value.
-                     * @param b Value to compare against (typically @ref X).
-                     * @return true if equal, false otherwise.
-                     * @see @ref operator bit().
-                     */
-                    bool operator== (const bit &b) {return ((bit)(*this) == b);}
-
-                    /**
-                     * @brief Compare against x value.
-                     * @param b Value to compare against (typically @ref X).
-                     * @return true if equal, false otherwise.
-                     * @see @ref operator bit().
-                     */
-                    bool operator!= (const bit &b) {return ((bit)(*this) != b);}
 
                     /**
                      * @brief Optain a new bit range handle to the port.
@@ -910,9 +833,9 @@ namespace stimcxx {
                      */
                     port_real& operator= (bit v)
                     {
-                        if (v == X) {
+                        if (v == bit::X) {
                             stimc_net_set_x (_port);
-                        } else if (v == Z) {
+                        } else if (v == bit::Z) {
                             stimc_net_set_z (_port);
                         }
                         return *this;
@@ -941,9 +864,9 @@ namespace stimcxx {
                      */
                     port_real& operator<<= (bit v)
                     {
-                        if (v == X) {
+                        if (v == bit::X) {
                             stimc_net_set_x_nonblock (_port);
-                        } else if (v == Z) {
+                        } else if (v == bit::Z) {
                             stimc_net_set_z_nonblock (_port);
                         }
                         return *this;
@@ -965,27 +888,11 @@ namespace stimcxx {
                     operator bit ()
                     {
                         if (stimc_net_is_xz (_port)) {
-                            return X;
+                            return bit::X;
                         } else {
-                            return not_XZ;
+                            return bit::not_XZ;
                         }
                     }
-
-                    /**
-                     * @brief Compare against x value.
-                     * @param b Value to compare against (typically @ref X).
-                     * @return true if equal, false otherwise.
-                     * @see @ref operator bit().
-                     */
-                    bool operator== (const bit &b) {return ((bit)(*this) == b);}
-
-                    /**
-                     * @brief Compare against x value.
-                     * @param b Value to compare against (typically @ref X).
-                     * @return true if equal, false otherwise.
-                     * @see @ref operator bit().
-                     */
-                    bool operator!= (const bit &b) {return ((bit)(*this) != b);}
             };
 
             /**
