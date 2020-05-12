@@ -61,7 +61,7 @@ WARNFLAGS       ?= -Wall -Wextra -Wshadow -pedantic
 OPTFLAGS        ?= -O2 -fdata-sections -ffunction-sections
 ARCHFLAGS       ?= -mtune=native -march=native
 CFLAGS          ?= -std=c11 -fpic -Wstrict-prototypes
-CXXFLAGS        ?= -std=c++11 -fpic
+CXXFLAGS        ?= -std=c++11 -fpic -Weffc++
 CPPFLAGS        ?= $(addprefix -I,$(STIMC_DIRS))
 
 # default

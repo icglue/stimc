@@ -499,7 +499,8 @@ namespace stimcxx {
              *
              * Meant as base class - not to be constructed directly.
              */
-            module ()
+            module () :
+                _module {nullptr}
             {
                 stimc_module_init (&(this->_module), module::cleanup, this);
             }
@@ -981,7 +982,9 @@ namespace stimcxx {
                      * @param name Name of the parameter.
                      */
                     parameter (module &m, const char *name) :
-                        _parameter (stimc_parameter_init (&(m._module), name))
+                        _parameter (stimc_parameter_init (&(m._module), name)),
+                        _value_i (0),
+                        _value_d (0.0)
                     {
                         if (stimc_parameter_get_format (this->_parameter) == vpiRealVal) {
                             this->_value_d = stimc_parameter_get_double (this->_parameter);

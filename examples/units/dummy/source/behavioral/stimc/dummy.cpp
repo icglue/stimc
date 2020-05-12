@@ -7,7 +7,10 @@ dummy::dummy () :
     STIMCXX_PORT (clk_i),
     STIMCXX_PORT (reset_n_i),
     STIMCXX_PORT (data_in_i),
-    STIMCXX_PORT (data_out_o)
+    STIMCXX_PORT (data_out_o),
+
+    clk_event (),
+    din_event ()
 {
     STIMCXX_REGISTER_STARTUP_THREAD (testcontrol);
     STIMCXX_REGISTER_STARTUP_THREAD (testcontrol2);
