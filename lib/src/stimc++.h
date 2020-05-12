@@ -26,6 +26,7 @@
 #define __STIMCXX_H__
 
 #include <stimc.h>
+#include <utility>
 
 /**
  * @brief stimc++ namespace.
@@ -1155,7 +1156,7 @@ namespace stimcxx {
              */
             static void cleanup_callback (void *cleanup_data);
     };
-};
+}
 
 /**
  * @brief Parameter initialization for module constructor initializer list.

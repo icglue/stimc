@@ -102,5 +102,5 @@ namespace stimcxx {
 
         delete cleanup;
     }
-};
+}
 
