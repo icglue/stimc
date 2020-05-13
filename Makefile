@@ -53,7 +53,7 @@ locall:
 
 #-------------------------------------------------------
 # Test
-.PHONY: test cleantest
+.PHONY: test memcheck cleantest
 
 export ICPRO_DIR
 cleantest:
@@ -62,6 +62,9 @@ cleantest:
 test: cleantest
 	@$(MAKE) -sC $(REGDIR)
 	@$(MAKE) -sC $(REGDIR) show | ./scripts/regression_eval.sh
+
+memcheck: cleantest
+	@$(MAKE) -sC $(REGDIR) memcheck
 
 #-------------------------------------------------------
 # directories

@@ -40,6 +40,7 @@ CXX             ?= g++
 LD              ?= ld
 LN              ?= ln -sf
 VVP             ?= vvp
+MEMCHK          ?= valgrind --leak-check=full --error-exitcode=1 --suppressions=${ICPRO_DIR}/env/iverilog/vvp.valgrind.supp -s
 MKTEMP          ?= mktemp -p $(TMPDIR) -t ivl-$(USER)-$(SIM_NAME)-XXXX
 
 # ------------  tool flags for iverilog  ---------------------------------------
@@ -215,6 +216,10 @@ run: $(VVP_FILE) $(VPI_MODULE) Makefile
 	$q$(call echo, "\n$${b}$(runcolor)RUN $${c} $$(basename $(VVP_FILE))\n")
 	$q$(VVP) $(VVP_FLAGS) $(VVP_FILE) $(DUMPMODE) $(VVP_EXTARGS_RUN)
 
+memcheck: $(VVP_FILE) $(VPI_MODULE) Makefile
+	$q$(call echo, "\n$${b}$(runcolor)MEMCHECK $${c} $$(basename $(VVP_FILE))\n")
+	$q$(MEMCHK) $(VVP) $(VVP_FLAGS) $(VVP_FILE) $(DUMPMODE) $(VVP_EXTARGS_RUN)
+
 runbatch: $(VVP_FILE) $(VPI_MODULE) Makefile
 	$q$(call echo, "\n$${b}$(runcolor)RUN $${c} $$(basename $(VVP_FILE))\n")
 	$q$(VVP) $(VVP_FLAGS) $(VVP_FILE) $(DUMPMODE) $(VVP_EXTARGS_RUN) 2>&1 | tee $(BATCH_LOG)
@@ -249,6 +254,6 @@ $(DUMP_MOD):
 	@echo 'end'                            >> $@
 	@echo 'endmodule'                      >> $@
 
-.PHONY: elab vlog vpi_run elab run runbatch rungui rerun gui clean
+.PHONY: elab vlog vpi_run elab run runbatch rungui rerun memcheck gui clean
 
 .SECONDARY: $(STIMC_DEPS) $(STIMC_OBJECTS) $(VPI_MODULE)
