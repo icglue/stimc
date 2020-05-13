@@ -31,20 +31,6 @@
 #include <stdbool.h>
 
 #ifdef __cplusplus
-#include <atomic>
-/**
- * @brief stimc thread fence (not sure if necessary, but used between suspend/resume of stimc threads)
- */
-#define stimc_thread_fence(...) std::atomic_thread_fence (std::memory_order_acq_rel)
-#else
-#include <stdatomic.h>
-/**
- * @brief stimc thread fence (not sure if necessary, but used between suspend/resume of stimc threads)
- */
-#define stimc_thread_fence(...) __atomic_thread_fence (__ATOMIC_ACQ_REL)
-#endif
-
-#ifdef __cplusplus
 extern "C" {
 #endif
 
