@@ -58,7 +58,7 @@ ${RESULT_DIR}/%/${MEMCHECK_DUMMY}: | ${RESULT_DIR}/%
 
 # evaluate
 ${RESULT_LOG}: ${TBCHECK_LOGS} | ${RESULT_DIR}
-	@cat ${TBCHECK_LOGS} | column -t -o ' ' > $@
+	@cat ${TBCHECK_LOGS} | column -t > $@
 	@sh -c "echo \"---\"; echo \"PASSED: $$(cat $@ | grep -ce 'TBCHECK:\s*PASSED') out of $$(cat $@ | wc -l)\"" >> $@
 	@rm -f ${LATEST_RESULT_DIR}
 	@ln -srf ${RESULT_DIR} ${LATEST_RESULT_DIR}
