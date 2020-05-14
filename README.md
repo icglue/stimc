@@ -51,7 +51,7 @@ The c++ code is wrapped in a `stimcxx` namespace.
 First a c++ class is needed that inherits `stimcxx::module` (include `stimc++.h`).
 For every (used) port of the Verilog shell the class should have a `port` member,
 for every (used) parameter a `parameter` member of the same name as the Verilog pendant.
-Additionally can have `stimcxx::event` members in case waiting on events triggered
+Additionally it can have `stimcxx::event` members in case waiting on events triggered
 by individual stimc threads or value-change events on ports is needed (similar to
 SystemC events).
 
@@ -139,14 +139,21 @@ Furthermore there are helper functions in the `stimcxx` namespace:
 - `time()` (simulation time in seconds), `time(<unit>)` (simulation
   time as integer in specified unit, similar to SystemC units are defined as `SC_PS`, `SC_US` and so on).
 - `finish()` to finish simulation.
-- `wait(<event>)` to wait on an event to be triggered,
-  `wait(<time>)` to wait an amount of time in seconds (double) or
-  `wait(<time>,<unit>)` to wait an integral amount of time in specified unit (similarly `SC_PS` and so on).
-  The wait function can only be called from within a thread
-  (as only initialized threads can be suspended and resumed).
+- Multiple wait functions.
+  They can only be called from within a thread
+  (as only initialized threads can be suspended and resumed):
+  - `wait(<event>)` to wait on an event to be triggered,
+  - `wait(<event1> & <event2> & ...)` to wait for all of the events to be triggered,
+  - `wait(<event1> | <event2> | ...)` to wait for any of the events to be triggered,
+  - `wait(<time>)` to wait an amount of time in seconds (double) or
+  - `wait(<time>, <unit>)` to wait an integral amount of time in specified unit (similarly `SC_PS` and so on).
+  - `wait(<event or combination>, <time>)`, `wait(<event or combination>, <time>, <unit>)` to wait for
+    an event or combination (any/ⱥll) of events with the specified time as timeout.
+    In contrast to the other wait functions the wait with timeout returns `true` in case of timeout,
+    `false` otherwise.
 
 Events can be triggered by calling their `trigger()` member function.
-When triggering an event all threads currently waiting for it will be resumed (in any order).
+When triggering an event, all threads currently waiting for it will be resumed (in any order).
 It is not possible for a thread to trigger itself as it would either need to first wait (not being
 able to trigger) or first trigger (and not yet waiting on the event, so not being resumed on this
 trigger).
