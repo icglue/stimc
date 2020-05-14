@@ -58,7 +58,7 @@ VVP_EXTARGS_RUN ?= -none
 # ------------  tool flags for stimc  ------------------------------------------
 STIMC_LDFLAGS   ?= -lpcl
 
-WARNFLAGS       ?= -Wall -Wextra -Wshadow -pedantic
+WARNFLAGS       ?= -Wall -Wextra -Wshadow -pedantic -Werror
 OPTFLAGS        ?= -O2 -fdata-sections -ffunction-sections
 #ARCHFLAGS       ?= -mtune=native -march=native
 CFLAGS          ?= -std=c11 -fpic -Wstrict-prototypes

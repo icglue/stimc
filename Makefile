@@ -53,18 +53,26 @@ locall:
 
 #-------------------------------------------------------
 # Test
-.PHONY: test memcheck cleantest
+.PHONY: test simcheck memcheck cleantest
 
 export ICPRO_DIR
 cleantest:
-	@$(MAKE) -sC $(REGDIR) cleanall
+	@$(MAKE) --no-print-directory -sC $(REGDIR) cleanall
 
-test: cleantest
-	@$(MAKE) -sC $(REGDIR)
-	@$(MAKE) -sC $(REGDIR) show | ./scripts/regression_eval.sh
+test:
+	@$(MAKE) --no-print-directory simcheck
+	@$(MAKE) --no-print-directory memcheck
+
+simcheck: cleantest
+	@echo "=== running simulations ==="
+	@$(MAKE) --no-print-directory -sC $(REGDIR)
+	@$(MAKE) --no-print-directory -sC $(REGDIR) show | ./scripts/regression_eval.sh
+	@echo ""
 
 memcheck: cleantest
-	@$(MAKE) -sC $(REGDIR) memcheck
+	@echo "=== running memchecks ==="
+	@$(MAKE) --no-print-directory -sC $(REGDIR) memcheck
+	@echo ""
 
 #-------------------------------------------------------
 # directories

@@ -12,4 +12,3 @@ addons:
 
 script:
     - make -j3 test
-    - make -j3 memcheck
