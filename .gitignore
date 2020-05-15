@@ -1,5 +1,9 @@
 a.out
 
+*.so
+*.d
+*.dep
+
 *.o
 *.vpi
 *.vvp

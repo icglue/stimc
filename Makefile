@@ -23,10 +23,21 @@ DOXYFILE              = doxy/lib.doxyfile
 BROWSER              ?= firefox
 
 LOCTOOL              ?= cloc
-LOCSOURCES            = $(wildcard lib/src/*.c lib/src/*.c++ lib/src/*.h)
+LOCSOURCES            = $(wildcard lib/src/*.c lib/src/*.c++ lib/src/*.cpp lib/src/*.h)
 
 ICPRO_DIR             = $(CURDIR)/examples
 REGDIR                = $(ICPRO_DIR)/regression
+
+LIBDIR                = lib
+
+#-------------------------------------------------------
+# LIB
+.PHONY: lib
+
+lib:
+	@$(MAKE) --no-print-directory -C $(LIBDIR)
+
+.DEFAULT_GOAL: lib
 
 #-------------------------------------------------------
 # documentation
@@ -39,7 +50,6 @@ docs: doclib
 
 showdocs:
 	$(BROWSER) $(DOCDIR)/html/index.html > /dev/null 2> /dev/null &
-
 
 #-------------------------------------------------------
 # LoC
@@ -81,10 +91,13 @@ $(DOCDIR):
 
 #-------------------------------------------------------
 # cleanup targets
-.PHONY: mrproper cleanall cleandoc
+.PHONY: mrproper cleanall cleandoc cleanlib
+
+cleanlib:
+	@$(MAKE) --no-print-directory -C $(LIBDIR) clean
 
 cleandoc:
 	rm -rf $(DOCDIR)
 
-mrproper cleanall: cleandoc cleantest
+mrproper cleanall: cleandoc cleantest cleanlib
 

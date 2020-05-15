@@ -11,4 +11,5 @@ addons:
       - valgrind
 
 script:
-    - make -j3 test
+  - make -j3
+  - make -j3 test
