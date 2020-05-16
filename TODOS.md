@@ -1,5 +1,5 @@
 # TODOs
-- provide makefile with system-wide installation?
+- version information + update
 - more tests
   - cleanup
   - plain c?

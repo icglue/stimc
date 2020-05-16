@@ -23,10 +23,12 @@
 #===============================================================================
 
 #-------------  name of the executable binary  ---------------------------------
-EXECUTALBE      ?= stimc.so
+EXECUTABLE      ?=
+LIB             ?= libstimc.so
+STATICLIB       ?= libstimc.a
 
 #-------------  name of the target (can also be a library *.{a,so})  -----------
-TARGET          ?= $(EXECUTALBE)
+TARGET          ?= $(LIB) $(STATICLIB)
 
 #-------------  directory of the target  ---------------------------------------
 TARGET_DIR      ?= ./lib
@@ -51,7 +53,14 @@ LIBS            ?=
 
 #-------------  thread backend  ------------------------------------------------
 # can be one of pcl, libco, boost1, boost2
-THREAD_IMPL     ?=pcl
+THREAD_IMPL     ?= pcl
+
+#-------------  pkg-config settings  -------------------------------------------
+PREFIX          ?= /usr/local
+LIBDIR          ?= $(PREFIX)/lib
+INCLUDEDIR      ?= $(PREFIX)/include
+PC_SRC           = ./pkgconfig/stimc.pc.src
+PC_TRG           = ./pkgconfig/stimc.pc
 
 #-------------  directory of the dependency  -----------------------------------
 DEPS_DIR        ?= ./.deps
@@ -99,6 +108,27 @@ ifeq ($(suffix $(TARGET)), .so)
   LDFLAGS       := -shared $(LDFLAGS)
 endif
 
+# stimc thread implementation backend
+ifeq ($(THREAD_IMPL),pcl)
+CPPFLAGS        += -D STIMC_THREAD_IMPL_PCL
+THREAD_CPPFLAGS +=
+THREAD_LDFLAGS  += -lpcl
+endif
+ifeq ($(THREAD_IMPL),libco)
+CPPFLAGS        += -D STIMC_THREAD_IMPL_LIBCO
+PKG_CFG_LIBS    += libco
+endif
+ifeq ($(THREAD_IMPL),boost2)
+CPPFLAGS        += -D STIMC_THREAD_IMPL_BOOST2
+THREAD_CPPFLAGS +=
+THREAD_LDFLAGS  += -lboost_context
+endif
+ifeq ($(THREAD_IMPL),boost1)
+CPPFLAGS        += -D STIMC_THREAD_IMPL_BOOST1
+THREAD_CPPFLAGS +=
+THREAD_LDFLAGS  += -lboost_coroutine
+endif
+
 #pkg-config
 ifneq ($(PKG_CFG_LIBS),)
   CPPFLAGS      += $(shell pkg-config --cflags $(PKG_CFG_LIBS))
@@ -107,29 +137,11 @@ endif
 
 # vpi
 VPI_CPPFLAGS    ?= $(shell iverilog-vpi --cflags | egrep -o -- '-I\s*\S*')
-VPI_LDFLAGS     ?= $(shell iverilog-vpi --ldflags)
+VPI_LDFLAGS     ?= $(shell iverilog-vpi --ldflags | egrep -o -- '-[lL]\s*\S*')
 
-# stimc thread implementation backend
-ifeq ($(THREAD_IMPL),pcl)
-CPPFLAGS        += -D STIMC_THREAD_IMPL_PCL
-LDFLAGS         += -lpcl
-endif
-ifeq ($(THREAD_IMPL),libco)
-CPPFLAGS        += -D STIMC_THREAD_IMPL_LIBCO
-LDFLAGS         += -lco
-endif
-ifeq ($(THREAD_IMPL),boost2)
-CPPFLAGS        += -D STIMC_THREAD_IMPL_BOOST2
-LDFLAGS         += -lboost_context
-endif
-ifeq ($(THREAD_IMPL),boost1)
-CPPFLAGS        += -D STIMC_THREAD_IMPL_BOOST1
-LDFLAGS         += -lboost_coroutine
-endif
-
-ALL_CFLAGS      := $(WARNFLAGS) $(OPTFLAGS) $(ARCHFLAGS) $(CFLAGS) $(CPPFLAGS) $(VPI_CPPFLAGS)
-ALL_CXXFLAGS    := $(WARNFLAGS) $(OPTFLAGS) $(ARCHFLAGS) $(CXXFLAGS) $(CPPFLAGS) $(VPI_CPPFLAGS)
-ALL_LDFLAGS     := $(LDFLAGS) $(VPI_LDFLAGS)
+ALL_CFLAGS      := $(WARNFLAGS) $(OPTFLAGS) $(ARCHFLAGS) $(CFLAGS) $(CPPFLAGS) $(VPI_CPPFLAGS) $(THREAD_CPPFLAGS)
+ALL_CXXFLAGS    := $(WARNFLAGS) $(OPTFLAGS) $(ARCHFLAGS) $(CXXFLAGS) $(CPPFLAGS) $(VPI_CPPFLAGS) $(THREAD_CPPFLAGS)
+ALL_LDFLAGS     := $(LDFLAGS) $(VPI_LDFLAGS) $(THREAD_LDFLAGS)
 
 # ------------  generate the names of the source/object files  -----------------
 ALL_SOURCES      = $(wildcard $(addprefix $(SOURCE_DIR)/,$(SOURCES)))
@@ -141,7 +153,7 @@ DEPS             = $(addprefix $(DEPS_DIR)/, $(addsuffix .d, $(BASENAMES)))
 
 .DEFAULT_GOAL := all
 
-all: $(TARGET_DIR)/$(TARGET)
+all: $(addprefix $(TARGET_DIR)/, $(TARGET))
 
 $(DEPS_DIR):
 	@$(MKDIR) $(DEPS_DIR)
@@ -184,16 +196,16 @@ $(TARGET_DIR)/%.o: $(SOURCE_DIR)/%.cpp $(DEPS_DIR)/%.d | $(TARGET_DIR) $(ASM_DIR
 	$(CXX) $(ALL_CXXFLAGS) -g -c $< -o $@ $(GEN_ASM_FLAGS)
 
 $(TARGET_DIR)/%.so: $(OBJECTS)
-	$(CXX) $(WARNFLAGS) $(OBJECTS) $(LDFLAGS) -o $@
+	$(CXX) $(WARNFLAGS) $(OBJECTS) -shared $(ALL_LDFLAGS) -o $@
 
 $(TARGET_DIR)/%.a: $(OBJECTS)
 	$(AR) rcs $@ $(OBJECTS)
 
-$(TARGET_DIR)/$(EXECUTALBE): $(OBJECTS)
+$(TARGET_DIR)/$(EXECUTABLE): $(OBJECTS)
 	$(CXX) $(WARNFLAGS) $(ARCHFLAGS) $(OBJECTS) $(ALL_LDFLAGS) -o $@ $(addprefix -L, $(LIB_DIR)) $(LIBS)
 
-run: $(TARGET_DIR)/$(EXECUTALBE)
-	$(TARGET_DIR)/$(EXECUTALBE) $(RUNPARAMS)
+run: $(TARGET_DIR)/$(EXECUTABLE)
+	$(TARGET_DIR)/$(EXECUTABLE) $(RUNPARAMS)
 
 dump: $(TARGET_DIR)/$(TARGET)
 	$(OD) -dxt -S $(TARGET_DIR)/$(TARGET)
@@ -204,6 +216,22 @@ release: $(TARGET_DIR)/$(TARGET)
 strip-all: $(TARGET_DIR)/$(EXECUTABLE)
 	$(STRIP) -s $(TARGET_DIR)/$(EXECUTABLE)
 
+# ------------ extras  ---------------------------------------------------------
+
+pkgconfig: $(PC_TRG)
+
+%.pc: %.pc.src
+	@echo "creating $@"
+	@cat $< | sed \
+		-e "s#%%prefix%%#$(PREFIX)#g" \
+		-e "s#%%libdir%%#$(LIBDIR)#g" \
+		-e "s#%%includedir%%#$(INCLUDEDIR)#g" \
+		-e "s#%%requires%%#$(PKG_CFG_LIBS)#g" \
+		-e "s#%%libs%%#$(VPI_LDFLAGS) $(THREAD_LDFLAGS)#g" \
+		-e "s#%%cflags%%#$(VPI_CPPFLAGS) $(THREAD_CPPFLAGS)#g" \
+		-e 's#\s\+$$##g' \
+		> $@
+
 doc:
 	doxygen $(DOXYFILE) |grep -i warning; true
 
@@ -211,7 +239,7 @@ viewdoc:
 	@$${BROWSER:-firefox} $(DOXY_DOCPATH)/html/index.html >/dev/null 2>&1 &
 
 clean:
-	-@$(RM) $(addprefix $(TARGET_DIR)/, *.o $(TARGET)) $(ASM_DIR)/*.s $(addprefix $(DEPS_DIR)/, *.d)
+	-@$(RM) $(addprefix $(TARGET_DIR)/, *.o $(TARGET)) $(ASM_DIR)/*.s $(addprefix $(DEPS_DIR)/, *.d) $(PC_TRG)
 	-@$(RMDIR) $(DEPS_DIR) $(TARGET_DIR) $(ASM_DIR) 2>/dev/null; true
 	-@$(RM) -rf $(addprefix ./$(DOXY_DOCPATH)/, html latex rtf man); true
 	-@$(RMDIR) ./$(DOXY_DOCPATH) 2>/dev/null; true
@@ -226,5 +254,5 @@ uncrustify:
 
 .SECONDARY: $(DEPS) $(OBJECTS) $(TARGET_DIR)/$(TARGET)
 
-.PHONY: all run release strip-all doc viewdoc clean uncrustify
+.PHONY: all run release strip-all doc viewdoc clean uncrustify pkgconfig
 

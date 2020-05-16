@@ -1,8 +1,8 @@
 a.out
 
+*.a
 *.so
 *.d
-*.dep
 
 *.o
 *.vpi

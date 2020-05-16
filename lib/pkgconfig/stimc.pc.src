@@ -1,0 +1,14 @@
+# stimc pkg-config file
+
+prefix=%%prefix%%
+libdir=%%libdir%%
+includedir=%%includedir%%
+
+Name: stimc
+Description: a lightweight Verilog-vpi Wrapper for Stimuli Generation
+URL: https://stimc.icglue.org
+Version: 0.9
+Requires.private: %%requires%%
+Libs: -L${libdir} -lstimc
+Libs.private: %%libs%%
+Cflags: -I${includedir} %%cflags%%

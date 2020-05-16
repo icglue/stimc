@@ -16,28 +16,49 @@
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #
 
-DOCDIR                = doc
+DOCDIR           = doc
 
-DOXYFILE              = doxy/lib.doxyfile
+DOXYFILE         = doxy/lib.doxyfile
 
-BROWSER              ?= firefox
+BROWSER         ?= firefox
 
-LOCTOOL              ?= cloc
-LOCSOURCES            = $(wildcard lib/src/*.c lib/src/*.c++ lib/src/*.cpp lib/src/*.h)
+ICPRO_DIR        = $(CURDIR)/examples
+REGDIR           = $(ICPRO_DIR)/regression
 
-ICPRO_DIR             = $(CURDIR)/examples
-REGDIR                = $(ICPRO_DIR)/regression
+BUILD_BASE       = lib
+BUILD_LIBS       = lib/*.so lib/*.a
+BUILD_HEADERS    = src/*.h
+BUILD_PCFILES    = pkgconfig/*.pc
 
-LIBDIR                = lib
+LOCTOOL         ?= cloc
+LOCSOURCES       = $(wildcard lib/src/*.c lib/src/*.c++ lib/src/*.cpp lib/src/*.h)
+
+PREFIX          ?= /usr/local
+DESTDIR         ?=
+LIBDIR          ?= $(PREFIX)/lib
+PCDIR           ?= $(PREFIX)/lib/pkgconfig
+INCLUDEDIR      ?= $(PREFIX)/include
 
 #-------------------------------------------------------
 # LIB
 .PHONY: lib
 
 lib:
-	@$(MAKE) --no-print-directory -C $(LIBDIR)
+	@$(MAKE) --no-print-directory -C $(BUILD_BASE)
+	@$(MAKE) --no-print-directory -C $(BUILD_BASE) pkgconfig
 
 .DEFAULT_GOAL: lib
+
+#-------------------------------------------------------
+# Install
+INSTALL_LIBDIR     = $(DESTDIR)$(LIBDIR)
+INSTALL_INCLUDEDIR = $(DESTDIR)$(INCLUDEDIR)
+INSTALL_PCDIR      = $(DESTDIR)$(PCDIR)
+
+install: lib
+	install -m 755 -D -t $(INSTALL_LIBDIR)     $(wildcard $(addprefix $(BUILD_BASE)/, $(BUILD_LIBS)))
+	install -m 644 -D -t $(INSTALL_INCLUDEDIR) $(wildcard $(addprefix $(BUILD_BASE)/, $(BUILD_HEADERS)))
+	install -m 644 -D -t $(INSTALL_PCDIR)      $(wildcard $(addprefix $(BUILD_BASE)/, $(BUILD_PCFILES)))
 
 #-------------------------------------------------------
 # documentation
@@ -94,10 +115,10 @@ $(DOCDIR):
 .PHONY: mrproper cleanall cleandoc cleanlib
 
 cleanlib:
-	@$(MAKE) --no-print-directory -C $(LIBDIR) clean
+	@$(MAKE) --no-print-directory -C $(BUILD_BASE) clean
 
 cleandoc:
-	rm -rf $(DOCDIR)
+	@rm -rf $(DOCDIR)
 
 mrproper cleanall: cleandoc cleantest cleanlib
 
