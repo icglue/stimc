@@ -27,6 +27,10 @@ EXECUTABLE      ?=
 LIB             ?= libstimc.so
 STATICLIB       ?= libstimc.a
 
+VERSION         ?= 0.1
+VERSION_MAIN     = $(shell echo $(VERSION) | sed 's/\([0-9]\+\)\..*/\1/')
+SONAME           = $(LIB).$(VERSION_MAIN)
+
 #-------------  name of the target (can also be a library *.{a,so})  -----------
 TARGET          ?= $(LIB) $(STATICLIB)
 
@@ -99,13 +103,13 @@ MKDIR           ?= mkdir -p
 
 ifeq ($(USE_LTO), YES)
   OPTFLAGS      := -flto $(OPTFLAGS)
-  LDFLAGS       := -flto -fuse-linker-plugin $(ALL_LDFLAGS)
+  LDFLAGS       := -flto -fuse-linker-plugin $(LDFLAGS)
 endif
 
-ifeq ($(suffix $(TARGET)), .so)
+ifeq ($(suffix $(LIB)), .so)
   CFLAGS        := -fpic $(CFLAGS)
   CXXFLAGS      := -fpic $(CXXFLAGS)
-  LDFLAGS       := -shared $(LDFLAGS)
+  LDFLAGS       := -shared $(LDFLAGS) -Wl,-soname=$(SONAME)
 endif
 
 # stimc thread implementation backend
@@ -226,6 +230,7 @@ pkgconfig: $(PC_TRG)
 		-e "s#%%prefix%%#$(PREFIX)#g" \
 		-e "s#%%libdir%%#$(LIBDIR)#g" \
 		-e "s#%%includedir%%#$(INCLUDEDIR)#g" \
+		-e "s#%%version%%#$(VERSION)#g" \
 		-e "s#%%requires%%#$(PKG_CFG_LIBS)#g" \
 		-e "s#%%libs%%#$(VPI_LDFLAGS) $(THREAD_LDFLAGS)#g" \
 		-e "s#%%cflags%%#$(VPI_CPPFLAGS) $(THREAD_CPPFLAGS)#g" \
@@ -239,7 +244,7 @@ viewdoc:
 	@$${BROWSER:-firefox} $(DOXY_DOCPATH)/html/index.html >/dev/null 2>&1 &
 
 clean:
-	-@$(RM) $(addprefix $(TARGET_DIR)/, *.o $(TARGET)) $(ASM_DIR)/*.s $(addprefix $(DEPS_DIR)/, *.d) $(PC_TRG)
+	-@$(RM) $(addprefix $(TARGET_DIR)/, *.o *.so *.a $(TARGET)) $(ASM_DIR)/*.s $(addprefix $(DEPS_DIR)/, *.d) $(PC_TRG)
 	-@$(RMDIR) $(DEPS_DIR) $(TARGET_DIR) $(ASM_DIR) 2>/dev/null; true
 	-@$(RM) -rf $(addprefix ./$(DOXY_DOCPATH)/, html latex rtf man); true
 	-@$(RMDIR) ./$(DOXY_DOCPATH) 2>/dev/null; true
@@ -252,7 +257,7 @@ uncrustify:
 		uncrustify -l C -c .uncrustify.cfg --replace --no-backup $$f ; \
 	done
 
-.SECONDARY: $(DEPS) $(OBJECTS) $(TARGET_DIR)/$(TARGET)
+.SECONDARY: $(DEPS) $(OBJECTS)
 
 .PHONY: all run release strip-all doc viewdoc clean uncrustify pkgconfig
 

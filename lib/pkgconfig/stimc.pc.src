@@ -7,7 +7,7 @@ includedir=%%includedir%%
 Name: stimc
 Description: a lightweight Verilog-vpi Wrapper for Stimuli Generation
 URL: https://stimc.icglue.org
-Version: 0.9
+Version: %%version%%
 Requires.private: %%requires%%
 Libs: -L${libdir} -lstimc
 Libs.private: %%libs%%

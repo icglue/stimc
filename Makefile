@@ -26,9 +26,12 @@ ICPRO_DIR        = $(CURDIR)/examples
 REGDIR           = $(ICPRO_DIR)/regression
 
 BUILD_BASE       = lib
-BUILD_LIBS       = lib/*.so lib/*.a
+BUILD_LIB_SO     = lib/libstimc.so
+BUILD_LIB_A      = lib/libstimc.a
 BUILD_HEADERS    = src/*.h
 BUILD_PCFILES    = pkgconfig/*.pc
+
+VERSION         ?= 0.1
 
 LOCTOOL         ?= cloc
 LOCSOURCES       = $(wildcard lib/src/*.c lib/src/*.c++ lib/src/*.cpp lib/src/*.h)
@@ -56,9 +59,13 @@ INSTALL_INCLUDEDIR = $(DESTDIR)$(INCLUDEDIR)
 INSTALL_PCDIR      = $(DESTDIR)$(PCDIR)
 
 install: lib
-	install -m 755 -D -t $(INSTALL_LIBDIR)     $(wildcard $(addprefix $(BUILD_BASE)/, $(BUILD_LIBS)))
 	install -m 644 -D -t $(INSTALL_INCLUDEDIR) $(wildcard $(addprefix $(BUILD_BASE)/, $(BUILD_HEADERS)))
 	install -m 644 -D -t $(INSTALL_PCDIR)      $(wildcard $(addprefix $(BUILD_BASE)/, $(BUILD_PCFILES)))
+	install -m 755 -D -T $(addprefix $(BUILD_BASE)/, $(BUILD_LIB_A))  $(INSTALL_LIBDIR)/$(notdir $(BUILD_LIB_A))
+	install -m 755 -D -T $(addprefix $(BUILD_BASE)/, $(BUILD_LIB_SO)) $(INSTALL_LIBDIR)/$(notdir $(BUILD_LIB_SO)).$(VERSION)
+	ldconfig -n $(INSTALL_LIBDIR)
+	ln -fs $(notdir $(BUILD_LIB_SO)).$(VERSION) $(INSTALL_LIBDIR)/$(notdir $(BUILD_LIB_SO))
+
 
 #-------------------------------------------------------
 # documentation
