@@ -1,4 +1,13 @@
 # TODOs
+- install
+  - man pages
+  - readme (-> doc?)
+  - addons
+- systemc-compat helpers?
 - more tests
   - cleanup
   - plain c?
+- documentation
+  - installation
+  - changelog
+- release 1.0
