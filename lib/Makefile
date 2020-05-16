@@ -28,7 +28,7 @@ LIB             ?= libstimc.so
 STATICLIB       ?= libstimc.a
 
 VERSION         ?= 0.1
-VERSION_MAIN     = $(shell echo $(VERSION) | sed 's/\([0-9]\+\)\..*/\1/')
+VERSION_MAIN     = $(shell echo $(VERSION) | sed -r -n -e 's/([0-9]+)\..*/\1/p')
 SONAME           = $(LIB).$(VERSION_MAIN)
 
 #-------------  name of the target (can also be a library *.{a,so})  -----------

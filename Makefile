@@ -113,6 +113,13 @@ memcheck: cleantest
 	@echo ""
 
 #-------------------------------------------------------
+# version-updaet
+updateversion:
+	@./scripts/update_version.sh $(VERSION)
+
+.PHONY: updateversion
+
+#-------------------------------------------------------
 # directories
 $(DOCDIR):
 	mkdir -p $@

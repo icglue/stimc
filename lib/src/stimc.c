@@ -62,6 +62,22 @@
 #endif
 
 /******************************************************************************************************/
+/* version */
+/******************************************************************************************************/
+#ifndef STIMC_VERSION_MAJOR
+#define STIMC_VERSION_MAJOR 0
+#endif
+#ifndef STIMC_VERSION_MINOR
+#define STIMC_VERSION_MINOR 1
+#endif
+#define STIMC_VERSION_STR(s) #s
+
+/* external constants for version information */
+const unsigned stimc_version_major = STIMC_VERSION_MAJOR;
+const unsigned stimc_version_minor = STIMC_VERSION_MINOR;
+const char    *stimc_version       = STIMC_VERSION_STR (STIMC_VERSION_MAJOR) "." STIMC_VERSION_STR (STIMC_VERSION_MINOR);
+
+/******************************************************************************************************/
 /* internal header */
 /******************************************************************************************************/
 
