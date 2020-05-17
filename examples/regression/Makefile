@@ -6,6 +6,7 @@ TESTCASES := \
 	dummy.tc_events_1 \
 	dummy.tc_events_2 \
 	dummy.tc_events_3 \
+	dummy_c.tc_sanity \
 
 # icglue keep end
 

@@ -1,0 +1,5 @@
+// icglue keep begin sources
+${ICPRO_DIR}/units/dummy_c/source/behavioral/verilog/dummy_c.v
+${ICPRO_DIR}/units/dummy_c/source/tb/verilog/tb_dummy_c.v
+// icglue keep end
+

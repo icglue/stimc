@@ -6,7 +6,6 @@
 - systemc-compat helpers?
 - more tests
   - cleanup
-  - plain c?
 - documentation
   - installation
   - changelog

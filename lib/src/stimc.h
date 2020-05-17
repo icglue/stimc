@@ -730,7 +730,7 @@ void stimc_parameter_free (stimc_parameter p);
  * \code{.cpp}
  * STIMC_INIT (modulename)
  * {
- *     // body
+ *     // body creating module resources
  * }
  * \endcode
  * will be indirectly used by @ref STIMC_EXPORT.
@@ -781,17 +781,27 @@ void stimc_vpi_init_register (struct stimc_vpi_init_register_s *entry);
  * Used to define the initialization code for a stimc module via
  * @ref STIMC_INIT and register the necessary functions for loading
  * with the vpi library.
+ *
+ * Use similar to @ref STIMC_INIT:
+ * \code{.cpp}
+ * STIMC_EXPORT (modulename)
+ * {
+ *     // body creating module resources
+ * }
+ * \endcode
  */
 #define STIMC_EXPORT(module) \
-    STIMC_INIT (module) \
-    \
-    static stimc_vpi_init_register_s _stimc_module_ ## module ## _vpi_init_s_ = {_stimc_module_ ## module ## _register, NULL}; \
-    \
+    void _stimc_module_ ## module ## _register (void); \
+\
+    static struct stimc_vpi_init_register_s _stimc_module_ ## module ## _vpi_init_s_ = {_stimc_module_ ## module ## _register, NULL}; \
+\
     static void _stimc_module_ ## module ## _vpi_init_f_ (void) \
     { \
         stimc_vpi_init_register (&_stimc_module_ ## module ## _vpi_init_s_); \
     } \
-    static stimc_vpi_init_register_func_t _stimc_module_ ## module ## _do_export_ __attribute__((__used__, section (".init_array"))) = _stimc_module_ ## module ## _vpi_init_f_;
+    static stimc_vpi_init_register_func_t _stimc_module_ ## module ## _do_export_ __attribute__((__used__, section (".init_array"))) = _stimc_module_ ## module ## _vpi_init_f_; \
+\
+    STIMC_INIT (module)
 
 #ifdef __cplusplus
 }
