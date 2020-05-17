@@ -782,7 +782,7 @@ void stimc_vpi_init_register (struct stimc_vpi_init_register_s *entry);
  * @ref STIMC_INIT and register the necessary functions for loading
  * with the vpi library.
  *
- * Use similar to @ref STIMC_INIT:
+ * Use similar to @ref STIMC_INIT :
  * \code{.cpp}
  * STIMC_EXPORT (modulename)
  * {
