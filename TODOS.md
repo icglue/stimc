@@ -4,8 +4,6 @@
   - readme (-> doc?)
   - addons
 - systemc-compat helpers?
-- more tests
-  - cleanup
 - documentation
   - installation
   - changelog
