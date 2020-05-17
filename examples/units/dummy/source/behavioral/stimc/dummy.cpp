@@ -1,4 +1,4 @@
-#include "dummy.hpp"
+#include "dummy.h"
 
 using namespace stimcxx;
 

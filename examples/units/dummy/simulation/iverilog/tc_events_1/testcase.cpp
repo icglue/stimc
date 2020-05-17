@@ -1,4 +1,4 @@
-#include "dummy.hpp"
+#include "dummy.h"
 #include "tb_selfcheck.h"
 
 using namespace stimcxx;
