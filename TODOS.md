@@ -1,8 +1,4 @@
 # TODOs
-- install
-  - man pages
-  - readme (-> doc?)
-  - addons
 - documentation
   - installation
   - changelog

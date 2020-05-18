@@ -16,7 +16,7 @@
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #
 
-DOCDIR           = doc
+DOXYDIR          = doc
 
 DOXYFILE         = doxy/lib.doxyfile
 
@@ -41,6 +41,9 @@ DESTDIR         ?=
 LIBDIR          ?= $(PREFIX)/lib
 PCDIR           ?= $(PREFIX)/lib/pkgconfig
 INCLUDEDIR      ?= $(PREFIX)/include
+SRCDIR          ?= $(PREFIX)/src
+DOCDIR          ?= $(PREFIX)/share/doc
+MANDIR          ?= $(PREFIX)/share/man
 
 #-------------------------------------------------------
 # LIB
@@ -56,7 +59,10 @@ lib:
 # Install
 INSTALL_LIBDIR     = $(DESTDIR)$(LIBDIR)
 INSTALL_INCLUDEDIR = $(DESTDIR)$(INCLUDEDIR)
+INSTALL_SRCDIR     = $(DESTDIR)$(SRCDIR)
 INSTALL_PCDIR      = $(DESTDIR)$(PCDIR)
+INSTALL_DOCDIR     = $(DESTDIR)$(DOCDIR)
+INSTALL_MANDIR     = $(DESTDIR)$(MANDIR)
 
 install: lib
 	install -m 644 -D -t $(INSTALL_INCLUDEDIR) $(wildcard $(addprefix $(BUILD_BASE)/, $(BUILD_HEADERS)))
@@ -65,19 +71,31 @@ install: lib
 	install -m 755 -D -T $(addprefix $(BUILD_BASE)/, $(BUILD_LIB_SO)) $(INSTALL_LIBDIR)/$(notdir $(BUILD_LIB_SO)).$(VERSION)
 	ldconfig -n $(INSTALL_LIBDIR)
 	ln -fs $(notdir $(BUILD_LIB_SO)).$(VERSION) $(INSTALL_LIBDIR)/$(notdir $(BUILD_LIB_SO))
+	install -m 644 -D -t $(INSTALL_DOCDIR)/stimc README.md
 
+install-man: docs
+	install -m 644 -D -t $(INSTALL_MANDIR)/man3 $(wildcard $(addprefix $(DOXYDIR)/man/man3/, stimc*))
+	mv $(INSTALL_MANDIR)/man3/stimc__.h.3 $(INSTALL_MANDIR)/man3/stimc++.h.3
+	for f in $(INSTALL_MANDIR)/man3/* ; do gzip -f $$f ; done
+
+install-addons:
+	install -m 644 -D -t $(INSTALL_SRCDIR)/stimc-addons $(wildcard $(addprefix $(BUILD_BASE)/addons/, *.c *.cpp *.h))
+
+install-all: install install-man install-addons
+
+.PHONY: install-all install install-man install-addons
 
 #-------------------------------------------------------
 # documentation
 .PHONY: showdocs doclib docs
 
-doclib: $(DOXYFILE) | $(DOCDIR)
+doclib: $(DOXYFILE) | $(DOXYDIR)
 	-doxygen $(DOXYFILE)
 
 docs: doclib
 
 showdocs:
-	$(BROWSER) $(DOCDIR)/html/index.html > /dev/null 2> /dev/null &
+	$(BROWSER) $(DOXYDIR)/html/index.html > /dev/null 2> /dev/null &
 
 #-------------------------------------------------------
 # LoC
@@ -121,7 +139,7 @@ updateversion:
 
 #-------------------------------------------------------
 # directories
-$(DOCDIR):
+$(DOXYDIR):
 	mkdir -p $@
 
 #-------------------------------------------------------
@@ -132,7 +150,7 @@ cleanlib:
 	@$(MAKE) --no-print-directory -C $(BUILD_BASE) clean
 
 cleandoc:
-	@rm -rf $(DOCDIR)
+	@rm -rf $(DOXYDIR)
 
 mrproper cleanall: cleandoc cleantest cleanlib
 
