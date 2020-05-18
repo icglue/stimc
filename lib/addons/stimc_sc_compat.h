@@ -32,6 +32,7 @@
 #define __STIMC_SC_COMPAT_H__
 
 #include <stimc++.h>
+#include <string>
 
 /**
  * @brief stimc++ namespace.
@@ -109,6 +110,57 @@ namespace stimcxx {
      * Calls @ref event_combination::wait.
      */
     void wait (uint64_t time, enum stimc_time_unit exp, const event_combination &ec);
+
+    /**
+     * @brief systemc sc_time minimal replacement.
+     *
+     * only sufficient for some use cases, mainly
+     * getting the current simulation time and converting it to some
+     * type (string, double).
+     */
+    class sc_time {
+        private:
+            uint64_t time_ps;
+        public:
+            sc_time (uint64_t time_ps) : time_ps (time_ps) {};
+            ~sc_time () = default; /**< @brief Default sufficient */
+
+            sc_time            (const sc_time &t) = default; /**< @brief Default sufficient */
+            sc_time& operator= (const sc_time &t) = default; /**< @brief Default sufficient */
+            sc_time            (sc_time &&t)      = default; /**< @brief Default sufficient */
+            sc_time& operator= (sc_time &&t)      = default; /**< @brief Default sufficient */
+
+            /**
+             * @return time in nano seconds.
+             */
+            double to_double () const
+            {
+                return ((double) time_ps) * 1e-3;
+            }
+
+            /**
+             * @return time in seconds.
+             */
+            double to_seconds () const
+            {
+                return ((double) time_ps) * 1e-12;
+            }
+
+            /**
+             * @return time as string in nano seconds.
+             */
+            const std::string to_string () const;
+    };
+
+    /**
+     * @brief sc_time_stamp replacement.
+     * @return time in nano seconds as default.
+     */
+    sc_time sc_time_stamp()
+    {
+        sc_time time_stamp (stimc_time (SC_PS));
+        return time_stamp;
+    }
 }
 
 #endif
