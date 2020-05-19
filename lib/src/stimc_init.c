@@ -63,6 +63,7 @@ void stimc_vpi_init (void)
     }
 
     stimc_vpi_init_register_func_t *init_list = stimc_module_register_list ();
+
     if (init_list) {
         for (unsigned i = 0; init_list[i] != 0; i++) {
             init_list[i]();

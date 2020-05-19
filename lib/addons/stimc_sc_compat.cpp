@@ -44,7 +44,7 @@ namespace stimcxx {
 
     const std::string sc_time::to_string () const
     {
-        std::string buffer (std::to_string (to_double ()) + std::string(" ns"));
+        std::string buffer (std::to_string (to_double ()) + std::string (" ns"));
 
         return buffer;
     }

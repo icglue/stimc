@@ -135,7 +135,7 @@ namespace stimcxx {
              */
             double to_double () const
             {
-                return ((double) time_ps) * 1e-3;
+                return ((double)time_ps) * 1e-3;
             }
 
             /**
@@ -143,7 +143,7 @@ namespace stimcxx {
              */
             double to_seconds () const
             {
-                return ((double) time_ps) * 1e-12;
+                return ((double)time_ps) * 1e-12;
             }
 
             /**
@@ -156,9 +156,10 @@ namespace stimcxx {
      * @brief sc_time_stamp replacement.
      * @return time in nano seconds as default.
      */
-    sc_time sc_time_stamp()
+    sc_time sc_time_stamp ()
     {
         sc_time time_stamp (stimc_time (SC_PS));
+
         return time_stamp;
     }
 }

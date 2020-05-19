@@ -98,7 +98,9 @@
 /*******************************************************************************/
 #ifdef STIMC_THREAD_IMPL_EXTERNAL
 #ifdef __cplusplus
+/* *auto-indent-off* */
 extern "C" {
+/* *auto-indent-on* */
 #endif
 
 typedef void *stimc_thread_impl;
@@ -109,7 +111,9 @@ void              stimc_thread_impl_suspend (void);
 void              stimc_thread_impl_delete (stimc_thread_impl t);
 
 #ifdef __cplusplus
+/* *auto-indent-off* */
 }
+/* *auto-indent-on* */
 #endif
 #endif
 

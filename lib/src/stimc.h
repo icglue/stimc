@@ -31,7 +31,9 @@
 #include <stdbool.h>
 
 #ifdef __cplusplus
+/* *auto-indent-off* */
 extern "C" {
+/* *auto-indent-on* */
 #endif
 
 /******************************************************************************************************/
@@ -804,7 +806,9 @@ void stimc_vpi_init_register (struct stimc_vpi_init_register_s *entry);
     STIMC_INIT (module)
 
 #ifdef __cplusplus
+/* *auto-indent-off* */
 }
+/* *auto-indent-on* */
 #endif
 
 #endif

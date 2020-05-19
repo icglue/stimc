@@ -261,8 +261,10 @@ static const char *stimc_get_caller_scope (void)
 
     assert (taskref);
     vpiHandle taskscope = vpi_handle (vpiScope, taskref);
+
     assert (taskscope);
     const char *scope_name = vpi_get_str (vpiFullName, taskscope);
+
     assert (scope_name);
 
     return scope_name;
@@ -505,6 +507,7 @@ void stimc_register_startup_thread (void (*threadfunc)(void *userdata), void *us
     data.user_data     = (PLI_BYTE8 *)thread;
 
     vpiHandle start_handle = vpi_register_cb (&data);
+
     assert (start_handle);
 
     thread->call_handle = start_handle;
@@ -542,6 +545,7 @@ static void stimc_wait_time_int_exp (uint64_t time, int exp)
     /* time ... */
     uint64_t ltime        = time;
     int      timeunit_raw = vpi_get (vpiTimeUnit, NULL);
+
     while (exp > timeunit_raw) {
         ltime *= 10;
         exp--;
@@ -572,6 +576,7 @@ static void stimc_wait_time_int_exp (uint64_t time, int exp)
     data.user_data     = (PLI_BYTE8 *)thread;
 
     vpiHandle wait_handle = vpi_register_cb (&data);
+
     assert (wait_handle);
 
     thread->call_handle = wait_handle;
@@ -593,6 +598,7 @@ void stimc_wait_time_seconds (double time)
 
     time *= pow (10, -timeunit);
     uint64_t ltime = time;
+
     stimc_wait_time_int_exp (ltime, timeunit_raw);
 }
 
@@ -641,6 +647,7 @@ double stimc_time_seconds (void)
 
     double dtime = ltime;
     double dunit = timeunit_raw;
+
     dtime *= pow (10, dunit);
 
     return dtime;
@@ -1235,6 +1242,7 @@ static inline void stimc_net_set_xz (stimc_net net, int val)
     }
 
     unsigned vsize = ((size - 1) / 32) + 1;
+
     if (vsize <= STIMC_VALVECTOR_MAX_STATIC) {
         s_vpi_vecval vec[STIMC_VALVECTOR_MAX_STATIC];
         for (unsigned i = 0; i < vsize; i++) {
@@ -1248,6 +1256,7 @@ static inline void stimc_net_set_xz (stimc_net net, int val)
     }
 
     s_vpi_vecval *vec = (s_vpi_vecval *)malloc (vsize * sizeof (s_vpi_vecval));
+
     assert (vec);
     for (unsigned i = 0; i < vsize; i++) {
         vec[i].aval = (val == vpiZ ? 0x00000000 : 0xffffffff);
@@ -1332,6 +1341,7 @@ bool stimc_net_is_xz (stimc_net net)
     }
 
     unsigned vsize = ((size - 1) / 32) + 1;
+
     v.format = vpiVectorVal;
     vpi_get_value (net->net, &v);
     for (unsigned i = 0; i < vsize; i++) {
@@ -1478,6 +1488,7 @@ void stimc_net_set_uint64 (stimc_net net, uint64_t value)
     }
 
     unsigned vsize = ((size - 1) / 32) + 1;
+
     if (vsize <= STIMC_VALVECTOR_MAX_STATIC) {
         s_vpi_vecval vec[STIMC_VALVECTOR_MAX_STATIC];
         for (unsigned i = 0; (i < vsize) && (i < 2); i++) {
@@ -1495,6 +1506,7 @@ void stimc_net_set_uint64 (stimc_net net, uint64_t value)
     }
 
     s_vpi_vecval *vec = (s_vpi_vecval *)malloc (vsize * sizeof (s_vpi_vecval));
+
     assert (vec);
     for (unsigned i = 0; (i < vsize) && (i < 2); i++) {
         vec[i].aval = (value >> (32 * i)) & 0xffffffff;
@@ -1523,6 +1535,7 @@ uint64_t stimc_net_get_uint64 (stimc_net net)
     vpi_get_value (net->net, &v);
 
     uint64_t result = 0;
+
     for (unsigned i = 0; (i < vsize) && (i < 2); i++) {
         result |= (((uint64_t)(unsigned)v.value.vector[i].aval & ~((uint64_t)(unsigned)v.value.vector[i].bval)) << (32 * i));
     }
