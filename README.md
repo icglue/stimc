@@ -51,7 +51,7 @@ The c++ code is wrapped in a `stimcxx` namespace.
 First a c++ class is needed that inherits `stimcxx::module` (include `stimc++.h`).
 For every (used) port of the Verilog shell the class should have a `port` member,
 for every (used) parameter a `parameter` member of the same name as the Verilog pendant.
-Additionally it can have `stimcxx::event` members in case waiting on events triggered
+Additionally, it can have `stimcxx::event` members in case waiting on events triggered
 by individual stimc threads or value-change events on ports is needed (similar to
 SystemC events).
 
@@ -268,9 +268,10 @@ To use it you need icarus verilog, GTKWave and the portable coroutine library (l
 and gcc as compiler.
 You can load the project environment by sourcing the `env.sh` in the project examples directory.
 
-The examples provide 2 stimc design units: dummy (the shown dummy) and ff (a stimc flip-flop model).
+The examples provide 3 stimc design units: dummy (the shown dummy), ff (a stimc flip-flop model)
+and ff\_real (flip-flop with real-value port interface).
 The Verilog shell can be found in `source/behavioral/verilog`, the module stimc code in
-`source/behavioral/stimc`. To run the example simulation enter the units `simulation/iverilog/tc_sanity`
+`source/behavioral/stimc`. To run example simulations enter the unit's `simulation/iverilog/tc_...`
 testcase directory and run `make`. The code will be compiled, run and GTKWave will be started
 for browsing the simulated waveforms.
 
