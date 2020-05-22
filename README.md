@@ -136,18 +136,18 @@ Ports can also be assigned to verilog `x` or `z` values using the similarly name
 and `Z` or checked to contain unknown values via comparison against `X`.
 
 Furthermore there are helper functions in the `stimcxx` namespace:
-- `time()` (simulation time in seconds), `time(<unit>)` (simulation
+* `time()` (simulation time in seconds), `time(<unit>)` (simulation
   time as integer in specified unit, similar to SystemC units are defined as `SC_PS`, `SC_US` and so on).
-- `finish()` to finish simulation.
-- Multiple wait functions.
+* `finish()` to finish simulation.
+* Multiple wait functions.
   They can only be called from within a thread
   (as only initialized threads can be suspended and resumed):
-  - `wait(<event>)` to wait on an event to be triggered,
-  - `wait(<event1> & <event2> & ...)` to wait for all of the events to be triggered,
-  - `wait(<event1> | <event2> | ...)` to wait for any of the events to be triggered,
-  - `wait(<time>)` to wait an amount of time in seconds (double) or
-  - `wait(<time>, <unit>)` to wait an integral amount of time in specified unit (similarly `SC_PS` and so on).
-  - `wait(<event or combination>, <time>)`, `wait(<event or combination>, <time>, <unit>)` to wait for
+  * `wait(<event>)` to wait on an event to be triggered,
+  * `wait(<event1> & <event2> & ...)` to wait for all of the events to be triggered,
+  * `wait(<event1> | <event2> | ...)` to wait for any of the events to be triggered,
+  * `wait(<time>)` to wait an amount of time in seconds (double) or
+  * `wait(<time>, <unit>)` to wait an integral amount of time in specified unit (similarly `SC_PS` and so on).
+  * `wait(<event or combination>, <time>)`, `wait(<event or combination>, <time>, <unit>)` to wait for
     an event or combination (any/ⱥll) of events with the specified time as timeout.
     In contrast to the other wait functions the wait with timeout returns `true` in case of timeout,
     `false` otherwise.
@@ -187,7 +187,7 @@ class cleanup_ab : protected stimcxx::thread_cleanup {
         A *a;
         B *b;
 
-        cleanup_ab () : a(NULL), b(NULL) {}
+        cleanup_ab () : a(nullptr), b(nullptr) {}
         ~cleanup_ab () {
             if (a) delete a;
             if (b) delete b;
@@ -215,7 +215,7 @@ void dummy::testcontrol ()
 
     delete a;
     /* a already freed -> do not delete when thread is deleted */
-    cleanup_data->a = NULL;
+    cleanup_data->a = nullptr;
 
     /* ... */
 }
@@ -226,16 +226,35 @@ In case cleanup functionality causes unwanted problems (use after free or simila
 it is possible to disable it via the `STIMC_DISABLE_CLEANUP` preprocessor define.
 In this case besides memory being leaked, resetting simulation will likely cause problems.
 
+## Building
 ### Compiling
 For compiling everything (depending on the simulator) you need to build a vpi library
-containing the stimc/stimc++ code, the module code and the `stimc-export.c` providing
-`stimc-export.inl` containing the modules' export-defines in the include path.
+containing the stimc/stimc++ code, the module export code created with the
+`STIMCXX_EXPORT (<module-name>)` macro.
 
 The vpi library needs to be linked against `pcl` library for thread coroutine implementation.
-Alternatively coroutines can be implemented as boost coroutines (preprocessor define
+Alternatively coroutines can be implemented with libco (preprocessor define `STIMC_THREAD_IMPL_LIBCO`
+and link against `libco`) or boost coroutines (preprocessor define
 `STIMC_THREAD_IMPL_BOOST2` and link against `boost_context` for `boost/coroutine2` implementation
 or define `STIMC_THREAD_IMPL_BOOST1` and link against `boost_coroutine` for `boost/coroutine`
-implementation) and libco (preprocessor define `STIMC_THREAD_IMPL_LIBCO` and link against `libco`).
+implementation). Although boost would probably not count as lightweight, it is probably
+one of the more available alternatives.
+
+### Installation
+There is no need to install stimc, as you can just compile the sources together with your
+own code into a vpi shared library for the simulator to load.
+But it is also possible to compile it into a standalone shared library to link against the
+vpi library. This can be achieved via
+```shell
+make
+make install
+```
+and can be controlled by
+* `THREAD_IMPL` (one of `pcl`, `libco`, `boost1` or `boost2`, depending on available
+  coroutine implementation backends),
+* `PREFIX` (install prefix, e.g. `/usr`),
+* `DESTDIR` (e.g. your temporary package directory)
+variables.
 
 ## Documentation
 ### Documentation
