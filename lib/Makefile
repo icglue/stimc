@@ -43,6 +43,9 @@ SOURCES         ?= *.c *.cpp *.c++ *.cc
 #-------------  directory of source files --------------------------------------
 SOURCE_DIR      ?= src
 
+#-------------  defines  -------------------------------------------------------
+DEFS            ?=
+
 #-------------  pkg-config for includes and libs  ------------------------------
 PKG_CFG_LIBS    ?=
 
