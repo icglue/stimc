@@ -55,7 +55,7 @@ extern const char    *stimc_version;       /**< @brief stimc version as string o
 struct stimc_net_s {
     vpiHandle net;              /**< @brief vpi handle for access to net/port object */
 
-    struct stimc_nba_data *nba; /**< @brief Data for scheduled non-blocking assignments */
+    struct stimc_nba_data_s *nba; /**< @brief Data for scheduled non-blocking assignments */
 };
 typedef struct stimc_net_s *stimc_net;  /**< @brief Net base type. */
 typedef struct stimc_net_s *stimc_port; /**< @brief Port base type. */

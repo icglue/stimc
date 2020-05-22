@@ -113,14 +113,14 @@ static struct stimc_thread_s *stimc_thread_create (void (*threadfunc)(void *user
 static void                   stimc_thread_finish (struct stimc_thread_s *thread);
 
 static void        stimc_thread_remove_event_handle (struct stimc_thread_s *thread, stimc_event event);
-static inline bool stimc_thread_has_event_handle (struct stimc_thread_s *thread);
+static inline bool stimc_thread_has_event_handle    (struct stimc_thread_s *thread);
 
-static inline void stimc_thread_queue_init (struct stimc_thread_queue_s *q);
-static void        stimc_thread_queue_prepare (struct stimc_thread_queue_s *q, size_t min_len);
-static void        stimc_thread_queue_free (struct stimc_thread_queue_s *q);
-static size_t      stimc_thread_queue_enqueue (struct stimc_thread_queue_s *q, struct stimc_thread_s *thread);
+static inline void stimc_thread_queue_init        (struct stimc_thread_queue_s *q);
+static void        stimc_thread_queue_prepare     (struct stimc_thread_queue_s *q, size_t min_len);
+static void        stimc_thread_queue_free        (struct stimc_thread_queue_s *q);
+static size_t      stimc_thread_queue_enqueue     (struct stimc_thread_queue_s *q, struct stimc_thread_s *thread);
 static void        stimc_thread_queue_enqueue_all (struct stimc_thread_queue_s *q, struct stimc_thread_queue_s *source);
-static void        stimc_thread_queue_clear (struct stimc_thread_queue_s *q);
+static void        stimc_thread_queue_clear       (struct stimc_thread_queue_s *q);
 
 static void stimc_main_queue_run_threads (void);
 
@@ -144,31 +144,31 @@ struct stimc_event_combination_s {
     struct stimc_event_handle_s *events;
 };
 
-static inline void stimc_event_combination_clear (stimc_event_combination combination);
-static inline void stimc_event_combination_prepare (stimc_event_combination combination, size_t min_len);
+static inline void stimc_event_combination_clear         (stimc_event_combination combination);
+static inline void stimc_event_combination_prepare       (stimc_event_combination combination, size_t min_len);
 static void        stimc_event_combination_append_handle (stimc_event_combination combination, stimc_event event, size_t idx);
 
-static inline void stimc_event_remove_thread (stimc_event event, size_t queue_idx);
-static inline void stimc_event_enqueue_thread (stimc_event event, struct stimc_thread_s *thread);
+static inline void stimc_event_remove_thread     (stimc_event event, size_t queue_idx);
+static inline void stimc_event_enqueue_thread    (stimc_event event, struct stimc_thread_s *thread);
 static void        stimc_event_thread_queue_free (stimc_event event);
 
 /* methods / callbacks */
-struct stimc_callback_wrap {
+struct stimc_callback_wrap_s {
     void      (*func) (void *data);
     void     *data;
     vpiHandle cb_handle;
 };
 
 static inline void stimc_valuechange_method_callback_wrapper (struct t_cb_data *cb_data, int edge);
-static PLI_INT32   stimc_posedge_method_callback_wrapper (struct t_cb_data *cb_data);
-static PLI_INT32   stimc_negedge_method_callback_wrapper (struct t_cb_data *cb_data);
-static PLI_INT32   stimc_change_method_callback_wrapper (struct t_cb_data *cb_data);
-static void        stimc_register_valuechange_method (void (*methodfunc)(void *userdata), void *userdata, stimc_net net, int edge);
-static PLI_INT32   stimc_thread_callback_wrapper (struct t_cb_data *cb_data);
-static void        stimc_thread_wrap (STIMC_THREAD_ARG_DECL);
+static PLI_INT32   stimc_posedge_method_callback_wrapper     (struct t_cb_data *cb_data);
+static PLI_INT32   stimc_negedge_method_callback_wrapper     (struct t_cb_data *cb_data);
+static PLI_INT32   stimc_change_method_callback_wrapper      (struct t_cb_data *cb_data);
+static void        stimc_register_valuechange_method         (void (*methodfunc)(void *userdata), void *userdata, stimc_net net, int edge);
+static PLI_INT32   stimc_thread_callback_wrapper             (struct t_cb_data *cb_data);
+static void        stimc_thread_wrap                         (STIMC_THREAD_ARG_DECL);
 
 /* thread helper function */
-static inline void stimc_run (struct stimc_thread_s *thread);
+static inline void stimc_run     (struct stimc_thread_s *thread);
 static inline void stimc_suspend (void);
 
 /* common wait function */
@@ -187,7 +187,7 @@ enum stimc_nba_type {
     STIMC_NBA_VAL_BITS,
     STIMC_NBA_VAL_REAL,
 };
-struct stimc_nba_queue_entry {
+struct stimc_nba_queue_entry_s {
     union {
         uint64_t value;
         double   real_value;
@@ -196,18 +196,18 @@ struct stimc_nba_queue_entry {
     uint16_t            lsb;
     uint16_t            msb;
 };
-struct stimc_nba_data {
-    vpiHandle                     cb_handle;
-    struct stimc_nba_queue_entry *queue;
-    unsigned                      queue_len;
-    unsigned                      queue_num;
+struct stimc_nba_data_s {
+    vpiHandle                       cb_handle;
+    struct stimc_nba_queue_entry_s *queue;
+    unsigned                        queue_len;
+    unsigned                        queue_num;
 };
 
-static void      stimc_net_nba_queue_append (stimc_net net, struct stimc_nba_queue_entry *entry_new);
+static void      stimc_net_nba_queue_append     (stimc_net net, struct stimc_nba_queue_entry_s *entry_new);
 static PLI_INT32 stimc_net_nba_callback_wrapper (struct t_cb_data *cb_data);
 
 /* common x/z setters */
-static inline void stimc_net_set_xz (stimc_net net, int val);
+static inline void stimc_net_set_xz      (stimc_net net, int val);
 static inline void stimc_net_set_bits_xz (stimc_net net, unsigned msb, unsigned lsb, int val);
 
 /* final cleanup */
@@ -220,12 +220,12 @@ struct stimc_cleanup_entry_s {
     void *data;
 };
 
-static void                                 stimc_cleanup_init (void);
-static void                                 stimc_cleanup_run (struct stimc_cleanup_entry_s **queue);
-static struct stimc_cleanup_entry_s        *stimc_cleanup_add (void (*callback)(void *userdata), void *userdata);
+static void                                 stimc_cleanup_init         (void);
+static void                                 stimc_cleanup_run          (struct stimc_cleanup_entry_s **queue);
+static struct stimc_cleanup_entry_s        *stimc_cleanup_add          (void (*callback)(void *userdata), void *userdata);
 static inline struct stimc_cleanup_entry_s *stimc_cleanup_add_internal (struct stimc_cleanup_entry_s *queue, void (*callback)(void *userdata), void *userdata);
 
-struct stimc_cleanup_data_main {
+struct stimc_cleanup_data_main_s {
     vpiHandle cb_finish;
     vpiHandle cb_reset;
 };
@@ -234,8 +234,8 @@ static void      stimc_cleanup_internal (void *userdata);
 static PLI_INT32 stimc_cleanup_callback (struct t_cb_data *cb_data);
 
 static void stimc_cleanup_callback_wrap (void *userdata);
-static void stimc_cleanup_thread (void *userdata);
-static void stimc_cleanup_event (void *userdata);
+static void stimc_cleanup_thread        (void *userdata);
+static void stimc_cleanup_event         (void *userdata);
 #endif
 
 /******************************************************************************************************/
@@ -272,7 +272,7 @@ static const char *stimc_get_caller_scope (void)
 
 static inline void stimc_valuechange_method_callback_wrapper (struct t_cb_data *cb_data, int edge)
 {
-    struct stimc_callback_wrap *wrap = (struct stimc_callback_wrap *)cb_data->user_data;
+    struct stimc_callback_wrap_s *wrap = (struct stimc_callback_wrap_s *)cb_data->user_data;
 
     /* correct edge? */
     if ((edge > 0) && (cb_data->value->value.scalar != vpi1)) {
@@ -309,7 +309,7 @@ static void stimc_register_valuechange_method (void (*methodfunc)(void *userdata
     s_vpi_time  data_time;
     s_vpi_value data_value;
 
-    struct stimc_callback_wrap *wrap = (struct stimc_callback_wrap *)malloc (sizeof (struct stimc_callback_wrap));
+    struct stimc_callback_wrap_s *wrap = (struct stimc_callback_wrap_s *)malloc (sizeof (struct stimc_callback_wrap_s));
 
     assert (wrap);
 
@@ -1123,17 +1123,17 @@ void stimc_parameter_free (stimc_parameter p __attribute__((unused)))
     /* nothing to do, yet*/
 }
 
-static void stimc_net_nba_queue_append (stimc_net net, struct stimc_nba_queue_entry *entry_new)
+static void stimc_net_nba_queue_append (stimc_net net, struct stimc_nba_queue_entry_s *entry_new)
 {
     /* init queue if necessary */
-    struct stimc_nba_data *nba = net->nba;
+    struct stimc_nba_data_s *nba = net->nba;
 
     if (nba == NULL) {
         /* allocate */
-        nba = (struct stimc_nba_data *)malloc (sizeof (struct stimc_nba_data));
+        nba = (struct stimc_nba_data_s *)malloc (sizeof (struct stimc_nba_data_s));
         assert (nba);
 
-        nba->queue         = (struct stimc_nba_queue_entry *)malloc (4 * sizeof (struct stimc_nba_queue_entry));
+        nba->queue         = (struct stimc_nba_queue_entry_s *)malloc (4 * sizeof (struct stimc_nba_queue_entry_s));
         nba->queue_len     = 4;
         nba->queue_num     = 0;
         nba->queue[0].type = STIMC_NBA_UNUSED_LAST;
@@ -1146,7 +1146,7 @@ static void stimc_net_nba_queue_append (stimc_net net, struct stimc_nba_queue_en
         /* resize if necessary */
         if (nba->queue_num + 1 >= nba->queue_len) {
             nba->queue_len *= 2;
-            nba->queue      = (struct stimc_nba_queue_entry *)realloc (nba->queue, nba->queue_len * sizeof (struct stimc_nba_queue_entry));
+            nba->queue      = (struct stimc_nba_queue_entry_s *)realloc (nba->queue, nba->queue_len * sizeof (struct stimc_nba_queue_entry_s));
             assert (nba->queue);
         }
     }
@@ -1185,7 +1185,7 @@ static PLI_INT32 stimc_net_nba_callback_wrapper (struct t_cb_data *cb_data)
 {
     stimc_net net = (stimc_net)cb_data->user_data;
 
-    for (struct stimc_nba_queue_entry *e = net->nba->queue; e->type != STIMC_NBA_UNUSED_LAST; e++) {
+    for (struct stimc_nba_queue_entry_s *e = net->nba->queue; e->type != STIMC_NBA_UNUSED_LAST; e++) {
         switch (e->type) {
             case STIMC_NBA_Z_ALL:
                 stimc_net_set_z (net);
@@ -1545,7 +1545,7 @@ uint64_t stimc_net_get_uint64 (stimc_net net)
 
 void stimc_net_set_z_nonblock (stimc_net net)
 {
-    struct stimc_nba_queue_entry assign = {
+    struct stimc_nba_queue_entry_s assign = {
         .type = STIMC_NBA_Z_ALL,
     };
 
@@ -1554,7 +1554,7 @@ void stimc_net_set_z_nonblock (stimc_net net)
 
 void stimc_net_set_x_nonblock (stimc_net net)
 {
-    struct stimc_nba_queue_entry assign = {
+    struct stimc_nba_queue_entry_s assign = {
         .type = STIMC_NBA_X_ALL,
     };
 
@@ -1563,7 +1563,7 @@ void stimc_net_set_x_nonblock (stimc_net net)
 
 void stimc_net_set_bits_z_nonblock (stimc_net net, unsigned msb, unsigned lsb)
 {
-    struct stimc_nba_queue_entry assign = {
+    struct stimc_nba_queue_entry_s assign = {
         .type = STIMC_NBA_Z_BITS,
         .msb  = msb,
         .lsb  = lsb,
@@ -1574,7 +1574,7 @@ void stimc_net_set_bits_z_nonblock (stimc_net net, unsigned msb, unsigned lsb)
 
 void stimc_net_set_bits_x_nonblock (stimc_net net, unsigned msb, unsigned lsb)
 {
-    struct stimc_nba_queue_entry assign = {
+    struct stimc_nba_queue_entry_s assign = {
         .type = STIMC_NBA_X_BITS,
         .msb  = msb,
         .lsb  = lsb,
@@ -1585,7 +1585,7 @@ void stimc_net_set_bits_x_nonblock (stimc_net net, unsigned msb, unsigned lsb)
 
 void stimc_net_set_uint64_nonblock (stimc_net net, uint64_t value)
 {
-    struct stimc_nba_queue_entry assign = {
+    struct stimc_nba_queue_entry_s assign = {
         .value = value,
         .type  = STIMC_NBA_VAL_ALL_UINT64,
     };
@@ -1595,7 +1595,7 @@ void stimc_net_set_uint64_nonblock (stimc_net net, uint64_t value)
 
 void stimc_net_set_bits_uint64_nonblock (stimc_net net, unsigned msb, unsigned lsb, uint64_t value)
 {
-    struct stimc_nba_queue_entry assign = {
+    struct stimc_nba_queue_entry_s assign = {
         .value = value,
         .type  = STIMC_NBA_VAL_BITS,
         .msb   = msb,
@@ -1607,7 +1607,7 @@ void stimc_net_set_bits_uint64_nonblock (stimc_net net, unsigned msb, unsigned l
 
 void stimc_net_set_int32_nonblock (stimc_net net, int32_t value)
 {
-    struct stimc_nba_queue_entry assign = {
+    struct stimc_nba_queue_entry_s assign = {
         .value = value,
         .type  = STIMC_NBA_VAL_ALL_INT32,
     };
@@ -1617,7 +1617,7 @@ void stimc_net_set_int32_nonblock (stimc_net net, int32_t value)
 
 void stimc_net_set_double_nonblock (stimc_net net, double value)
 {
-    struct stimc_nba_queue_entry assign = {
+    struct stimc_nba_queue_entry_s assign = {
         .real_value = value,
         .type       = STIMC_NBA_VAL_REAL,
     };
@@ -1629,7 +1629,7 @@ void stimc_net_set_double_nonblock (stimc_net net, double value)
 #ifndef STIMC_DISABLE_CLEANUP
 static void stimc_cleanup_init (void)
 {
-    struct stimc_cleanup_data_main *c_data = (struct stimc_cleanup_data_main *)malloc (sizeof (struct stimc_cleanup_data_main));
+    struct stimc_cleanup_data_main_s *c_data = (struct stimc_cleanup_data_main_s *)malloc (sizeof (struct stimc_cleanup_data_main_s));
 
     assert (c_data);
 
@@ -1708,7 +1708,7 @@ static inline struct stimc_cleanup_entry_s *stimc_cleanup_add_internal (struct s
 
 static void stimc_cleanup_internal (void *userdata)
 {
-    struct stimc_cleanup_data_main *data = (struct stimc_cleanup_data_main *)userdata;
+    struct stimc_cleanup_data_main_s *data = (struct stimc_cleanup_data_main_s *)userdata;
 
     /* remove callbacks */
     if (data->cb_finish != NULL) vpi_remove_cb (data->cb_finish);
@@ -1733,7 +1733,7 @@ static PLI_INT32 stimc_cleanup_callback (struct t_cb_data *cb_data __attribute__
 
 static void stimc_cleanup_callback_wrap (void *userdata)
 {
-    struct stimc_callback_wrap *wrap = (struct stimc_callback_wrap *)userdata;
+    struct stimc_callback_wrap_s *wrap = (struct stimc_callback_wrap_s *)userdata;
 
     vpi_remove_cb (wrap->cb_handle);
     free (wrap);
