@@ -90,13 +90,19 @@ static vpiHandle   stimc_module_handle_init (stimc_module *m, const char *name);
 
 /* threads */
 struct stimc_thread_s {
-    stimc_thread_impl       thread;
-    void                    (*func) (void *data);
-    void                   *data;
+    /* thread implementation data */
+    stimc_thread_impl thread;
+
+    /* thread function + data to call initially */
+    void  (*func) (void *data);
+    void *data;
+
+    /* data related to waiting for time/event */
     vpiHandle               call_handle;
     stimc_event_combination event_combination;
     bool                    timeout;
     bool                    finished;
+
 #ifndef STIMC_DISABLE_CLEANUP
     struct stimc_cleanup_entry_s *cleanup_queue;
     struct stimc_cleanup_entry_s *cleanup_self;
@@ -754,6 +760,22 @@ stimc_event stimc_event_create (void)
     stimc_thread_queue_init (&event->queue);
 
 #ifndef STIMC_DISABLE_CLEANUP
+    /*
+     * Important: Start without cleanup data initialized.
+     *
+     * It is possible to create global events via stimc++ that
+     * lead to stimc_event_create calls at elaboration
+     * time which then triggers stimc_cleanup_init.
+     *
+     * Some simulators see it as an error to register an
+     * end-of-simulation callback during elaboration but
+     * at the same time need stimc module init-code to be present
+     * as otherwise stimc related verilog system tasks are undefined.
+     *
+     * This does not apply to modules or ports as they are
+     * only initialised during simulation time via their
+     * stimc system tasks.
+     */
     event->cleanup_self = NULL;
 #endif
 
@@ -1456,8 +1478,10 @@ uint64_t stimc_net_get_bits_uint64 (stimc_net net, unsigned msb, unsigned lsb)
 
     for (unsigned i = 0, j = jstart; (j < vsize) && (j <= jstop) && (i < 3); i++, j++) {
         if (i == 0) {
+            /* prevent sign extension */
             result |= (((uint64_t)(unsigned)v.value.vector[j].aval & ~((uint64_t)(unsigned)v.value.vector[j].bval)) >> s0);
         } else {
+            /* prevent sign extension */
             result |= (((uint64_t)(unsigned)v.value.vector[j].aval & ~((uint64_t)(unsigned)v.value.vector[j].bval)) << (32 * i - s0));
         }
     }
@@ -1532,6 +1556,7 @@ uint64_t stimc_net_get_uint64 (stimc_net net)
     uint64_t result = 0;
 
     for (unsigned i = 0; (i < vsize) && (i < 2); i++) {
+        /* prevent sign extension */
         result |= (((uint64_t)(unsigned)v.value.vector[i].aval & ~((uint64_t)(unsigned)v.value.vector[i].bval)) << (32 * i));
     }
 
