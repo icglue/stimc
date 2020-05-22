@@ -104,8 +104,8 @@ struct stimc_thread_s {
 };
 
 struct stimc_thread_queue_s {
-    size_t                  threads_len;
-    size_t                  threads_num;
+    size_t                  max;
+    size_t                  num;
     struct stimc_thread_s **threads;
 };
 
@@ -177,7 +177,6 @@ static void stimc_event_combination_enqueue_thread (struct stimc_thread_s *threa
 
 /* non-blocking assignment helpers */
 enum stimc_nba_type {
-    STIMC_NBA_UNUSED_LAST,
     STIMC_NBA_Z_ALL,
     STIMC_NBA_X_ALL,
     STIMC_NBA_VAL_ALL_INT32,
@@ -199,8 +198,8 @@ struct stimc_nba_queue_entry_s {
 struct stimc_nba_data_s {
     vpiHandle                       cb_handle;
     struct stimc_nba_queue_entry_s *queue;
-    unsigned                        queue_len;
-    unsigned                        queue_num;
+    size_t                          max;
+    size_t                          num;
 };
 
 static void      stimc_net_nba_queue_append     (stimc_net net, struct stimc_nba_queue_entry_s *entry_new);
@@ -655,32 +654,32 @@ double stimc_time_seconds (void)
 
 static inline void stimc_thread_queue_init (struct stimc_thread_queue_s *q)
 {
-    q->threads_len = 0;
-    q->threads_num = 0;
+    q->max = 0;
+    q->num = 0;
 
     q->threads = NULL;
 }
 
 static void stimc_thread_queue_prepare (struct stimc_thread_queue_s *q, size_t min_len)
 {
-    if (min_len <= q->threads_len) return;
+    if (min_len <= q->max) return;
 
-    if (q->threads_len == 0) {
-        q->threads_len = 16;
+    if (q->max == 0) {
+        q->max = 16;
     }
-    while (min_len > q->threads_len) {
-        q->threads_len *= 2;
-        assert (q->threads_len != 0);
+    while (min_len > q->max) {
+        q->max *= 2;
+        assert (q->max != 0);
     }
 
-    q->threads = (struct stimc_thread_s **)realloc (q->threads, sizeof (struct stimc_thread_s *) * (q->threads_len));
+    q->threads = (struct stimc_thread_s **)realloc (q->threads, sizeof (struct stimc_thread_s *) * (q->max));
     assert (q->threads);
 }
 
 static void stimc_thread_queue_free (struct stimc_thread_queue_s *q)
 {
-    q->threads_len = 0;
-    q->threads_num = 0;
+    q->max = 0;
+    q->num = 0;
     if (q->threads != NULL) free (q->threads);
 
     q->threads = NULL;
@@ -688,39 +687,39 @@ static void stimc_thread_queue_free (struct stimc_thread_queue_s *q)
 
 static size_t stimc_thread_queue_enqueue (struct stimc_thread_queue_s *q, struct stimc_thread_s *thread)
 {
-    stimc_thread_queue_prepare (q, q->threads_num + 1);
+    stimc_thread_queue_prepare (q, q->num + 1);
 
-    size_t result_idx = q->threads_num;
+    size_t result_idx = q->num;
 
     /* thread data ... */
-    q->threads[q->threads_num] = thread;
-    q->threads_num++;
+    q->threads[q->num] = thread;
+    q->num++;
 
     return result_idx;
 }
 
 static void stimc_thread_queue_enqueue_all (struct stimc_thread_queue_s *q, struct stimc_thread_queue_s *source)
 {
-    stimc_thread_queue_prepare (q, q->threads_num + source->threads_num);
+    stimc_thread_queue_prepare (q, q->num + source->num);
 
     /* thread data ... */
-    for (size_t i = 0; i < source->threads_num; i++) {
+    for (size_t i = 0; i < source->num; i++) {
         if (source->threads[i] != NULL) {
-            q->threads[q->threads_num] = source->threads[i];
-            q->threads_num++;
+            q->threads[q->num] = source->threads[i];
+            q->num++;
         }
     }
 }
 
 static void stimc_thread_queue_clear (struct stimc_thread_queue_s *q)
 {
-    q->threads_num = 0;
+    q->num = 0;
 }
 
 static void stimc_main_queue_run_threads ()
 {
     while (true) {
-        if (stimc_main_queue.threads_num == 0) break;
+        if (stimc_main_queue.num == 0) break;
 
         stimc_thread_queue_enqueue_all (&stimc_main_queue_shadow, &stimc_main_queue);
         stimc_thread_queue_clear (&stimc_main_queue);
@@ -728,7 +727,7 @@ static void stimc_main_queue_run_threads ()
         /* execute threads... */
         assert (stimc_current_thread == NULL);
 
-        for (size_t i = 0; i < stimc_main_queue_shadow.threads_num; i++) {
+        for (size_t i = 0; i < stimc_main_queue_shadow.num; i++) {
             struct stimc_thread_s *thread = stimc_main_queue_shadow.threads[i];
 
             if (thread == NULL) continue;
@@ -764,7 +763,7 @@ stimc_event stimc_event_create (void)
 static void stimc_event_thread_queue_free (stimc_event event)
 {
     /* remove handles */
-    for (size_t i = 0; i < event->queue.threads_num; i++) {
+    for (size_t i = 0; i < event->queue.num; i++) {
         struct stimc_thread_s *thread = event->queue.threads[i];
 
         if (thread == NULL) continue;
@@ -874,7 +873,7 @@ void stimc_event_combination_copy (stimc_event_combination dst, stimc_event_comb
 static inline void stimc_event_remove_thread (stimc_event event, size_t queue_idx)
 {
     assert (event);
-    assert (event->queue.threads_num > queue_idx);
+    assert (event->queue.num > queue_idx);
 
     event->queue.threads[queue_idx] = NULL;
 }
@@ -991,10 +990,10 @@ bool stimc_wait_event_combination_timeout_seconds (const stimc_event_combination
 
 void stimc_trigger_event (stimc_event event)
 {
-    if (event->queue.threads_num == 0) return;
+    if (event->queue.num == 0) return;
 
     /* disable timeouts, remove handles */
-    for (size_t i = 0; i < event->queue.threads_num; i++) {
+    for (size_t i = 0; i < event->queue.num; i++) {
         struct stimc_thread_s *thread = event->queue.threads[i];
 
         if (thread == NULL) continue;
@@ -1133,10 +1132,9 @@ static void stimc_net_nba_queue_append (stimc_net net, struct stimc_nba_queue_en
         nba = (struct stimc_nba_data_s *)malloc (sizeof (struct stimc_nba_data_s));
         assert (nba);
 
-        nba->queue         = (struct stimc_nba_queue_entry_s *)malloc (4 * sizeof (struct stimc_nba_queue_entry_s));
-        nba->queue_len     = 4;
-        nba->queue_num     = 0;
-        nba->queue[0].type = STIMC_NBA_UNUSED_LAST;
+        nba->queue = (struct stimc_nba_queue_entry_s *)malloc (4 * sizeof (struct stimc_nba_queue_entry_s));
+        nba->max   = 4;
+        nba->num   = 0;
         assert (nba->queue);
 
         nba->cb_handle = NULL;
@@ -1144,17 +1142,16 @@ static void stimc_net_nba_queue_append (stimc_net net, struct stimc_nba_queue_en
         net->nba = nba;
     } else {
         /* resize if necessary */
-        if (nba->queue_num + 1 >= nba->queue_len) {
-            nba->queue_len *= 2;
-            nba->queue      = (struct stimc_nba_queue_entry_s *)realloc (nba->queue, nba->queue_len * sizeof (struct stimc_nba_queue_entry_s));
+        if (nba->num + 1 > nba->max) {
+            nba->max  *= 2;
+            nba->queue = (struct stimc_nba_queue_entry_s *)realloc (nba->queue, nba->max * sizeof (struct stimc_nba_queue_entry_s));
             assert (nba->queue);
         }
     }
 
     /* add new entry */
-    nba->queue[nba->queue_num] = *entry_new;
-    nba->queue_num++;
-    nba->queue[nba->queue_num].type = STIMC_NBA_UNUSED_LAST;
+    nba->queue[nba->num] = *entry_new;
+    nba->num++;
 
     /* add handler, if not yet created */
     if (nba->cb_handle != NULL) return;
@@ -1185,7 +1182,9 @@ static PLI_INT32 stimc_net_nba_callback_wrapper (struct t_cb_data *cb_data)
 {
     stimc_net net = (stimc_net)cb_data->user_data;
 
-    for (struct stimc_nba_queue_entry_s *e = net->nba->queue; e->type != STIMC_NBA_UNUSED_LAST; e++) {
+    for (size_t i = 0; i < net->nba->num; i++) {
+        struct stimc_nba_queue_entry_s *e = &(net->nba->queue[i]);
+
         switch (e->type) {
             case STIMC_NBA_Z_ALL:
                 stimc_net_set_z (net);
@@ -1211,17 +1210,13 @@ static PLI_INT32 stimc_net_nba_callback_wrapper (struct t_cb_data *cb_data)
             case STIMC_NBA_VAL_REAL:
                 stimc_net_set_double (net, e->real_value);
                 break;
-            case STIMC_NBA_UNUSED_LAST:
-                /* prevent compiler warning */
-                break;
         }
     }
 
     vpi_remove_cb (net->nba->cb_handle);
 
-    net->nba->cb_handle     = NULL;
-    net->nba->queue_num     = 0;
-    net->nba->queue[0].type = STIMC_NBA_UNUSED_LAST;
+    net->nba->cb_handle = NULL;
+    net->nba->num       = 0;
 
     return 0;
 }
