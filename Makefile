@@ -31,7 +31,7 @@ BUILD_LIB_A      = lib/libstimc.a
 BUILD_HEADERS    = src/*.h
 BUILD_PCFILES    = pkgconfig/*.pc
 
-VERSION         ?= 0.1
+VERSION         ?= 1.0
 
 LOCTOOL         ?= cloc
 LOCSOURCES       = $(wildcard lib/src/*.c lib/src/*.c++ lib/src/*.cpp lib/src/*.h)
