@@ -156,7 +156,7 @@ namespace stimcxx {
      * @brief sc_time_stamp replacement.
      * @return time in nano seconds as default.
      */
-    sc_time sc_time_stamp ()
+    static inline sc_time sc_time_stamp ()
     {
         sc_time time_stamp (stimc_time (SC_PS));
 
