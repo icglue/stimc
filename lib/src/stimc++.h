@@ -1182,6 +1182,24 @@ namespace stimcxx {
     }
 
     /**
+     * @brief Inline halt wrapper.
+     * Calls @ref stimc_thread_halt.
+     */
+    static inline void halt (void)
+    {
+        stimc_thread_halt ();
+    }
+
+    /**
+     * @brief Inline exit wrapper.
+     * Calls @ref stimc_thread_exit.
+     */
+    static inline void exit (void)
+    {
+        stimc_thread_exit ();
+    }
+
+    /**
      * @brief Inline simulation time wrapper.
      * @return Simulation time.
      * Calls @ref stimc_time_seconds.

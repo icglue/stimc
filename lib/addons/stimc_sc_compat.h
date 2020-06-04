@@ -112,6 +112,15 @@ namespace stimcxx {
     void wait (uint64_t time, enum stimc_time_unit exp, const event_combination &ec);
 
     /**
+     * @brief Inline wait forever wrapper.
+     * Calls @ref stimc_thread_halt.
+     */
+    static inline void wait (void)
+    {
+        stimc_thread_halt ();
+    }
+
+    /**
      * @brief systemc sc_time minimal replacement.
      *
      * only sufficient for some use cases, mainly

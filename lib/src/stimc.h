@@ -137,6 +137,25 @@ void stimc_register_thread_cleanup (void (*cleanfunc)(void *userdata), void *use
 
 
 /******************************************************************************************************/
+/* thread suspension */
+/******************************************************************************************************/
+
+/**
+ * @brief Halt current thread.
+ *
+ * This will suspend the current stimc thread permanently.
+ */
+void stimc_thread_halt (void);
+
+/**
+ * @brief Terminate current thread.
+ *
+ * This will suspend the current stimc thread and free it's resources.
+ */
+void stimc_thread_exit (void);
+
+
+/******************************************************************************************************/
 /* time/wait */
 /******************************************************************************************************/
 

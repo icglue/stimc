@@ -399,6 +399,21 @@ void stimc_register_thread_cleanup (void (*cleanfunc)(void *userdata) STIMC_CLEA
 #endif
 }
 
+void stimc_thread_halt (void)
+{
+    assert (stimc_current_thread);
+
+    stimc_suspend ();
+}
+
+void stimc_thread_exit (void)
+{
+    assert (stimc_current_thread);
+
+    stimc_current_thread->finished = true;
+    stimc_suspend ();
+}
+
 static void stimc_thread_finish (struct stimc_thread_s *thread)
 {
     assert (thread);
