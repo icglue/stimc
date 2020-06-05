@@ -129,9 +129,9 @@ namespace stimcxx {
      */
     class sc_time {
         private:
-            uint64_t time_ps;
+            uint64_t _time_ps;
         public:
-            sc_time (uint64_t time_ps) : time_ps (time_ps) {};
+            sc_time (uint64_t time_ps) : _time_ps (time_ps) {};
             ~sc_time () = default; /**< @brief Default sufficient */
 
             sc_time            (const sc_time &t) = default; /**< @brief Default sufficient */
@@ -144,7 +144,7 @@ namespace stimcxx {
              */
             double to_double () const
             {
-                return ((double)time_ps) * 1e-3;
+                return ((double)_time_ps) * 1e-3;
             }
 
             /**
@@ -152,7 +152,7 @@ namespace stimcxx {
              */
             double to_seconds () const
             {
-                return ((double)time_ps) * 1e-12;
+                return ((double)_time_ps) * 1e-12;
             }
 
             /**
