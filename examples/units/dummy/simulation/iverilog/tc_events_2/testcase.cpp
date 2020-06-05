@@ -1,5 +1,6 @@
-#include "dummy.h"
-#include "tb_selfcheck.h"
+#include <dummy.h>
+#include <logging.h>
+#include <tb_selfcheck.h>
 
 using namespace stimcxx;
 
@@ -11,18 +12,19 @@ static int checks = 0;
 static bool check (int id, uint32_t expected, uint32_t actual) {
     checks++;
     if (expected == actual) {
-        fprintf (stderr, "Check %d - PASS: value was %d (as expected)\n", id, actual);
+        log_good ("Check %d - PASS: value was %d (as expected)", id, actual);
         return true;
     } else {
         errors++;
-        fprintf (stderr, "Check %d - FAIL: value was %d (expected %d)\n", id, actual, expected);
+        log_bad  ("Check %d - FAIL: value was %d (expected %d)", id, actual, expected);
         return false;
     }
 }
 
 static bool check_timeout (int id, bool timeout, bool expected) {
     checks++;
-    fprintf (stderr, "Check %d - %s: %stimeout when expecting %s\n", id,
+    log_eval ((timeout == expected), "Check %d - %s: %stimeout when expecting %s",
+            id,
             (timeout == expected) ? "PASS" : "FAIL",
             timeout ? "" : "no ",
             expected ? "one" : "none");

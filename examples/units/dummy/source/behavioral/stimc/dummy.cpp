@@ -1,4 +1,5 @@
 #include "dummy.h"
+#include "logging.h"
 
 using namespace stimcxx;
 
@@ -17,7 +18,7 @@ dummy::dummy () :
     STIMCXX_REGISTER_METHOD (posedge, clk_i, clock);
     STIMCXX_REGISTER_METHOD (change, data_in_i, dinchange);
 
-    fprintf (stderr, "DEBUG: dummy module \"%s\" has DATA_W %d\n", module_id (), DATA_W.value ());
+    log_debug ("dummy module \"%s\" has DATA_W %d", module_id (), DATA_W.value ());
 }
 
 dummy::~dummy ()
@@ -25,16 +26,16 @@ dummy::~dummy ()
 
 void dummy::clock ()
 {
-    //fprintf (stderr, "DEBUG: clkedge in %s at time %ldns\n", module_id (), time (SC_NS));
+    //log_debug ("clkedge in %s at time %ldns", module_id (), time (SC_NS));
     clk_event.trigger ();
 }
 
 void dummy::dinchange ()
 {
     if (data_in_i == X) {
-        fprintf (stderr, "DEBUG: data_in changed at time %ldns to <undefined>\n", time (SC_NS));
+        log_debug ("data_in changed at time %ldns to <undefined>", time (SC_NS));
     } else {
-        fprintf (stderr, "DEBUG: data_in changed at time %luns to 0x%016lx\n", time (SC_NS), (uint64_t)data_in_i);
+        log_debug ("data_in changed at time %luns to 0x%016lx", time (SC_NS), (uint64_t)data_in_i);
     }
     din_event.trigger ();
 }

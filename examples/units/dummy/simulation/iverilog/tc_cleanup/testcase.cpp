@@ -1,5 +1,5 @@
-#include "dummy.h"
-#include "tb_selfcheck.h"
+#include <dummy.h>
+#include <tb_selfcheck.h>
 
 using namespace stimcxx;
 

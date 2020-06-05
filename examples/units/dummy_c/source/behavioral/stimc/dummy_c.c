@@ -1,4 +1,5 @@
 #include "dummy_c.h"
+#include <logging.h>
 #include <stdlib.h>
 #include <assert.h>
 
@@ -24,7 +25,7 @@ struct dummy_c* dummy_c_create (void)
     stimc_register_posedge_method (dummy_c_clock, dummy_c, dummy_c->clk_i);
     stimc_register_change_method  (dummy_c_dinchange, dummy_c, dummy_c->data_in_i);
 
-    fprintf (stderr, "DEBUG: dummy_c module \"%s\" has DATA_W %d\n", dummy_c->module.id, stimc_parameter_get_int32 (dummy_c->DATA_W));
+    log_debug ("dummy_c module \"%s\" has DATA_W %d", dummy_c->module.id, stimc_parameter_get_int32 (dummy_c->DATA_W));
 
     return dummy_c;
 }
@@ -60,9 +61,9 @@ void dummy_c_dinchange (void* userdata)
     struct dummy_c *dummy_c = (struct dummy_c *)userdata;
 
     if (stimc_net_is_xz (dummy_c->data_in_i)) {
-        fprintf (stderr, "DEBUG: data_in changed at time %ldns to <undefined>\n", stimc_time (SC_NS));
+        log_debug ("data_in changed at time %ldns to <undefined>", stimc_time (SC_NS));
     } else {
-        fprintf (stderr, "DEBUG: data_in changed at time %luns to 0x%016lx\n", stimc_time (SC_NS), stimc_net_get_uint64 (dummy_c->data_in_i));
+        log_debug ("data_in changed at time %luns to 0x%016lx", stimc_time (SC_NS), stimc_net_get_uint64 (dummy_c->data_in_i));
     }
     stimc_trigger_event (dummy_c->din_event);
 }

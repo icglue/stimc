@@ -2,7 +2,7 @@ integer i;
 reg [DATA_W-1:0] cmp_val;
 
 initial begin
-    $display ("INFO: vlog start:  full assignments stimc -> verilog");
+    $display ("INFO:     vlog start:  full assignments stimc -> verilog");
     @(posedge clk);
     if (data_out_s !== 64'h0123456789abcdef) begin
         tb_check_failed;
@@ -25,7 +25,7 @@ initial begin
         tb_final_check;
     end
 
-    $display ("INFO: vlog start:  single-bit assignments stimc -> verilog");
+    $display ("INFO:     vlog start:  single-bit assignments stimc -> verilog");
     cmp_val = {DATA_W {1'bx}};
     for (i = 0; i < DATA_W; i = i+1) begin
         cmp_val[(DATA_W+i-2)%DATA_W] = 1'b0;
@@ -35,13 +35,13 @@ initial begin
 
         @(posedge clk);
         if (data_out_s !== cmp_val) begin
-            $display ("ERROR: comparison failed at iteration %d: is: %b - expected: %b", i, data_out_s, cmp_val);
+            $display ("ERROR:    comparison failed at iteration %d: is: %b - expected: %b", i, data_out_s, cmp_val);
             tb_check_failed;
             tb_final_check;
         end
     end
 
-    $display ("INFO: vlog start:  bit-range assignments stimc -> verilog");
+    $display ("INFO:     vlog start:  bit-range assignments stimc -> verilog");
     @(posedge clk);
     if (data_out_s !== 0) begin
         tb_check_failed;
@@ -57,13 +57,13 @@ initial begin
 
         @(posedge clk);
         if (data_out_s !== cmp_val) begin
-            $display ("ERROR: comparison failed at iteration %d: is: %b - expected: %b", i, data_out_s, cmp_val);
+            $display ("ERROR:    comparison failed at iteration %d: is: %b - expected: %b", i, data_out_s, cmp_val);
             tb_check_failed;
             tb_final_check;
         end
     end
 
-    $display ("INFO: vlog start:  verilog -> stimc");
+    $display ("INFO:     vlog start:  verilog -> stimc");
     data_in = {DATA_W {1'b0}};
     #(CLKPERIOD);
     data_in = {DATA_W {1'bx}};
@@ -77,7 +77,7 @@ end
 
 initial begin
     #1000;
-    $display ("ERROR: timeout");
+    $display ("ERROR:    timeout");
     tb_check_failed;
     tb_final_check;
 end
