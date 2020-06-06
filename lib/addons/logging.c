@@ -142,13 +142,14 @@ static void log_base_vprintf (const char *format, va_list arg_list)
         }
 
         if (log_autonewline) {
+            /* always add header and newline (for newline and at end of message) */
             if (logfile != NULL) {
                 fprintf (logfile, "%s%s\n", log_header_file, line);
             }
 
             vpi_printf ("%s%s%s\n", log_header_out, line, ansi_reset);
         } else if ((*line != '\0') || (newline)) {
-            /* header */
+            /* header - only after newline (last_mode == INIT) or log-type change */
             if (current_mode != last_mode) {
                 if (logfile != NULL) {
                     fprintf (logfile, "%s", log_header_file);
