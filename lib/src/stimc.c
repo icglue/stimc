@@ -1064,6 +1064,13 @@ void stimc_trigger_event (stimc_event event)
     stimc_thread_queue_clear (&event->queue);
 }
 
+bool stimc_wait_timed_out (void)
+{
+    assert (stimc_current_thread);
+
+    return stimc_current_thread->timeout;
+}
+
 void stimc_finish (void)
 {
     if (stimc_current_thread == NULL) {

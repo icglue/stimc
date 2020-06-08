@@ -72,14 +72,11 @@ namespace stimcxx {
     /**
      * @brief Return, whether the most recent waiting on an event
      * with timeout ran into the timeout.
-     *
-     * Warning: this is only a workaround for "typical" cases (e.g.
-     * wait with timeout + call to @ref timed_out in the same compilation
-     * unit. In these cases it will work as a thread runs until it's next
-     * call to a wait function in which case time-out information could
-     * be seen as obsolete anyway.
      */
-    bool timed_out ();
+    bool timed_out ()
+    {
+        return stimc_wait_timed_out ();
+    }
 
     /**
      * @brief Inline wait wrapper.
@@ -89,7 +86,10 @@ namespace stimcxx {
      * @return true in case of timeout.
      * Calls @ref event::wait.
      */
-    void wait (uint64_t time, enum stimc_time_unit exp, event &e);
+    void wait (uint64_t time, enum stimc_time_unit exp, event &e)
+    {
+        e.wait (time, exp);
+    }
 
     /**
      * @brief Inline wait wrapper, rvalue version.
@@ -99,7 +99,10 @@ namespace stimcxx {
      * @return true in case of timeout.
      * Calls @ref event_combination::wait.
      */
-    void wait (uint64_t time, enum stimc_time_unit exp, event_combination &&ec);
+    void wait (uint64_t time, enum stimc_time_unit exp, event_combination &&ec)
+    {
+        std::move (ec).wait (time, exp);
+    }
 
     /**
      * @brief Inline wait wrapper.
@@ -109,7 +112,10 @@ namespace stimcxx {
      * @return true in case of timeout.
      * Calls @ref event_combination::wait.
      */
-    void wait (uint64_t time, enum stimc_time_unit exp, const event_combination &ec);
+    void wait (uint64_t time, enum stimc_time_unit exp, const event_combination &ec)
+    {
+        ec.wait (time, exp);
+    }
 
     /**
      * @brief Inline wait forever wrapper.
@@ -158,7 +164,12 @@ namespace stimcxx {
             /**
              * @return time as string in nano seconds.
              */
-            const std::string to_string () const;
+            std::string to_string () const
+            {
+                std::string buffer (std::to_string (to_double ()) + std::string (" ns"));
+
+                return buffer;
+            }
     };
 
     /**

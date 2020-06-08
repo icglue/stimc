@@ -352,6 +352,16 @@ bool stimc_wait_event_combination_timeout_seconds (stimc_event_combination combi
  */
 void stimc_trigger_event (stimc_event event);
 
+/**
+ * @brief Check, whether last wait with timeout returned due to timeout.
+ *
+ * @return true if last timeout caused resume for current thread.
+ *
+ * This is similar to checking the return value of the wait functions with timeout.
+ * Can only be called from a running thread.
+ */
+bool stimc_wait_timed_out (void);
+
 
 /******************************************************************************************************/
 /* sim control */
