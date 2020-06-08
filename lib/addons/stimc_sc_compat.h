@@ -73,7 +73,7 @@ namespace stimcxx {
      * @brief Return, whether the most recent waiting on an event
      * with timeout ran into the timeout.
      */
-    bool timed_out ()
+    static inline bool timed_out ()
     {
         return stimc_wait_timed_out ();
     }
@@ -86,7 +86,7 @@ namespace stimcxx {
      * @return true in case of timeout.
      * Calls @ref event::wait.
      */
-    void wait (uint64_t time, enum stimc_time_unit exp, event &e)
+    static inline void wait (uint64_t time, enum stimc_time_unit exp, event &e)
     {
         e.wait (time, exp);
     }
@@ -99,7 +99,7 @@ namespace stimcxx {
      * @return true in case of timeout.
      * Calls @ref event_combination::wait.
      */
-    void wait (uint64_t time, enum stimc_time_unit exp, event_combination &&ec)
+    static inline void wait (uint64_t time, enum stimc_time_unit exp, event_combination &&ec)
     {
         std::move (ec).wait (time, exp);
     }
@@ -112,7 +112,7 @@ namespace stimcxx {
      * @return true in case of timeout.
      * Calls @ref event_combination::wait.
      */
-    void wait (uint64_t time, enum stimc_time_unit exp, const event_combination &ec)
+    static inline void wait (uint64_t time, enum stimc_time_unit exp, const event_combination &ec)
     {
         ec.wait (time, exp);
     }
