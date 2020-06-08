@@ -5,46 +5,34 @@
 #include <stdlib.h>
 #include <assert.h>
 
-#define CHAR_COLOR_SIZE 6
-
-#define DEF_ANSI_COLOR_RED     "\x1b[31m"
-#define DEF_ANSI_COLOR_GREEN   "\x1b[32m"
-#define DEF_ANSI_COLOR_YELLOW  "\x1b[33m"
-#define DEF_ANSI_COLOR_BLUE    "\x1b[34m"
-#define DEF_ANSI_COLOR_MAGENTA "\x1b[35m"
-#define DEF_ANSI_COLOR_CYAN    "\x1b[36m"
-#define DEF_ANSI_RESET         "\x1b[0m"
-#define DEF_ANSI_BOLD          "\x1b[1m"
-#define DEF_ANSI_NOTHING       ""
-
-static const char *const ANSI_COLOR_RED     = DEF_ANSI_COLOR_RED;
-static const char *const ANSI_COLOR_GREEN   = DEF_ANSI_COLOR_GREEN;
-static const char *const ANSI_COLOR_YELLOW  = DEF_ANSI_COLOR_YELLOW;
-static const char *const ANSI_COLOR_BLUE    = DEF_ANSI_COLOR_BLUE;
-static const char *const ANSI_COLOR_MAGENTA = DEF_ANSI_COLOR_MAGENTA;
-static const char *const ANSI_COLOR_CYAN    = DEF_ANSI_COLOR_CYAN;
-static const char *const ANSI_RESET         = DEF_ANSI_RESET;
-static const char *const ANSI_BOLD          = DEF_ANSI_BOLD;
-static const char *const ANSI_NOTHING       = DEF_ANSI_NOTHING;
+static const char ANSI_COLOR_RED[]     = "\x1b[31m";
+static const char ANSI_COLOR_GREEN[]   = "\x1b[32m";
+static const char ANSI_COLOR_YELLOW[]  = "\x1b[33m";
+static const char ANSI_COLOR_BLUE[]    = "\x1b[34m";
+static const char ANSI_COLOR_MAGENTA[] = "\x1b[35m";
+static const char ANSI_COLOR_CYAN[]    = "\x1b[36m";
+static const char ANSI_RESET[]         = "\x1b[0m";
+static const char ANSI_BOLD[]          = "\x1b[1m";
+static const char ANSI_NOTHING[]       = "";
 
 #ifdef LOGGING_ENABLE_COLORS_DEFAULT
-static const char *ansi_color_red     = DEF_ANSI_COLOR_RED;
-static const char *ansi_color_green   = DEF_ANSI_COLOR_GREEN;
-static const char *ansi_color_yellow  = DEF_ANSI_COLOR_YELLOW;
-static const char *ansi_color_blue    = DEF_ANSI_COLOR_BLUE;
-static const char *ansi_color_magenta = DEF_ANSI_COLOR_MAGENTA;
-static const char *ansi_color_cyan    = DEF_ANSI_COLOR_CYAN;
-static const char *ansi_reset         = DEF_ANSI_RESET;
-static const char *ansi_bold          = DEF_ANSI_BOLD;
+static const char *ansi_color_red     = ANSI_COLOR_RED;
+static const char *ansi_color_green   = ANSI_COLOR_GREEN;
+static const char *ansi_color_yellow  = ANSI_COLOR_YELLOW;
+static const char *ansi_color_blue    = ANSI_COLOR_BLUE;
+static const char *ansi_color_magenta = ANSI_COLOR_MAGENTA;
+static const char *ansi_color_cyan    = ANSI_COLOR_CYAN;
+static const char *ansi_reset         = ANSI_RESET;
+static const char *ansi_bold          = ANSI_BOLD;
 #else
-static const char *ansi_color_red     = DEF_ANSI_NOTHING;
-static const char *ansi_color_green   = DEF_ANSI_NOTHING;
-static const char *ansi_color_yellow  = DEF_ANSI_NOTHING;
-static const char *ansi_color_blue    = DEF_ANSI_NOTHING;
-static const char *ansi_color_magenta = DEF_ANSI_NOTHING;
-static const char *ansi_color_cyan    = DEF_ANSI_NOTHING;
-static const char *ansi_reset         = DEF_ANSI_NOTHING;
-static const char *ansi_bold          = DEF_ANSI_NOTHING;
+static const char *ansi_color_red     = ANSI_NOTHING;
+static const char *ansi_color_green   = ANSI_NOTHING;
+static const char *ansi_color_yellow  = ANSI_NOTHING;
+static const char *ansi_color_blue    = ANSI_NOTHING;
+static const char *ansi_color_magenta = ANSI_NOTHING;
+static const char *ansi_color_cyan    = ANSI_NOTHING;
+static const char *ansi_reset         = ANSI_NOTHING;
+static const char *ansi_bold          = ANSI_NOTHING;
 #endif
 
 /* logging to file */
