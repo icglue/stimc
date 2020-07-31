@@ -60,6 +60,7 @@ define shell-fmtflags
 endef
 
 vlogcolor=$${blue}
+elabcolor=$${green}
 stimccolor=$${yellow}
 runcolor=""
 
@@ -74,13 +75,6 @@ else
 	$qmkdir -p $(WORK_DIR)
 endif
 
-elab: vlog vpi_run
-
-rerun: $(DUMPFILE)
-
-rungui: $(DUMPFILE)
-	$q$(MAKE) --no-print-directory gui
-
 clean: clean-vlog clean-vpi clean-gui
 	$qif [ -L $(WORK_DIR) ]; then  \
 		rm -Irf `readlink -e $(WORK_DIR)` ;\
@@ -92,16 +86,32 @@ clean: clean-vlog clean-vpi clean-gui
 clean-all:
 	$q$(MAKE) SIMULATOR=iverilog --no-print-directory clean
 	$q$(MAKE) SIMULATOR=cvc      --no-print-directory clean
+	$q$(MAKE) SIMULATOR=xcelium  --no-print-directory clean
+	$q$(MAKE) SIMULATOR=ius      --no-print-directory clean
 
-.PHONY: elab rungui rerun clean
+.PHONY: clean
 
 # sub makefiles
+ifeq ($(SIMULATOR),ius)
+include ${ICPRO_DIR}/env/simulation/Makefile.project.cdssim.pre
+endif
+ifeq ($(SIMULATOR),xcelium)
+include ${ICPRO_DIR}/env/simulation/Makefile.project.cdssim.pre
+endif
+
 include ${ICPRO_DIR}/env/simulation/Makefile.project.stimc
-include ${ICPRO_DIR}/env/simulation/Makefile.project.gtkwave
 
 ifeq ($(SIMULATOR),iverilog)
+include ${ICPRO_DIR}/env/simulation/Makefile.project.gtkwave
 include ${ICPRO_DIR}/env/simulation/Makefile.project.iverilog
 endif
 ifeq ($(SIMULATOR),cvc)
+include ${ICPRO_DIR}/env/simulation/Makefile.project.gtkwave
 include ${ICPRO_DIR}/env/simulation/Makefile.project.cvc
+endif
+ifeq ($(SIMULATOR),ius)
+include ${ICPRO_DIR}/env/simulation/Makefile.project.cdssim
+endif
+ifeq ($(SIMULATOR),xcelium)
+include ${ICPRO_DIR}/env/simulation/Makefile.project.cdssim
 endif

@@ -77,6 +77,9 @@ $(DUMPFILE): $(SIM_EXEC_DUMP) $(VPI_MODULE) $(RUN_DEPS) $(MAKEFILE_LIST)
 vlog: $(SIM_EXEC)
 vlog-dump: $(SIM_EXEC)
 
+elab:      vlog      vpi-run
+elab-dump: vlog-dump vpi-run
+
 run: $(SIM_EXEC) $(VPI_MODULE) Makefile
 	$q$(call echo, "\n$${b}$(runcolor)RUN $${c} $$(basename $(SIM_EXEC))\n")
 	$q$(SIM_EXEC)
@@ -84,6 +87,11 @@ run: $(SIM_EXEC) $(VPI_MODULE) Makefile
 runbatch: $(SIM_EXEC) $(VPI_MODULE) Makefile
 	$q$(call echo, "\n$${b}$(runcolor)RUN $${c} $$(basename $(SIM_EXEC))\n")
 	$q$(SIM_EXEC) 2>&1 | tee $(BATCH_LOG)
+
+rerun: $(DUMPFILE)
+
+rungui: $(DUMPFILE)
+	$q$(MAKE) --no-print-directory gui
 
 $(DUMP_MOD): | $(WORK_DIR)
 	@echo 'module $(DUMP_MOD_NAME) ();'     > $@
@@ -99,4 +107,4 @@ clean-vlog:
         2> /dev/null || true
 	$qrm -f $(WORK_DIR)/$(DUMPFILE).hier
 
-.PHONY: vlog vlog-dump run runbatch clean-vlog
+.PHONY: vlog vlog-dump elab elab-dump run runbatch rungui rerun clean-vlog

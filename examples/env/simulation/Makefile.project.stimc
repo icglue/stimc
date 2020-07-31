@@ -19,13 +19,21 @@ MEMCHK          ?= valgrind --leak-check=full --error-exitcode=1 --suppressions=
 WARNFLAGS       ?= -Wall -Wextra -Wshadow -pedantic -Werror
 OPTFLAGS        ?= -O2 -fdata-sections -ffunction-sections
 #ARCHFLAGS       ?= -mtune=native -march=native
-CFLAGS          ?= -std=c11 -fpic -Wstrict-prototypes
-CXXFLAGS        ?= -std=c++11 -fpic -Weffc++
+CFLAGS          ?= -std=c11 -Wstrict-prototypes
+CXXFLAGS        ?= -std=c++11 -Weffc++
+CFLAGS          += -fpic
+CXXFLAGS        += -fpic
 CPPFLAGS        ?= $(addprefix -I,$(STIMC_DIRS))
 
-# default
-STIMC_THREAD_IMPL ?=pcl
+VPI_EXTENSION   ?= .vpi
 
+# default
+STIMC_THREAD_IMPL ?=pcl-static
+
+ifeq ($(STIMC_THREAD_IMPL),pcl-static)
+CPPFLAGS        += -I ${ICPRO_DIR}/resources/pcl/include -D STIMC_THREAD_IMPL_PCL
+LDFLAGS         += -L ${ICPRO_DIR}/resources/pcl/lib -lpcl
+endif
 ifeq ($(STIMC_THREAD_IMPL),pcl)
 CPPFLAGS        += -D STIMC_THREAD_IMPL_PCL
 LDFLAGS         += -lpcl
@@ -44,7 +52,7 @@ LDFLAGS         += -lboost_coroutine
 endif
 
 ifneq ($(strip $(STIMC_MODULES)),)
-  VPI_MODULE   ?= $(WORK_DIR)/stimc_model.vpi
+  VPI_MODULE   ?= $(WORK_DIR)/stimc_model$(VPI_EXTENSION)
 endif
 
 ALL_CPPFLAGS    = $(VPI_CPPFLAGS) $(CPPFLAGS)
@@ -92,17 +100,17 @@ $(WORK_DIR)/%.o: %.cpp $(WORK_DIR)/%.d $(MAKEFILE_LIST) | $(WORK_DIR) info-cxx
 
 -include ${STIMC_DEPS:.d=.dep}
 
-$(WORK_DIR)/%.vpi: $(STIMC_OBJECTS) | info-ld
+$(WORK_DIR)/%$(VPI_EXTENSION): $(STIMC_OBJECTS) | info-ld
 	$q$(call echo, "$${b}$(stimccolor)LD  $${c} $@")
 	$q$(CXX) $(WARNFLAGS) $(STIMC_OBJECTS) $(ALL_LDFLAGS) -o $@
 
-vpi_run: $(VPI_MODULE)
+vpi-run: $(VPI_MODULE)
 
 clean-vpi:
 	$qrm -f \
         $(VPI_MODULE) $(STIMC_DEPS) ${STIMC_DEPS:.d=.dep} $(STIMC_OBJECTS) \
         2> /dev/null || true
 
-.PHONY: vpi_run clean-vpi
+.PHONY: vpi-run clean-vpi
 
 .SECONDARY: $(STIMC_DEPS) $(STIMC_OBJECTS) $(VPI_MODULE)

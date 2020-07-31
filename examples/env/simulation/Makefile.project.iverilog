@@ -55,6 +55,8 @@ $(DUMPFILE): $(VVP_FILE) $(VPI_MODULE) $(RUN_DEPS) $(MAKEFILE_LIST)
 
 vlog: $(VVP_FILE)
 
+elab: vlog vpi-run
+
 run: $(VVP_FILE) $(VPI_MODULE) Makefile
 	$q$(call echo, "\n$${b}$(runcolor)RUN $${c} $$(basename $(VVP_FILE))\n")
 	$q$(VVP) $(VVP_FLAGS) $(VVP_FILE) $(DUMPMODE) $(VVP_EXTARGS_RUN)
@@ -66,6 +68,11 @@ memcheck: $(VVP_FILE) $(VPI_MODULE) Makefile
 runbatch: $(VVP_FILE) $(VPI_MODULE) Makefile
 	$q$(call echo, "\n$${b}$(runcolor)RUN $${c} $$(basename $(VVP_FILE))\n")
 	$q$(VVP) $(VVP_FLAGS) $(VVP_FILE) $(DUMPMODE) $(VVP_EXTARGS_RUN) 2>&1 | tee $(BATCH_LOG)
+
+rerun: $(DUMPFILE)
+
+rungui: $(DUMPFILE)
+	$q$(MAKE) --no-print-directory gui
 
 $(DUMP_MOD): | $(WORK_DIR)
 	@echo 'module $(DUMP_MOD_NAME) ();'     > $@
@@ -81,4 +88,4 @@ clean-vlog:
         2> /dev/null || true
 	$qrm -f $(WORK_DIR)/$(DUMPFILE).hier
 
-.PHONY: vlog run runbatch memcheck clean-vlog
+.PHONY: vlog elab run runbatch rungui rerun memcheck clean-vlog
