@@ -31,6 +31,10 @@ unset src
     fi
 }
 
+if ! echo "${PATH}" | grep "${ICPRO_DIR}/env/bin" >/dev/null 2>&1; then
+    PATH="${ICPRO_DIR}/env/bin:${PATH}"
+fi
+
 [[ -n "$(declare -f -F cdi)" ]] || cdi() {
     icpro_cd / $@
 }
@@ -60,6 +64,11 @@ if [[ -n "$ZSH_VERSION" ]]; then
     compctl -W $ICPRO_DIR/          -/ cdi
     compctl -W $ICPRO_DIR/units/    -/ cdu
     compctl -W $ICPRO_DIR/software/ -/ cds
+
+    for bp in ${ICPRO_DIR}/env/bin/* ; do
+        b=$(basename $bp)
+        compdef _make ${b}=make
+    done
 fi
 
 icpro_logout() {
@@ -69,5 +78,8 @@ icpro_logout() {
         unset _icpro_prompt_base
         unset PROMPT_COMMAND
     fi
+
+    PATH="$(echo $PATH | sed -e "s#${ICPRO_DIR}/env/bin:##")"
+
     unset ICPRO_DIR
 }

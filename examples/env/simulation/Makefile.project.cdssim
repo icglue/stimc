@@ -1,4 +1,6 @@
 # ------------  configuration parameters ---------------------------------------
+CDS_TOOL_SUITE ?= $(SIMULATOR)
+
 VLOG_LOG      ?= $(WORK_DIR)/$(SIM_NAME)_vlog.log
 ELAB_LOG      ?= $(WORK_DIR)/$(SIM_NAME)_elab.log
 SIM_LOG       ?= $(WORK_DIR)/$(SIM_NAME)_sim.log
@@ -10,10 +12,30 @@ DEFAULT_TIMESCALE ?= 1ns/1ps
 # The following statements usually need not to be changed
 #===============================================================================
 
+ifeq ($(CDS_TOOL_SUITE),ius)
+  export CDS_PREFIX = nc
+else
+  export CDS_PREFIX = xm
+endif
+
 VLOG          = $(CDS_PREFIX)vlog
 ELAB          = $(CDS_PREFIX)elab
 SIM           = $(CDS_PREFIX)sim
 WAVEBROWSE    = simvision
+
+CDSROOT       = $(shell $(CDS_PREFIX)root)
+CDSGCCBIN     = $(CDSROOT)/tools/cdsgcc/gcc/bin/64bit
+CDS_CC        = $(CDSGCCBIN)/gcc
+CDS_CXX       = $(CDSGCCBIN)/g++
+CDS_LD        = $(CDSGCCBIN)/ld
+
+CC            = $(CDS_CC)
+CXX           = $(CDS_CXX)
+LD            = $(CDS_LD)
+
+CFLAGS       += -Wno-strict-prototypes
+
+VPI_EXTENSION = .so
 
 # ------------  cdslib + directories  ------------------------------------------
 CDSLIB_FILE     = $(WORK_DIR)/cds.lib

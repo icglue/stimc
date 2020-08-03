@@ -23,7 +23,7 @@ CFLAGS          ?= -std=c11 -Wstrict-prototypes
 CXXFLAGS        ?= -std=c++11 -Weffc++
 CFLAGS          += -fpic
 CXXFLAGS        += -fpic
-CPPFLAGS        ?= $(addprefix -I,$(STIMC_DIRS))
+CPPFLAGS        += $(addprefix -I,$(STIMC_DIRS))
 
 VPI_EXTENSION   ?= .vpi
 
@@ -100,7 +100,7 @@ $(WORK_DIR)/%.o: %.cpp $(WORK_DIR)/%.d $(MAKEFILE_LIST) | $(WORK_DIR) info-cxx
 
 -include ${STIMC_DEPS:.d=.dep}
 
-$(WORK_DIR)/%$(VPI_EXTENSION): $(STIMC_OBJECTS) | info-ld
+$(WORK_DIR)/%.so $(WORK_DIR)/%.vpi: $(STIMC_OBJECTS) | info-ld
 	$q$(call echo, "$${b}$(stimccolor)LD  $${c} $@")
 	$q$(CXX) $(WARNFLAGS) $(STIMC_OBJECTS) $(ALL_LDFLAGS) -o $@
 

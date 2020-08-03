@@ -24,7 +24,7 @@ COMPILE_DEPS   ?= $(foreach incdir, $(INCLUDEDIRS), $(wildcard $(incdir)/*.vh))
 
 # ------------  build and run tools  -------------------------------------------
 LN              ?= ln -sf
-MKTEMP          ?= mktemp -p $(TMPDIR) -t ivl-$(USER)-$(SIM_NAME)-XXXX
+MKTEMP          ?= mktemp -p $(TMPDIR) -t $(USER)-$(SIMULATOR)-$(SIM_NAME)-XXXX
 
 # ------------  output color/verbosity -----------------------------------------
 q?=@
@@ -92,23 +92,18 @@ clean-all:
 .PHONY: clean
 
 # sub makefiles
-ifeq ($(SIMULATOR),ius)
-include ${ICPRO_DIR}/env/simulation/Makefile.project.cdssim.pre
-endif
-ifeq ($(SIMULATOR),xcelium)
-include ${ICPRO_DIR}/env/simulation/Makefile.project.cdssim.pre
-endif
-
 include ${ICPRO_DIR}/env/simulation/Makefile.project.stimc
 
 ifeq ($(SIMULATOR),iverilog)
 include ${ICPRO_DIR}/env/simulation/Makefile.project.gtkwave
 include ${ICPRO_DIR}/env/simulation/Makefile.project.iverilog
 endif
+
 ifeq ($(SIMULATOR),cvc)
 include ${ICPRO_DIR}/env/simulation/Makefile.project.gtkwave
 include ${ICPRO_DIR}/env/simulation/Makefile.project.cvc
 endif
+
 ifeq ($(SIMULATOR),ius)
 include ${ICPRO_DIR}/env/simulation/Makefile.project.cdssim
 endif
