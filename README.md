@@ -275,3 +275,8 @@ The Verilog shell can be found in `source/behavioral/verilog`, the module stimc 
 testcase directory and run `make`. The code will be compiled, run and GTKWave will be started
 for browsing the simulated waveforms.
 
+## License
+stimc itself is licensed under the GNU LGPLv3. But depending on the used coroutine library the
+derived work might be licensed depending on the coroutine library. `pcl` is licensed
+under GNU GPL, so here the combination is also licensed as GPL, whereas when using `libco` or `boost`
+the combination will be licensed under GNU LGPL.
