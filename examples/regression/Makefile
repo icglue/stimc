@@ -8,6 +8,7 @@ TESTCASES := \
 	dummy.tc_events_3 \
 	dummy.tc_cleanup \
 	dummy_c.tc_sanity \
+	iotest.tc_sanity \
 
 # icglue keep end
 

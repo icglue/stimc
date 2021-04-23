@@ -1,0 +1,5 @@
+// icglue keep begin sources
+${ICPRO_DIR}/units/iotest/source/behavioral/verilog/iotest.v
+${ICPRO_DIR}/units/iotest/source/tb/verilog/tb_iotest.v
+// icglue keep end
+
