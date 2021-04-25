@@ -81,8 +81,9 @@ const char    *stimc_version       = STIMC_VERSION_STR (STIMC_VERSION_MAJOR) "."
 /* internal header */
 /******************************************************************************************************/
 
-#define __STIMC_INTERNAL_HEADER__
+#define STIMC_USE_INTERNAL_HEADER
 #include "stimc_thread.inl"
+#undef STIMC_USE_INTERNAL_HEADER
 
 /* modules and co */
 static const char *stimc_get_caller_scope (void);

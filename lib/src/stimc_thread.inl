@@ -22,10 +22,10 @@
  * @brief stimc thread implementation.
  */
 
-#ifndef __STIMC_THREAD_H__
-#define __STIMC_THREAD_H__
+#ifndef STIMC_THREAD_INL
+#define STIMC_THREAD_INL
 
-#ifndef __STIMC_INTERNAL_HEADER__
+#ifndef STIMC_USE_INTERNAL_HEADER
 #error "stimc internal header should not be included outside of stimc core"
 #endif
 
@@ -198,7 +198,6 @@ static inline void stimc_thread_impl_delete (stimc_thread_impl t)
     co_delete (t);
 }
 #endif
-
 
 #endif
 

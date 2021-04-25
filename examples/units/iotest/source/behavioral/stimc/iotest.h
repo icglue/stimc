@@ -1,5 +1,5 @@
-#ifndef __IOTEST_H__
-#define __IOTEST_H__
+#ifndef STIMCXX_MODULE_IOTEST_H
+#define STIMCXX_MODULE_IOTEST_H
 
 #include "stimc++.h"
 

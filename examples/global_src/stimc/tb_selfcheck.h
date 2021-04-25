@@ -1,5 +1,5 @@
-#ifndef __TB_SELFCHECK_H__
-#define __TB_SELFCHECK_H__
+#ifndef GLOBAL_TB_SELFCHECK_H
+#define GLOBAL_TB_SELFCHECK_H
 
 #ifdef __cplusplus
 extern "C" {
@@ -14,3 +14,4 @@ void tb_final_check (unsigned checks_done, unsigned errors, bool offensive);
 #endif
 
 #endif
+

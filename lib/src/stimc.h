@@ -22,8 +22,8 @@
  * @brief stimc core.
  */
 
-#ifndef __STIMC_H__
-#define __STIMC_H__
+#ifndef STIMC_H
+#define STIMC_H
 
 #include <vpi_user.h>
 #include <stddef.h>

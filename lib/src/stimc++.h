@@ -22,8 +22,8 @@
  * @brief stimc++ (c++ stimc wrapper).
  */
 
-#ifndef __STIMCXX_H__
-#define __STIMCXX_H__
+#ifndef STIMCXX_H
+#define STIMCXX_H
 
 #include <stimc.h>
 #include <utility>
@@ -1407,5 +1407,6 @@ namespace stimcxx {
         stimc_vpi_init_register (&_stimc_module_ ## module ## _vpi_init_s_); \
     } \
     static stimc_vpi_init_register_func_t _stimc_module_ ## module ## _do_export_ __attribute__((__used__, section (".init_array"))) = _stimc_module_ ## module ## _vpi_init_f_;
+
 #endif
 

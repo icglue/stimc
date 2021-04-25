@@ -1,5 +1,5 @@
-#ifndef __DUMMY_C_H__
-#define __DUMMY_C_H__
+#ifndef STIMC_MODULE_DUMMY_C_H
+#define STIMC_MODULE_DUMMY_C_H
 
 #include "stimc.h"
 

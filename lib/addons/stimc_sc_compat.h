@@ -28,8 +28,8 @@
  * event functionality, which is provided here.
  */
 
-#ifndef __STIMC_SC_COMPAT_H__
-#define __STIMC_SC_COMPAT_H__
+#ifndef STIMC_SC_COMPAT_H
+#define STIMC_SC_COMPAT_H
 
 #include <stimc++.h>
 #include <string>

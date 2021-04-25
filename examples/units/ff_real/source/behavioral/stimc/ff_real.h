@@ -1,5 +1,5 @@
-#ifndef __FF_REAL_H__
-#define __FF_REAL_H__
+#ifndef STIMCXX_MODULE_FF_REAL_H
+#define STIMCXX_MODULE_FF_REAL_H
 
 #include "stimc++.h"
 
