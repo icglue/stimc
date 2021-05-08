@@ -1,0 +1,25 @@
+name: test
+
+on:
+  push:
+    branches:
+      - test
+      - master
+      - 1.x
+    pull_request:
+
+jobs:
+  linux:
+    runs-on: ubuntu-latest
+    name: test-ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install dependencies
+        run: |
+          sudo apt-get install -y --no-upgrade make g++ gcc libpcl1 libpcl1-dev iverilog valgrind
+      - name: Build library
+        run: |
+          make -j3
+      - name: Run tests
+        run: |
+          make -j3 test
