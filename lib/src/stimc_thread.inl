@@ -119,57 +119,45 @@ void              stimc_thread_impl_delete (stimc_thread_impl t);
 
 
 /*******************************************************************************/
-/* PCL threads - inline definition */
+/* PCL + LIBCO threads - inline definition */
 /*******************************************************************************/
 #ifdef STIMC_THREAD_IMPL_PCL
+#define STIMC_THREAD_IMPL_LIBCO_PCL
+
 #include <pcl.h>
 #include <limits.h>
 
+#define STIMC_STACKSIZE_MAX (size_t)INT_MAX
 typedef coroutine_t stimc_thread_impl;
 
-static inline stimc_thread_impl stimc_thread_impl_create (void (*func)(STIMC_THREAD_ARG_DECL), size_t stacksize)
-{
-    if (stacksize > (size_t)INT_MAX) stacksize = INT_MAX;
-
-    coroutine_t t = co_create (func, NULL, NULL, stacksize);
-
-    assert (t);
-    return t;
-}
-
-static inline void stimc_thread_impl_run (stimc_thread_impl t)
-{
-    co_call (t);
-}
-
-static inline void stimc_thread_impl_suspend (void)
-{
-    co_resume ();
-}
-
-static inline void stimc_thread_impl_delete (stimc_thread_impl t)
-{
-    co_delete (t);
-}
+#define STIMC_CO_CREATE(func,stacksize) co_create  (func, NULL, NULL, stacksize)
+#define STIMC_CO_CURRENT()              co_current ()
+#define STIMC_CO_SWITCH(thread)         co_call    (thread)
+#define STIMC_CO_DELETE(thread)         co_delete  (thread)
 #endif
 
-
-/*******************************************************************************/
-/* LIBCO threads - inline definition */
-/*******************************************************************************/
 #ifdef STIMC_THREAD_IMPL_LIBCO
+#define STIMC_THREAD_IMPL_LIBCO_PCL
 #include <libco.h>
 #include <limits.h>
 
+#define STIMC_STACKSIZE_MAX (size_t)UINT_MAX
 typedef cothread_t stimc_thread_impl;
 
+#define STIMC_CO_CREATE(func,stacksize) co_create (stacksize, func)
+#define STIMC_CO_CURRENT()              co_active ()
+#define STIMC_CO_SWITCH(thread)         co_switch (thread)
+#define STIMC_CO_DELETE(thread)         co_delete (thread)
+#endif
+
+#ifdef STIMC_THREAD_IMPL_LIBCO_PCL
 static stimc_thread_impl stimc_thread_impl_main = NULL;
 
-static inline stimc_thread_impl stimc_thread_impl_create (void (*func)(void), size_t stacksize)
+static inline stimc_thread_impl stimc_thread_impl_create (void (*func)(STIMC_THREAD_ARG_DECL), size_t stacksize)
 {
-    if (stacksize > (size_t)UINT_MAX) stacksize = UINT_MAX;
+    if (stacksize > STIMC_STACKSIZE_MAX) stacksize = STIMC_STACKSIZE_MAX;
 
-    cothread_t t = co_create (stacksize, func);
+    stimc_thread_impl t = STIMC_CO_CREATE (func, stacksize);
 
     assert (t);
     return t;
@@ -177,11 +165,11 @@ static inline stimc_thread_impl stimc_thread_impl_create (void (*func)(void), si
 
 static inline void stimc_thread_impl_run (stimc_thread_impl t)
 {
-    cothread_t prev = stimc_thread_impl_main;
+    stimc_thread_impl prev = stimc_thread_impl_main;
 
-    stimc_thread_impl_main = co_active ();
+    stimc_thread_impl_main = STIMC_CO_CURRENT ();
 
-    co_switch (t);
+    STIMC_CO_SWITCH (t);
 
     stimc_thread_impl_main = prev;
 }
@@ -190,12 +178,12 @@ static inline void stimc_thread_impl_suspend (void)
 {
     assert (stimc_thread_impl_main);
 
-    co_switch (stimc_thread_impl_main);
+    STIMC_CO_SWITCH (stimc_thread_impl_main);
 }
 
 static inline void stimc_thread_impl_delete (stimc_thread_impl t)
 {
-    co_delete (t);
+    STIMC_CO_DELETE (t);
 }
 #endif
 
