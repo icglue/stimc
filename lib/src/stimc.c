@@ -821,6 +821,8 @@ static void stimc_event_thread_queue_free (stimc_event event)
 
 void stimc_event_free (stimc_event event)
 {
+    if (event == NULL) return;
+
     stimc_event_thread_queue_free (event);
 
 #ifndef STIMC_DISABLE_CLEANUP

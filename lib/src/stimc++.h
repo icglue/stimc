@@ -45,21 +45,34 @@ namespace stimcxx {
             /**
              * @brief Create @ref stimc_event.
              */
-            event () :
+            event () noexcept :
                 _event (stimc_event_create ())
             {}
 
             event            (const event &e) = delete; /**< @brief Do not copy/change internals */
             event& operator= (const event &e) = delete; /**< @brief Do not copy/change internals */
-            event            (event &&e)      = delete; /**< @brief Do not move/change internals */
-            event& operator= (event &&e)      = delete; /**< @brief Do not move/change internals */
+
+            event (event &&e) noexcept :
+                _event (e._event)
+            {
+                e._event = nullptr;
+            }
+
+            event& operator= (event &&e) noexcept
+            {
+                stimc_event t = e._event;
+                e._event      = this->_event;
+                this->_event  = t;
+
+                return *this;
+            }
 
             /**
              * @brief Free @ref stimc_event.
              */
             ~event ()
             {
-                stimc_event_free (this->_event);
+                if (_event != nullptr) stimc_event_free (this->_event);
             }
 
             /**
