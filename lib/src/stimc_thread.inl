@@ -130,10 +130,10 @@ void              stimc_thread_impl_delete (stimc_thread_impl t);
 #define STIMC_STACKSIZE_MAX (size_t)INT_MAX
 typedef coroutine_t stimc_thread_impl;
 
-#define STIMC_CO_CREATE(func,stacksize) co_create  (func, NULL, NULL, stacksize)
-#define STIMC_CO_CURRENT()              co_current ()
-#define STIMC_CO_SWITCH(thread)         co_call    (thread)
-#define STIMC_CO_DELETE(thread)         co_delete  (thread)
+#define STIMC_CO_CREATE(func, stacksize) co_create  (func, NULL, NULL, stacksize)
+#define STIMC_CO_CURRENT()               co_current ()
+#define STIMC_CO_SWITCH(thread)          co_call    (thread)
+#define STIMC_CO_DELETE(thread)          co_delete  (thread)
 #endif
 
 #ifdef STIMC_THREAD_IMPL_LIBCO
@@ -144,10 +144,10 @@ typedef coroutine_t stimc_thread_impl;
 #define STIMC_STACKSIZE_MAX (size_t)UINT_MAX
 typedef cothread_t stimc_thread_impl;
 
-#define STIMC_CO_CREATE(func,stacksize) co_create (stacksize, func)
-#define STIMC_CO_CURRENT()              co_active ()
-#define STIMC_CO_SWITCH(thread)         co_switch (thread)
-#define STIMC_CO_DELETE(thread)         co_delete (thread)
+#define STIMC_CO_CREATE(func, stacksize) co_create (stacksize, func)
+#define STIMC_CO_CURRENT()               co_active ()
+#define STIMC_CO_SWITCH(thread)          co_switch (thread)
+#define STIMC_CO_DELETE(thread)          co_delete (thread)
 #endif
 
 #ifdef STIMC_THREAD_IMPL_LIBCO_PCL

@@ -228,7 +228,7 @@ struct stimc_cleanup_entry_s {
 
 static void                                 stimc_cleanup_init         (void);
 static void                                 stimc_cleanup_run          (struct stimc_cleanup_entry_s **queue);
-static struct stimc_cleanup_entry_s        *stimc_cleanup_add          (void (*callback)(void *userdata), void *userdata);
+static struct stimc_cleanup_entry_s *       stimc_cleanup_add          (void (*callback)(void *userdata), void *userdata);
 static inline struct stimc_cleanup_entry_s *stimc_cleanup_add_internal (struct stimc_cleanup_entry_s *queue, void (*callback)(void *userdata), void *userdata);
 
 struct stimc_cleanup_data_main_s {

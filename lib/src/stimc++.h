@@ -61,8 +61,9 @@ namespace stimcxx {
             event& operator= (event &&e) noexcept
             {
                 stimc_event t = e._event;
-                e._event      = this->_event;
-                this->_event  = t;
+
+                e._event     = this->_event;
+                this->_event = t;
 
                 return *this;
             }
