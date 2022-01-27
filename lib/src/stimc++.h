@@ -71,7 +71,7 @@ namespace stimcxx {
             /**
              * @brief Free @ref stimc_event.
              */
-            ~event ()
+            ~event () noexcept
             {
                 if (_event != nullptr) stimc_event_free (this->_event);
             }
@@ -118,7 +118,7 @@ namespace stimcxx {
              *
              * Inline wrapper for @ref stimc_trigger_event.
              */
-            void trigger ()
+            void trigger () noexcept
             {
                 stimc_trigger_event (_event);
             }
@@ -130,7 +130,7 @@ namespace stimcxx {
              *
              * @return Combined events.
              */
-            event_combination_all operator& (const event &rhs);
+            event_combination_all operator& (const event &rhs) noexcept;
 
             /**
              * @brief Combine two events for waiting on any of them
@@ -139,7 +139,7 @@ namespace stimcxx {
              *
              * @return Combined events.
              */
-            event_combination_any operator| (const event &rhs);
+            event_combination_any operator| (const event &rhs) noexcept;
 
             friend class event_combination;
     };
@@ -159,7 +159,7 @@ namespace stimcxx {
              * @param e2 rhs event.
              * @param any Whether the combination will represent waiting on any (true) event or all (false) events.
              */
-            event_combination (const event &e1, const event &e2, bool any) :
+            event_combination (const event &e1, const event &e2, bool any) noexcept :
                 _combination (stimc_event_combination_create (any))
             {
                 append (e1);
@@ -172,7 +172,7 @@ namespace stimcxx {
              * @param ec lhs operation.
              * @param e rhs event.
              */
-            event_combination (const event_combination &ec, const event &e) :
+            event_combination (const event_combination &ec, const event &e) noexcept :
                 _combination (stimc_event_combination_create (false))
             {
                 stimc_event_combination_copy (_combination, ec._combination);
@@ -184,7 +184,7 @@ namespace stimcxx {
              *
              * @param e event to extend with.
              */
-            void append (const event &e)
+            void append (const event &e) noexcept
             {
                 stimc_event_combination_append (_combination, e._event);
             }
@@ -195,7 +195,7 @@ namespace stimcxx {
              *
              * @param ec copy source.
              */
-            event_combination (const event_combination &ec) :
+            event_combination (const event_combination &ec) noexcept :
                 _combination (stimc_event_combination_create (false))
             {
                 stimc_event_combination_copy (_combination, ec._combination);
@@ -208,7 +208,7 @@ namespace stimcxx {
              *
              * @return @c *this.
              */
-            event_combination& operator= (const event_combination &ec)
+            event_combination& operator= (const event_combination &ec) noexcept
             {
                 stimc_event_combination_copy (_combination, ec._combination);
                 return *this;
@@ -219,7 +219,7 @@ namespace stimcxx {
              *
              * @param ec move source.
              */
-            event_combination (event_combination &&ec) :
+            event_combination (event_combination &&ec) noexcept :
                 _combination (ec._combination)
             {
                 ec._combination = nullptr;
@@ -232,7 +232,7 @@ namespace stimcxx {
              *
              * @return @c *this.
              */
-            event_combination& operator= (event_combination &&ec)
+            event_combination& operator= (event_combination &&ec) noexcept
             {
                 stimc_event_combination_free (_combination);
                 _combination    = ec._combination;
@@ -248,7 +248,7 @@ namespace stimcxx {
              * and @ref event_combination_any do not add any resources to be
              * released.
              */
-            ~event_combination ()
+            ~event_combination () noexcept
             {
                 if (_combination != nullptr) stimc_event_combination_free (_combination);
             }
@@ -350,7 +350,7 @@ namespace stimcxx {
              * @param e1 lhs event.
              * @param e2 rhs event.
              */
-            event_combination_all (const event &e1, const event &e2) : event_combination (e1, e2, false) {};
+            event_combination_all (const event &e1, const event &e2) noexcept : event_combination (e1, e2, false) {};
 
             /**
              * @brief Constructor for extension based on operation with additional event.
@@ -358,15 +358,15 @@ namespace stimcxx {
              * @param ec lhs operation.
              * @param e rhs event.
              */
-            event_combination_all (const event_combination_all &ec, const event &e) : event_combination (ec, e) {};
+            event_combination_all (const event_combination_all &ec, const event &e) noexcept : event_combination (ec, e) {};
 
         public:
-            event_combination_all            (const event_combination_all &ec) = default; /**< @brief default copy constructor */
-            event_combination_all& operator= (const event_combination_all &ec) = default; /**< @brief default copy assignment */
-            event_combination_all            (event_combination_all &&ec)      = default; /**< @brief default move constructor */
-            event_combination_all& operator= (event_combination_all &&ec)      = default; /**< @brief default move assignment */
+            event_combination_all            (const event_combination_all &ec) noexcept = default; /**< @brief default copy constructor */
+            event_combination_all& operator= (const event_combination_all &ec) noexcept = default; /**< @brief default copy assignment */
+            event_combination_all            (event_combination_all &&ec) noexcept      = default; /**< @brief default move constructor */
+            event_combination_all& operator= (event_combination_all &&ec) noexcept      = default; /**< @brief default move assignment */
 
-            ~event_combination_all () = default; /**< @brief default destructor */
+            ~event_combination_all () noexcept = default; /**< @brief default destructor */
 
             friend class event;
 
@@ -377,7 +377,7 @@ namespace stimcxx {
              *
              * @return Extended combination.
              */
-            event_combination_all operator& (event &rhs) const &
+            event_combination_all operator& (event &rhs) const & noexcept
             {
                 event_combination_all ec (*this, rhs);
 
@@ -391,14 +391,14 @@ namespace stimcxx {
              *
              * @return Extended combination.
              */
-            event_combination_all operator& (event &rhs) &&
+            event_combination_all operator& (event &rhs) && noexcept
             {
                 append (rhs);
                 return std::move (*this);
             }
     };
 
-    inline event_combination_all event::operator& (const event &rhs)
+    inline event_combination_all event::operator& (const event &rhs) noexcept
     {
         event_combination_all ec (*this, rhs);
 
@@ -416,7 +416,7 @@ namespace stimcxx {
              * @param e1 lhs event.
              * @param e2 rhs event.
              */
-            event_combination_any (const event &e1, const event &e2) : event_combination (e1, e2, true) {};
+            event_combination_any (const event &e1, const event &e2) noexcept : event_combination (e1, e2, true) {};
 
             /**
              * @brief Constructor for extension based on operation with additional event.
@@ -424,15 +424,15 @@ namespace stimcxx {
              * @param ec lhs operation.
              * @param e rhs event.
              */
-            event_combination_any (const event_combination_any &ec, const event &e) : event_combination (ec, e) {};
+            event_combination_any (const event_combination_any &ec, const event &e) noexcept : event_combination (ec, e) {};
 
         public:
-            event_combination_any            (const event_combination_any &ec) = default; /**< @brief default copy constructor */
-            event_combination_any& operator= (const event_combination_any &ec) = default; /**< @brief default copy assignment */
-            event_combination_any            (event_combination_any &&ec)      = default; /**< @brief default move constructor */
-            event_combination_any& operator= (event_combination_any &&ec)      = default; /**< @brief default move assignment */
+            event_combination_any            (const event_combination_any &ec) noexcept = default; /**< @brief default copy constructor */
+            event_combination_any& operator= (const event_combination_any &ec) noexcept = default; /**< @brief default copy assignment */
+            event_combination_any            (event_combination_any &&ec) noexcept      = default; /**< @brief default move constructor */
+            event_combination_any& operator= (event_combination_any &&ec) noexcept      = default; /**< @brief default move assignment */
 
-            ~event_combination_any () = default; /**< @brief default destructor */
+            ~event_combination_any () noexcept = default; /**< @brief default destructor */
 
             friend class event;
 
@@ -443,7 +443,7 @@ namespace stimcxx {
              *
              * @return Extended combination.
              */
-            event_combination_any operator| (event &rhs) const &
+            event_combination_any operator| (event &rhs) const & noexcept
             {
                 event_combination_any ec (*this, rhs);
 
@@ -457,14 +457,14 @@ namespace stimcxx {
              *
              * @return Extended combination.
              */
-            event_combination_any operator| (event &rhs) &&
+            event_combination_any operator| (event &rhs) && noexcept
             {
                 append (rhs);
                 return std::move (*this);
             }
     };
 
-    inline event_combination_any event::operator| (const event &rhs)
+    inline event_combination_any event::operator| (const event &rhs) noexcept
     {
         event_combination_any ec (*this, rhs);
 
@@ -500,7 +500,7 @@ namespace stimcxx {
              * Will be handed to @ref stimc_module_init as cleanup callback
              * in constructor.
              */
-            static void cleanup (void *m)
+            static void cleanup (void *m) noexcept
             {
                 module *mod = (module *)m;
 
@@ -513,7 +513,7 @@ namespace stimcxx {
              *
              * Meant as base class - not to be constructed directly.
              */
-            module () :
+            module () noexcept :
                 _module {nullptr}
             {
                 stimc_module_init (&(this->_module), module::cleanup, this);
@@ -537,7 +537,7 @@ namespace stimcxx {
              * @brief Get hierarchical identifier for instance of module.
              * @return The verilog hierarchy of module instance.
              */
-            const char *module_id ()
+            const char *module_id () noexcept
             {
                 return _module.id;
             }
@@ -557,7 +557,7 @@ namespace stimcxx {
                      * @param m Parent module of port.
                      * @param name Name of the port.
                      */
-                    port_base (module &m, const char *name) :
+                    port_base (module &m, const char *name) noexcept :
                         _port (stimc_port_init (&(m._module), name))
                     {}
 
@@ -572,7 +572,7 @@ namespace stimcxx {
                      * Non-virtual, as derived classes will be used as members
                      * without slicing in case of destructor call.
                      */
-                    ~port_base ()
+                    ~port_base () noexcept
                     {
                         stimc_port_free (this->_port);
                     }
@@ -585,7 +585,7 @@ namespace stimcxx {
                      * Internal helper. For registering from inside a module
                      * use @ref STIMCXX_REGISTER_METHOD for convenience.
                      */
-                    void register_posedge_method (void (*callback)(void *p), void *p)
+                    void register_posedge_method (void (*callback)(void *p), void *p) noexcept
                     {
                         stimc_register_posedge_method (callback, p, this->_port);
                     }
@@ -598,7 +598,7 @@ namespace stimcxx {
                      * Internal helper. For registering from inside a module
                      * use @ref STIMCXX_REGISTER_METHOD for convenience.
                      */
-                    void register_negedge_method (void (*callback)(void *p), void *p)
+                    void register_negedge_method (void (*callback)(void *p), void *p) noexcept
                     {
                         stimc_register_negedge_method (callback, p, this->_port);
                     }
@@ -611,7 +611,7 @@ namespace stimcxx {
                      * Internal helper. For registering from inside a module
                      * use @ref STIMCXX_REGISTER_METHOD for convenience.
                      */
-                    void register_change_method (void (*callback)(void *p), void *p)
+                    void register_change_method (void (*callback)(void *p), void *p) noexcept
                     {
                         stimc_register_change_method (callback, p, this->_port);
                     }
@@ -638,22 +638,22 @@ namespace stimcxx {
                              * @param msb Most significant bit.
                              * @param lsb Least significant bit.
                              */
-                            subbits (port &p, int msb, int lsb) :
+                            subbits (port &p, int msb, int lsb) noexcept :
                                 _lsb (lsb), _msb (msb), _p (p)
                             {}
 
-                            subbits            (const subbits &sb) = default; /**< @brief default copy constructor */
-                            subbits            (subbits &&sb)      = default; /**< @brief default move constructor */
-                            subbits& operator= (const subbits &sb) = delete;  /**< @brief delete assignment - assignment to be used with values */
-                            subbits& operator= (subbits &&sb)      = delete;  /**< @brief delete assignment - assignment to be used with values */
+                            subbits            (const subbits &sb) noexcept = default; /**< @brief default copy constructor */
+                            subbits            (subbits &&sb) noexcept      = default; /**< @brief default move constructor */
+                            subbits& operator= (const subbits &sb)          = delete;  /**< @brief delete assignment - assignment to be used with values */
+                            subbits& operator= (subbits &&sb)               = delete;  /**< @brief delete assignment - assignment to be used with values */
 
-                            ~subbits () = default; /**< @brief default destructor */
+                            ~subbits () noexcept = default; /**< @brief default destructor */
 
                             /**
                              * @brief Cast for reading from port bit range as uint64_t.
                              * @return Current value of represented port bit range as uint64_t.
                              */
-                            operator uint64_t ()
+                            operator uint64_t () noexcept
                             {
                                 return stimc_net_get_bits_uint64 (_p._port, _msb, _lsb);
                             }
@@ -662,7 +662,7 @@ namespace stimcxx {
                              * @brief Check for x/z value in comparisons.
                              * @return @ref X if port contains x or z values, @ref not_XZ otherwise.
                              */
-                            operator bit ()
+                            operator bit () noexcept
                             {
                                 if (stimc_net_bits_are_xz (_p._port, _msb, _lsb)) {
                                     return bit::X;
@@ -679,7 +679,7 @@ namespace stimcxx {
                              * Sets represented bit range of port to specified
                              * value similar to using a verilog blocking assignment.
                              */
-                            subbits& operator= (uint64_t value)
+                            subbits& operator= (uint64_t value) noexcept
                             {
                                 stimc_net_set_bits_uint64 (_p._port, _msb, _lsb, value);
                                 return *this;
@@ -692,7 +692,7 @@ namespace stimcxx {
                              * Sets represented bit range of port to unknown/high impedance
                              * state similar to using a verilog blocking assignment.
                              */
-                            subbits& operator= (bit v)
+                            subbits& operator= (bit v) noexcept
                             {
                                 if (v == bit::X) {
                                     stimc_net_set_bits_x (_p._port, _msb, _lsb);
@@ -716,7 +716,7 @@ namespace stimcxx {
                              * but is convenient for the typical stimc scenario of just having
                              * a way of accessing/assigning values of a verilog simulation.
                              */
-                            subbits& operator<<= (uint64_t value)
+                            subbits& operator<<= (uint64_t value) noexcept
                             {
                                 stimc_net_set_bits_uint64_nonblock (_p._port, _msb, _lsb, value);
                                 return *this;
@@ -729,7 +729,7 @@ namespace stimcxx {
                              * Sets represented bit range of port to unknown/high impedance
                              * state similar to using a verilog non-blocking assignment.
                              */
-                            subbits& operator<<= (bit v)
+                            subbits& operator<<= (bit v) noexcept
                             {
                                 if (v == bit::X) {
                                     stimc_net_set_bits_x_nonblock (_p._port, _msb, _lsb);
@@ -745,7 +745,7 @@ namespace stimcxx {
                      * @param m Parent module of port.
                      * @param name Name of the port.
                      */
-                    port (module &m, const char *name) :
+                    port (module &m, const char *name) noexcept :
                         port_base (m, name)
                     {}
 
@@ -754,7 +754,7 @@ namespace stimcxx {
                     port            (port &&p)      = delete; /**< @brief Do not move/change internals */
                     port& operator= (port &&p)      = delete; /**< @brief Do not move/change internals */
 
-                    ~port () = default; /**< @brief default constructor */
+                    ~port () noexcept = default; /**< @brief default constructor */
 
                     /**
                      * @brief Immediate assignment operator to port.
@@ -764,7 +764,7 @@ namespace stimcxx {
                      * Sets port to specified value similar
                      * to using a verilog blocking assignment.
                      */
-                    port& operator= (uint64_t value)
+                    port& operator= (uint64_t value) noexcept
                     {
                         stimc_net_set_uint64 (_port, value);
                         return *this;
@@ -777,7 +777,7 @@ namespace stimcxx {
                      * Sets port to unknown/high impedance state similar
                      * to using a verilog blocking assignment.
                      */
-                    port& operator= (bit v)
+                    port& operator= (bit v) noexcept
                     {
                         if (v == bit::X) {
                             stimc_net_set_x (_port);
@@ -801,7 +801,7 @@ namespace stimcxx {
                      * but is convenient for the typical stimc scenario of just having
                      * a way of accessing/assigning values of a verilog simulation.
                      */
-                    port& operator<<= (uint64_t value)
+                    port& operator<<= (uint64_t value) noexcept
                     {
                         stimc_net_set_uint64_nonblock (_port, value);
                         return *this;
@@ -814,7 +814,7 @@ namespace stimcxx {
                      * Sets port to unknown/high impedance state similar
                      * to using a verilog non-blocking assignment.
                      */
-                    port& operator<<= (bit v)
+                    port& operator<<= (bit v) noexcept
                     {
                         if (v == bit::X) {
                             stimc_net_set_x_nonblock (_port);
@@ -831,7 +831,7 @@ namespace stimcxx {
                      * In cases uint64_t is not sufficient try using
                      * @ref subbits.
                      */
-                    operator uint64_t ()
+                    operator uint64_t () noexcept
                     {
                         return stimc_net_get_uint64 (_port);
                     }
@@ -840,7 +840,7 @@ namespace stimcxx {
                      * @brief Check for x/z value in comparisons.
                      * @return @ref X if port contains x or z values, @ref not_XZ otherwise.
                      */
-                    operator bit ()
+                    operator bit () noexcept
                     {
                         if (stimc_net_is_xz (_port)) {
                             return bit::X;
@@ -855,7 +855,7 @@ namespace stimcxx {
                      * @param lsb Least significant bit of bit range.
                      * @return the subbits handle.
                      */
-                    subbits operator() (int msb, int lsb)
+                    subbits operator() (int msb, int lsb) noexcept
                     {
                         subbits b (*this, msb, lsb);
 
@@ -867,7 +867,7 @@ namespace stimcxx {
                      * @param bit bit of handle.
                      * @return the subbits handle.
                      */
-                    subbits operator() (int bit)
+                    subbits operator() (int bit) noexcept
                     {
                         subbits b (*this, bit, bit);
 
@@ -885,7 +885,7 @@ namespace stimcxx {
                      * @param m Parent module of port.
                      * @param name Name of the port.
                      */
-                    port_real (module &m, const char *name) :
+                    port_real (module &m, const char *name) noexcept :
                         port_base (m, name)
                     {}
 
@@ -894,7 +894,7 @@ namespace stimcxx {
                     port_real            (port_real &&p)      = delete; /**< @brief Do not move/change internals */
                     port_real& operator= (port_real &&p)      = delete; /**< @brief Do not move/change internals */
 
-                    ~port_real () = default; /**< @brief default constructor */
+                    ~port_real () noexcept = default; /**< @brief default constructor */
 
                     /**
                      * @brief Immediate assignment operator to port.
@@ -904,7 +904,7 @@ namespace stimcxx {
                      * Sets port to specified value similar
                      * to using a verilog blocking assignment.
                      */
-                    port_real& operator= (double value)
+                    port_real& operator= (double value) noexcept
                     {
                         stimc_net_set_double (_port, value);
                         return *this;
@@ -917,7 +917,7 @@ namespace stimcxx {
                      * Sets port to unknown/high impedance state similar
                      * to using a verilog blocking assignment.
                      */
-                    port_real& operator= (bit v)
+                    port_real& operator= (bit v) noexcept
                     {
                         if (v == bit::X) {
                             stimc_net_set_x (_port);
@@ -935,7 +935,7 @@ namespace stimcxx {
                      * Sets port to specified value similar
                      * to using a verilog non-blocking assignment.
                      */
-                    port_real& operator<<= (double value)
+                    port_real& operator<<= (double value) noexcept
                     {
                         stimc_net_set_double_nonblock (_port, value);
                         return *this;
@@ -948,7 +948,7 @@ namespace stimcxx {
                      * Sets port to unknown/high impedance state similar
                      * to using a verilog non-blocking assignment.
                      */
-                    port_real& operator<<= (bit v)
+                    port_real& operator<<= (bit v) noexcept
                     {
                         if (v == bit::X) {
                             stimc_net_set_x_nonblock (_port);
@@ -962,7 +962,7 @@ namespace stimcxx {
                      * @brief Cast for reading from port as uint64_t.
                      * @return Current value of port as uint64_t.
                      */
-                    operator double ()
+                    operator double () noexcept
                     {
                         return stimc_net_get_double (_port);
                     }
@@ -971,7 +971,7 @@ namespace stimcxx {
                      * @brief Check for x/z value in comparisons.
                      * @return @ref X if port contains x or z values, @ref not_XZ otherwise.
                      */
-                    operator bit ()
+                    operator bit () noexcept
                     {
                         if (stimc_net_is_xz (_port)) {
                             return bit::X;
@@ -995,7 +995,7 @@ namespace stimcxx {
                      * @param m Parent module of parameter.
                      * @param name Name of the parameter.
                      */
-                    parameter (module &m, const char *name) :
+                    parameter (module &m, const char *name) noexcept :
                         _parameter (stimc_parameter_init (&(m._module), name)),
                         _value_i (0),
                         _value_d (0.0)
@@ -1017,7 +1017,7 @@ namespace stimcxx {
                     /**
                      * @brief Simple destructor
                      */
-                    ~parameter ()
+                    ~parameter () noexcept
                     {
                         stimc_parameter_free (this->_parameter);
                     }
@@ -1026,7 +1026,7 @@ namespace stimcxx {
                      * @brief Integer value of parameter.
                      * @return Integer value.
                      */
-                    int value ()
+                    int value () noexcept
                     {
                         return _value_i;
                     }
@@ -1035,7 +1035,7 @@ namespace stimcxx {
                      * @brief Double value of parameter.
                      * @return Double value.
                      */
-                    double dvalue ()
+                    double dvalue () noexcept
                     {
                         return _value_d;
                     }
@@ -1044,7 +1044,7 @@ namespace stimcxx {
                      * @brief Integer value of parameter.
                      * @return Integer value.
                      */
-                    operator uint64_t ()
+                    operator uint64_t () noexcept
                     {
                         return _value_i;
                     }
@@ -1053,7 +1053,7 @@ namespace stimcxx {
                      * @brief Integer value of parameter.
                      * @return Integer value.
                      */
-                    operator uint32_t ()
+                    operator uint32_t () noexcept
                     {
                         return _value_i;
                     }
@@ -1062,7 +1062,7 @@ namespace stimcxx {
                      * @brief Double value of parameter.
                      * @return Double value.
                      */
-                    operator double ()
+                    operator double () noexcept
                     {
                         return _value_d;
                     }
@@ -1218,7 +1218,7 @@ namespace stimcxx {
      * @return Simulation time.
      * Calls @ref stimc_time_seconds.
      */
-    static inline double time ()
+    static inline double time () noexcept
     {
         return stimc_time_seconds ();
     }
@@ -1229,7 +1229,7 @@ namespace stimcxx {
      * Calls @ref stimc_time.
      * @return Simulation time.
      */
-    static inline uint64_t time (enum stimc_time_unit exp)
+    static inline uint64_t time (enum stimc_time_unit exp) noexcept
     {
         return stimc_time (exp);
     }
@@ -1279,7 +1279,7 @@ namespace stimcxx {
             }
 
         protected:
-            thread_cleanup ()
+            thread_cleanup () noexcept
             {
                 stimc_register_thread_cleanup (thread_cleanup::cleanup_callback, this);
             }
