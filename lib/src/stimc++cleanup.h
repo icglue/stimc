@@ -63,12 +63,14 @@ namespace stimcxx {
 
         protected:
             ptr_thread_cleanup *_thread_cleanup;
+            void *_ptr;
 
             virtual void cleanup () = 0;
 
         public:
-            cleanup_ptr_base () :
-                _thread_cleanup (new ptr_thread_cleanup (this))
+            cleanup_ptr_base (void *ptr = nullptr) :
+                _thread_cleanup (new ptr_thread_cleanup (this)),
+                _ptr (ptr)
             {}
 
             cleanup_ptr_base            (const cleanup_ptr_base &c) = delete; /**< @brief Do not copy/change internals */
@@ -80,23 +82,26 @@ namespace stimcxx {
                 if (_thread_cleanup != nullptr) _thread_cleanup->clear ();
             }
             // TODO: move, move-assign, reset(), release(), swap() ...?
-            // TODO: move pointer to base, cast in template
             // TODO: doxy-comments
     };
 
     template<
         class T
         > class cleanup_ptr : public cleanup_ptr_base {
-            private:
-                T* _ptr;
             protected:
+                T* typed_ptr () {
+                    T* tptr = reinterpret_cast<T*>(_ptr);
+
+                    return tptr;
+                }
+
                 void cleanup () override
                 {
-                    if (_ptr != nullptr) delete _ptr;
+                    if (_ptr != nullptr) delete typed_ptr();
                     _ptr = nullptr;
                 }
             public:
-                cleanup_ptr (T* ptr = nullptr) : _ptr (ptr) {}
+                cleanup_ptr (T* ptr = nullptr) : cleanup_ptr_base (ptr) {}
                 cleanup_ptr            (const cleanup_ptr &c) = delete; /**< @brief Do not copy/change internals */
                 cleanup_ptr& operator= (const cleanup_ptr &c) = delete; /**< @brief Do not copy/change internals */
                 cleanup_ptr            (cleanup_ptr &&c)      = delete; /**< @brief Do not move/change internals */
@@ -105,23 +110,27 @@ namespace stimcxx {
                     cleanup ();
                 }
 
-                T& operator*  () noexcept {return *_ptr;}
-                T& operator-> () noexcept {return *_ptr;}
+                T& operator*  () noexcept {return *typed_ptr();}
+                T& operator-> () noexcept {return *typed_ptr();}
     };
 
     template<
         class T
         > class cleanup_ptr<T[]> : public cleanup_ptr_base {
-            private:
-                T* _ptr;
             protected:
+                T* typed_ptr () {
+                    T* tptr = reinterpret_cast<T*>(_ptr);
+
+                    return tptr;
+                }
+
                 void cleanup () override
                 {
-                    if (_ptr != nullptr) delete[] _ptr;
+                    if (_ptr != nullptr) delete[] typed_ptr();
                     _ptr = nullptr;
                 }
             public:
-                cleanup_ptr (T* ptr = nullptr) : _ptr (ptr) {}
+                cleanup_ptr (T* ptr = nullptr) : cleanup_ptr_base (ptr) {}
                 cleanup_ptr            (const cleanup_ptr &c) = delete; /**< @brief Do not copy/change internals */
                 cleanup_ptr& operator= (const cleanup_ptr &c) = delete; /**< @brief Do not copy/change internals */
                 cleanup_ptr            (cleanup_ptr &&c)      = delete; /**< @brief Do not move/change internals */
@@ -130,7 +139,7 @@ namespace stimcxx {
                     cleanup ();
                 }
 
-                T& operator[] (std::size_t idx) noexcept {return _ptr[idx];}
+                T& operator[] (std::size_t idx) noexcept {return typed_ptr()[idx];}
     };
 }
 
