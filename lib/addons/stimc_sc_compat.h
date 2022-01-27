@@ -40,7 +40,7 @@
 namespace stimcxx {
     class sc_event : public event {
         public:
-            sc_event () = default;
+            sc_event () noexcept = default;
 
             sc_event            (const sc_event &e) = delete; /**< @brief Do not copy/change internals */
             sc_event& operator= (const sc_event &e) = delete; /**< @brief Do not copy/change internals */
@@ -63,7 +63,7 @@ namespace stimcxx {
              *
              * Inline wrapper for @ref trigger.
              */
-            void notify ()
+            void notify () noexcept
             {
                 trigger ();
             }
@@ -73,7 +73,7 @@ namespace stimcxx {
      * @brief Return, whether the most recent waiting on an event
      * with timeout ran into the timeout.
      */
-    static inline bool timed_out ()
+    static inline bool timed_out () noexcept
     {
         return stimc_wait_timed_out ();
     }
@@ -137,18 +137,18 @@ namespace stimcxx {
         private:
             uint64_t _time_ps;
         public:
-            sc_time (uint64_t time_ps) : _time_ps (time_ps) {};
+            sc_time (uint64_t time_ps) noexcept : _time_ps (time_ps) {};
             ~sc_time () = default; /**< @brief Default sufficient */
 
-            sc_time            (const sc_time &t) = default; /**< @brief Default sufficient */
-            sc_time& operator= (const sc_time &t) = default; /**< @brief Default sufficient */
-            sc_time            (sc_time &&t)      = default; /**< @brief Default sufficient */
-            sc_time& operator= (sc_time &&t)      = default; /**< @brief Default sufficient */
+            sc_time            (const sc_time &t) noexcept = default; /**< @brief Default sufficient */
+            sc_time& operator= (const sc_time &t) noexcept = default; /**< @brief Default sufficient */
+            sc_time            (sc_time &&t) noexcept      = default; /**< @brief Default sufficient */
+            sc_time& operator= (sc_time &&t) noexcept      = default; /**< @brief Default sufficient */
 
             /**
              * @return time in nano seconds.
              */
-            double to_double () const
+            double to_double () const noexcept
             {
                 return ((double)_time_ps) * 1e-3;
             }
@@ -156,7 +156,7 @@ namespace stimcxx {
             /**
              * @return time in seconds.
              */
-            double to_seconds () const
+            double to_seconds () const noexcept
             {
                 return ((double)_time_ps) * 1e-12;
             }
@@ -176,7 +176,7 @@ namespace stimcxx {
      * @brief sc_time_stamp replacement.
      * @return time in nano seconds as default.
      */
-    static inline sc_time sc_time_stamp ()
+    static inline sc_time sc_time_stamp () noexcept
     {
         sc_time time_stamp (stimc_time (SC_PS));
 
