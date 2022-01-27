@@ -44,8 +44,9 @@ namespace stimcxx {
 
             sc_event            (const sc_event &e) = delete; /**< @brief Do not copy/change internals */
             sc_event& operator= (const sc_event &e) = delete; /**< @brief Do not copy/change internals */
-            sc_event            (sc_event &&e)      = delete; /**< @brief Do not move/change internals */
-            sc_event& operator= (sc_event &&e)      = delete; /**< @brief Do not move/change internals */
+
+            sc_event            (sc_event &&e) noexcept = default; /**< @brief allow move */
+            sc_event& operator= (sc_event &&e) noexcept = default; /**< @brief allow move */
 
             /**
              * @brief default destructor (= base destructor).
