@@ -103,6 +103,7 @@ struct stimc_thread_s {
     stimc_event_combination event_combination;
     bool                    timeout;
     bool                    finished;
+    bool                    resume_on_finish;
 
 #ifndef STIMC_DISABLE_CLEANUP
     struct stimc_cleanup_entry_s *cleanup_queue;
@@ -415,6 +416,20 @@ void stimc_thread_exit (void)
     stimc_suspend ();
 }
 
+void stimc_thread_resume_on_finish (bool resume)
+{
+    assert (stimc_current_thread);
+
+    stimc_current_thread->resume_on_finish = resume;
+}
+
+bool stimc_thread_is_finished (void)
+{
+    assert (stimc_current_thread);
+
+    return stimc_current_thread->finished;
+}
+
 static void stimc_thread_finish (struct stimc_thread_s *thread)
 {
     assert (thread);
@@ -423,6 +438,8 @@ static void stimc_thread_finish (struct stimc_thread_s *thread)
     thread->cleanup_self->cancel = true;
 #endif
 
+    thread->finished = true;
+
     if (thread->call_handle != NULL) {
         vpi_remove_cb (thread->call_handle);
     }
@@ -430,6 +447,10 @@ static void stimc_thread_finish (struct stimc_thread_s *thread)
         struct stimc_event_handle_s *h = &(thread->event_combination->events[i]);
         stimc_event_remove_thread (h->event, h->idx);
         h->event = NULL;
+    }
+
+    if (thread->resume_on_finish) {
+        // TODO: final run
     }
 
 #ifndef STIMC_DISABLE_CLEANUP

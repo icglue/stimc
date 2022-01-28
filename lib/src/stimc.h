@@ -154,6 +154,33 @@ void stimc_thread_halt (void);
  */
 void stimc_thread_exit (void);
 
+/**
+ * @brief Configure current thread to resume operation on finish for cleanup.
+ * @param resume true: resume thread from waiting when finished,
+ *               false (default): keep thread suspendet when finished.
+ *
+ * By default a finished thread is just cleaned up according to the
+ * coroutine library used. In case it should be resumed on finishing
+ * for cleanup purposes, this can be configured to true.
+ *
+ * If used, any wait function or @ref stimc_thread_halt,
+ * @ref stimc_thread_exit and @stimc_finish will return when finishing the
+ * thread. this should then be checked with @ref stimc_thread_is_finished
+ * to do the intended cleanup.
+ */
+void stimc_thread_resume_on_finish (bool resume);
+
+/**
+ * @brief Check if current thread is already finished.
+ * @return true if thread is finished, false otherwise.
+ *
+ * This is intended to be used in combination with
+ * @ref stimc_thread_resume_on_finish set to true to check for the
+ * final return on wait functions and @ref stimc_thread_halt,
+ * @ref stimc_thread_exit and @stimc_finish.
+ */
+bool stimc_thread_is_finished (void);
+
 
 /******************************************************************************************************/
 /* time/wait */
