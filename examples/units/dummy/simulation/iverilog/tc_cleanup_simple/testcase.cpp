@@ -3,12 +3,6 @@
 
 using namespace stimcxx;
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Weffc++"
-/*
- * temporarily disable effc++ warnings
- * for member pointer
- */
 class cleanup_int_array : public thread_cleanup {
     public:
         int *data;
@@ -17,12 +11,15 @@ class cleanup_int_array : public thread_cleanup {
             data (nullptr)
         {}
 
+        /* inimal effort to skip copy/move/... */
+        cleanup_int_array            (const cleanup_int_array &p) = delete;
+        cleanup_int_array& operator= (const cleanup_int_array &p) = delete;
+
         ~cleanup_int_array ()
         {
             if (data != nullptr) delete[] data;
         }
 };
-#pragma GCC diagnostic pop
 
 void dummy::testcontrol ()
 {
