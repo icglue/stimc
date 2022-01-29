@@ -50,7 +50,7 @@ namespace stimcxx {
                     virtual ~ptr_thread_cleanup ()
                     {
                         if (_managed_ptr != nullptr) {
-                            _managed_ptr->cleanup();
+                            _managed_ptr->cleanup ();
                             _managed_ptr->_thread_cleanup = nullptr;
                         }
                     }
@@ -90,7 +90,8 @@ namespace stimcxx {
             }
 
         public:
-            virtual ~cleanup_ptr_base () {
+            virtual ~cleanup_ptr_base ()
+            {
                 if (_thread_cleanup != nullptr) _thread_cleanup->clear ();
             }
 
@@ -106,6 +107,7 @@ namespace stimcxx {
             void swap (cleanup_ptr_base &other) noexcept
             {
                 void *tmp = this->_ptr;
+
                 this->_ptr = other._ptr;
                 other._ptr = tmp;
             }
@@ -113,6 +115,7 @@ namespace stimcxx {
             void *release () noexcept
             {
                 void *tmp = this->_ptr;
+
                 this->_ptr = nullptr;
                 return tmp;
             }
@@ -120,74 +123,75 @@ namespace stimcxx {
             // TODO: typechecks (isarray, ....)
     };
 
-    template<
-        class T
-        > class cleanup_ptr : public cleanup_ptr_base {
-            protected:
-                static T* retype (void *p) {
-                    T* tptr = reinterpret_cast<T*>(p);
+    template<class T> class cleanup_ptr : public cleanup_ptr_base {
+        protected:
+            static T *retype (void *p)
+            {
+                T *tptr = reinterpret_cast<T *>(p);
 
-                    return tptr;
-                }
+                return tptr;
+            }
 
-                void cleanup () override
-                {
-                    if (_ptr != nullptr) delete retype(_ptr);
-                    _ptr = nullptr;
-                }
-            public:
-                cleanup_ptr (T* ptr = nullptr) : cleanup_ptr_base (ptr) {}
-                cleanup_ptr            (const cleanup_ptr &c) = delete; /**< @brief Do not copy/change internals */
-                cleanup_ptr& operator= (const cleanup_ptr &c) = delete; /**< @brief Do not copy/change internals */
+            void cleanup () override
+            {
+                if (_ptr != nullptr) delete retype (_ptr);
+                _ptr = nullptr;
+            }
+        public:
+            cleanup_ptr (T *ptr                           = nullptr) : cleanup_ptr_base (ptr) {}
+            cleanup_ptr            (const cleanup_ptr &c) = delete;     /**< @brief Do not copy/change internals */
+            cleanup_ptr& operator= (const cleanup_ptr &c) = delete;     /**< @brief Do not copy/change internals */
 
-                cleanup_ptr            (cleanup_ptr &&c) noexcept = default; /**< @brief allow move */
-                cleanup_ptr& operator= (cleanup_ptr &&c) noexcept = default; /**< @brief allow move */
+            cleanup_ptr            (cleanup_ptr &&c) noexcept = default;     /**< @brief allow move */
+            cleanup_ptr& operator= (cleanup_ptr &&c) noexcept = default;     /**< @brief allow move */
 
-                ~cleanup_ptr () {
-                    cleanup ();
-                }
+            ~cleanup_ptr ()
+            {
+                cleanup ();
+            }
 
-                T& operator*  () noexcept {return *retype(_ptr);}
-                T& operator-> () noexcept {return *retype(_ptr);}
+            T& operator*  () noexcept {return *retype (_ptr);}
+            T& operator-> () noexcept {return *retype (_ptr);}
 
-                void reset   (T *ptr = nullptr)            {cleanup_ptr_base::reset (ptr);}
-                void swap    (cleanup_ptr &other) noexcept {cleanup_ptr_base::swap  (other);}
-                T*   release ()                   noexcept {return retype (cleanup_ptr_base::release());}
+            void reset   (T *ptr = nullptr)            {cleanup_ptr_base::reset (ptr);}
+            void swap    (cleanup_ptr &other) noexcept {cleanup_ptr_base::swap  (other);}
+            T *release ()                   noexcept {return retype (cleanup_ptr_base::release ());}
     };
 
-    template<
-        class T
-        > class cleanup_ptr<T[]> : public cleanup_ptr_base {
-            protected:
-                static T* retype (void *p) {
-                    T* tptr = reinterpret_cast<T*>(p);
+    template<class T> class cleanup_ptr<T[]> : public cleanup_ptr_base {
+        protected:
+            static T *retype (void *p)
+            {
+                T *tptr = reinterpret_cast<T *>(p);
 
-                    return tptr;
-                }
+                return tptr;
+            }
 
-                void cleanup () override
-                {
-                    if (_ptr != nullptr) delete[] retype (_ptr);
-                    _ptr = nullptr;
-                }
-            public:
-                cleanup_ptr (T* ptr = nullptr) : cleanup_ptr_base (ptr) {}
-                cleanup_ptr            (const cleanup_ptr &c) = delete; /**< @brief Do not copy/change internals */
-                cleanup_ptr& operator= (const cleanup_ptr &c) = delete; /**< @brief Do not copy/change internals */
+            void cleanup () override
+            {
+                if (_ptr != nullptr) delete[] retype (_ptr);
+                _ptr = nullptr;
+            }
+        public:
+            cleanup_ptr (T *ptr                           = nullptr) : cleanup_ptr_base (ptr) {}
+            cleanup_ptr            (const cleanup_ptr &c) = delete;     /**< @brief Do not copy/change internals */
+            cleanup_ptr& operator= (const cleanup_ptr &c) = delete;     /**< @brief Do not copy/change internals */
 
-                cleanup_ptr            (cleanup_ptr &&c) noexcept = default; /**< @brief Allow move */
-                cleanup_ptr& operator= (cleanup_ptr &&c) noexcept = default; /**< @brief Allow move */
+            cleanup_ptr            (cleanup_ptr &&c) noexcept = default;     /**< @brief Allow move */
+            cleanup_ptr& operator= (cleanup_ptr &&c) noexcept = default;     /**< @brief Allow move */
 
-                ~cleanup_ptr () {
-                    cleanup ();
-                }
+            ~cleanup_ptr ()
+            {
+                cleanup ();
+            }
 
-                T& operator[] (std::size_t idx) noexcept {return retype(_ptr)[idx];}
+            T& operator[] (std::size_t idx) noexcept {return retype (_ptr)[idx];}
 
-                void reset   (T *ptr = nullptr)            {cleanup_ptr_base::reset (ptr);}
-                void swap    (cleanup_ptr &other) noexcept {cleanup_ptr_base::swap  (other);}
-                T*   release ()                   noexcept {return retype (cleanup_ptr_base::release());}
+            void reset   (T *ptr = nullptr)            {cleanup_ptr_base::reset (ptr);}
+            void swap    (cleanup_ptr &other) noexcept {cleanup_ptr_base::swap  (other);}
+            T *release ()                   noexcept {return retype (cleanup_ptr_base::release ());}
     };
 }
 
 #endif
+
