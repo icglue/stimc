@@ -90,6 +90,13 @@ static const char *stimc_get_caller_scope (void);
 static vpiHandle   stimc_module_handle_init (stimc_module *m, const char *name);
 
 /* threads */
+enum stimc_thread_state {
+    STIMC_THREAD_STATE_CREATED, /* newly created */
+    STIMC_THREAD_STATE_RUNNING, /* actively running in thread function */
+    STIMC_THREAD_STATE_STOPPED, /* suspended in thread function, keep stack */
+    STIMC_THREAD_STATE_STOPPED_TO_FINISH, /* suspended in thread function, can be cleaned */
+    STIMC_THREAD_STATE_FINISHED, /* left thread function, can be cleaned */
+};
 struct stimc_thread_s {
     /* thread implementation data */
     stimc_thread_impl thread;
@@ -102,7 +109,9 @@ struct stimc_thread_s {
     vpiHandle               call_handle;
     stimc_event_combination event_combination;
     bool                    timeout;
-    bool                    finished;
+
+    /* thread status */
+    enum stimc_thread_state state;
     bool                    resume_on_finish;
 
 #ifndef STIMC_DISABLE_CLEANUP
@@ -375,12 +384,15 @@ static struct stimc_thread_s *stimc_thread_create (void (*threadfunc)(void *user
     if (stacksize == 0) stacksize = STIMC_THREAD_STACK_SIZE_DEFAULT;
     stimc_thread_impl ti = stimc_thread_impl_create (stimc_thread_wrap, stacksize);
 
-    thread->thread      = ti;
-    thread->func        = threadfunc;
-    thread->data        = userdata;
+    thread->thread = ti;
+    thread->func   = threadfunc;
+    thread->data   = userdata;
+
     thread->call_handle = NULL;
     thread->timeout     = false;
-    thread->finished    = false;
+
+    thread->state            = STIMC_THREAD_STATE_CREATED;
+    thread->resume_on_finish = false;
 
     thread->event_combination = stimc_event_combination_create (true);
 
@@ -405,6 +417,7 @@ void stimc_thread_halt (void)
 {
     assert (stimc_current_thread);
 
+    stimc_current_thread->state = STIMC_THREAD_STATE_STOPPED;
     stimc_suspend ();
 }
 
@@ -412,7 +425,7 @@ void stimc_thread_exit (void)
 {
     assert (stimc_current_thread);
 
-    stimc_current_thread->finished = true;
+    stimc_current_thread->state = STIMC_THREAD_STATE_STOPPED_TO_FINISH;
     stimc_suspend ();
 }
 
@@ -427,7 +440,9 @@ bool stimc_thread_is_finished (void)
 {
     assert (stimc_current_thread);
 
-    return stimc_current_thread->finished;
+    if (stimc_current_thread->state >= STIMC_THREAD_STATE_STOPPED) return true;
+
+    return false;
 }
 
 static void stimc_thread_finish (struct stimc_thread_s *thread)
@@ -438,8 +453,7 @@ static void stimc_thread_finish (struct stimc_thread_s *thread)
     thread->cleanup_self->cancel = true;
 #endif
 
-    thread->finished = true;
-
+    /* remove resume callbacks */
     if (thread->call_handle != NULL) {
         vpi_remove_cb (thread->call_handle);
     }
@@ -449,7 +463,10 @@ static void stimc_thread_finish (struct stimc_thread_s *thread)
         h->event = NULL;
     }
 
-    if (thread->resume_on_finish) {
+    /* final resume ? */
+    if (thread->resume_on_finish &&
+        thread->state > STIMC_THREAD_STATE_CREATED &&
+        thread->state < STIMC_THREAD_STATE_FINISHED) {
         // TODO: final run
     }
 
@@ -519,9 +536,10 @@ static void stimc_thread_wrap (STIMC_THREAD_ARG_DEF)
 
     assert (thread);
 
+    thread->state = STIMC_THREAD_STATE_RUNNING;
     thread->func (thread->data);
 
-    thread->finished = true;
+    thread->state = STIMC_THREAD_STATE_FINISHED;
     stimc_suspend ();
 }
 
@@ -565,7 +583,7 @@ static inline void stimc_run (struct stimc_thread_s *thread)
 
     stimc_current_thread = NULL;
 
-    if (thread->finished) {
+    if (thread->state >= STIMC_THREAD_STATE_STOPPED_TO_FINISH) {
         stimc_thread_finish (thread);
     }
 }
@@ -1100,8 +1118,8 @@ void stimc_finish (void)
     if (stimc_current_thread == NULL) {
         vpi_control (vpiFinish, 0);
     } else {
-        stimc_finish_pending           = true;
-        stimc_current_thread->finished = true;
+        stimc_finish_pending        = true;
+        stimc_current_thread->state = STIMC_THREAD_STATE_STOPPED_TO_FINISH;
         stimc_suspend ();
     }
 }
