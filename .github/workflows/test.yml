@@ -1,4 +1,4 @@
-name: test
+name: "Test"
 
 on:
   push:
@@ -10,16 +10,48 @@ on:
 
 jobs:
   linux:
+    name: "Test Linux/Ubuntu"
     runs-on: ubuntu-latest
-    name: test-ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - name: Install dependencies
+      - name: "Install dependencies"
         run: |
-          sudo apt-get install -y --no-upgrade make g++ gcc libpcl1 libpcl1-dev iverilog valgrind
-      - name: Build library
+          sudo apt-get install -y --no-upgrade clang g++ gcc iverilog libboost-coroutine-dev libpcl1 libpcl1-dev make valgrind
+      - name: "Build library with gcc"
+        env:
+          CC: gcc
+          CXX: g++
         run: |
+          make cleanlib
           make -j3
-      - name: Run tests
+      - name: "Build library with clang"
+        env:
+          CC: clang
+          CXX: clang++
+        run: |
+          make cleanlib
+          make -j3
+      - name: "Run tests with pcl coroutines, gcc"
+        env:
+          CC: gcc
+          CXX: g++
+          STIMC_THREAD_IMPL: pcl
+        run: |
+          make -j3 test
+      - name: "Run tests with pcl coroutines, clang"
+        env:
+          CC: clang
+          CXX: clang++
+          STIMC_THREAD_IMPL: pcl
+        run: |
+          make -j3 test
+      - name: "Run tests with boost1 coroutines, default cc"
+        env:
+          STIMC_THREAD_IMPL: boost1
+        run: |
+          make -j3 test
+      - name: "Run tests with boost2 coroutines, default cc"
+        env:
+          STIMC_THREAD_IMPL: boost2
         run: |
           make -j3 test
