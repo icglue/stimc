@@ -63,7 +63,9 @@ OPTFLAGS        ?= -O2 -fdata-sections -ffunction-sections
 #ARCHFLAGS       ?= -mtune=native -march=native
 CFLAGS          ?= -std=c11 -fpic -Wstrict-prototypes
 CXXFLAGS        ?= -std=c++11 -fpic -Weffc++
-CPPFLAGS        ?= $(addprefix -I,$(STIMC_DIRS))
+DEFINES         ?=
+CPPFLAGS        += $(addprefix -I,$(STIMC_DIRS))
+CPPFLAGS        += $(addprefix -D,$(DEFINES))
 
 # default
 STIMC_THREAD_IMPL ?=pcl

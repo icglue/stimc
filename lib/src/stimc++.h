@@ -35,6 +35,36 @@ namespace stimcxx {
     class event_combination_all;
     class event_combination_any;
 
+#ifdef STIMCXX_DISABLE_STACK_UNWIND
+    constexpr bool enable_stack_unwind = false;
+#else
+    constexpr bool enable_stack_unwind = true;
+#endif
+
+    /**
+     * @brief Dummy exception class to mark final stack unwinding.
+     */
+    class thread_finish_exception {
+        public:
+            thread_finish_exception  () noexcept = default;
+            ~thread_finish_exception () noexcept = default;
+
+            thread_finish_exception            (const thread_finish_exception &t) noexcept = default; /**< @brief Default copy */
+            thread_finish_exception& operator= (const thread_finish_exception &t) noexcept = default; /**< @brief Default copy */
+            thread_finish_exception            (thread_finish_exception &&t)      noexcept = default; /**< @brief Default move */
+            thread_finish_exception& operator= (thread_finish_exception &&t)      noexcept = default; /**< @brief Default move */
+    };
+
+    /**
+     * @brief Helper for common finish check on return from suspend.
+     */
+    static inline void thread_finish_check ()
+    {
+        if (enable_stack_unwind && stimc_thread_is_finished()) {
+            throw thread_finish_exception ();
+        }
+    }
+
     /**
      * @brief Wrapper class for @ref stimc_event and related functionality.
      */
@@ -84,6 +114,7 @@ namespace stimcxx {
             void wait ()
             {
                 stimc_wait_event (_event);
+                thread_finish_check ();
             }
 
             /**
@@ -96,7 +127,11 @@ namespace stimcxx {
              */
             bool wait (double time_seconds)
             {
-                return stimc_wait_event_timeout_seconds (_event, time_seconds);
+                bool result = stimc_wait_event_timeout_seconds (_event, time_seconds);
+
+                thread_finish_check ();
+
+                return result;
             }
 
             /**
@@ -110,7 +145,11 @@ namespace stimcxx {
              */
             bool wait (uint64_t time, enum stimc_time_unit exp)
             {
-                return stimc_wait_event_timeout (_event, time, exp);
+                bool result = stimc_wait_event_timeout (_event, time, exp);
+
+                thread_finish_check ();
+
+                return result;
             }
 
             /**
@@ -261,6 +300,7 @@ namespace stimcxx {
             void wait () const &
             {
                 stimc_wait_event_combination (_combination, false);
+                thread_finish_check ();
             }
 
             /**
@@ -271,9 +311,10 @@ namespace stimcxx {
             void wait () &&
             {
                 stimc_event_combination c = _combination;
-
                 _combination = nullptr;
+
                 stimc_wait_event_combination (c, true);
+                thread_finish_check ();
             }
 
             /**
@@ -286,7 +327,11 @@ namespace stimcxx {
              */
             bool wait (double time_seconds) const &
             {
-                return stimc_wait_event_combination_timeout_seconds (_combination, false, time_seconds);
+                bool result = stimc_wait_event_combination_timeout_seconds (_combination, false, time_seconds);
+
+                thread_finish_check ();
+
+                return result;
             }
 
             /**
@@ -301,9 +346,13 @@ namespace stimcxx {
             bool wait (double time_seconds) &&
             {
                 stimc_event_combination c = _combination;
-
                 _combination = nullptr;
-                return stimc_wait_event_combination_timeout_seconds (c, true, time_seconds);
+
+                bool result = stimc_wait_event_combination_timeout_seconds (c, true, time_seconds);
+
+                thread_finish_check ();
+
+                return result;
             }
 
             /**
@@ -317,7 +366,11 @@ namespace stimcxx {
              */
             bool wait (uint64_t time, enum stimc_time_unit exp) const &
             {
-                return stimc_wait_event_combination_timeout (_combination, false, time, exp);
+                bool result = stimc_wait_event_combination_timeout (_combination, false, time, exp);
+
+                thread_finish_check ();
+
+                return result;
             }
 
             /**
@@ -333,9 +386,13 @@ namespace stimcxx {
             bool wait (uint64_t time, enum stimc_time_unit exp) &&
             {
                 stimc_event_combination c = _combination;
-
                 _combination = nullptr;
-                return stimc_wait_event_combination_timeout (c, true, time, exp);
+
+                bool result = stimc_wait_event_combination_timeout (c, true, time, exp);
+
+                thread_finish_check ();
+
+                return result;
             }
     };
 
@@ -1077,6 +1134,7 @@ namespace stimcxx {
     static inline void wait (double time_seconds)
     {
         stimc_wait_time_seconds (time_seconds);
+        thread_finish_check ();
     }
 
     /**
@@ -1088,6 +1146,7 @@ namespace stimcxx {
     static inline void wait (uint64_t time, enum stimc_time_unit exp)
     {
         stimc_wait_time (time, exp);
+        thread_finish_check ();
     }
 
     /**
@@ -1202,6 +1261,7 @@ namespace stimcxx {
     static inline void halt (void)
     {
         stimc_thread_halt ();
+        thread_finish_check ();
     }
 
     /**
@@ -1211,6 +1271,7 @@ namespace stimcxx {
     static inline void exit (void)
     {
         stimc_thread_exit ();
+        thread_finish_check ();
     }
 
     /**
@@ -1241,6 +1302,7 @@ namespace stimcxx {
     static inline void finish ()
     {
         stimc_finish ();
+        thread_finish_check ();
     }
 
     /**
@@ -1325,7 +1387,10 @@ namespace stimcxx {
         public: \
             static void callback (void *p) { \
                 _thisptype m = (_thisptype)p; \
-                m->thread (); \
+                stimc_thread_resume_on_finish (stimcxx::enable_stack_unwind); \
+                try { \
+                    m->thread (); \
+                } catch (stimcxx::thread_finish_exception &e) {} \
             } \
     }; \
     stimc_register_startup_thread (_stimcxx_thread_init_ ## thread::callback, (void *)this, stacksize)
