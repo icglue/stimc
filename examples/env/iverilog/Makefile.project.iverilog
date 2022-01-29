@@ -38,6 +38,7 @@ IVERILOG        ?= iverilog
 CC              ?= gcc
 CXX             ?= g++
 LD              ?= ld
+LDEXE           ?= $(CC)
 LN              ?= ln -sf
 VVP             ?= vvp
 MEMCHK          ?= valgrind --leak-check=full --error-exitcode=1 --suppressions=${ICPRO_DIR}/env/iverilog/vvp.valgrind.supp -s
@@ -196,7 +197,7 @@ $(WORK_DIR)/%.o: %.cpp $(WORK_DIR)/%.d $(MAKEFILE_LIST) | $(WORK_DIR) info-cxx
 
 $(WORK_DIR)/%.vpi: $(STIMC_OBJECTS) | info-ld
 	$q$(call echo, "$${b}$(stimccolor)LD  $${c} $@")
-	$q$(CC) $(WARNFLAGS) $(STIMC_OBJECTS) $(ALL_LDFLAGS) -o $@
+	$q$(LDEXE) $(STIMC_OBJECTS) $(ALL_LDFLAGS) -o $@
 
 
 $(VVP_FILE): $(VLOG_SOURCES) $(DUMP_MOD) $(COMPILE_DEPS) $(filter-out %.dep,$(MAKEFILE_LIST)) | $(WORK_DIR) info-vlog
