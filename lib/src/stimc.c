@@ -96,6 +96,7 @@ enum stimc_thread_state {
     STIMC_THREAD_STATE_STOPPED, /* suspended in thread function, keep stack */
     STIMC_THREAD_STATE_STOPPED_TO_FINISH, /* suspended in thread function, can be cleaned */
     STIMC_THREAD_STATE_FINISHED, /* left thread function, can be cleaned */
+    STIMC_THREAD_STATE_CLEANUP, /* in cleanup procedure */
 };
 struct stimc_thread_s {
     /* thread implementation data */
@@ -417,7 +418,10 @@ void stimc_thread_halt (void)
 {
     assert (stimc_current_thread);
 
-    stimc_current_thread->state = STIMC_THREAD_STATE_STOPPED;
+    if (stimc_current_thread->state < STIMC_THREAD_STATE_STOPPED) {
+        stimc_current_thread->state = STIMC_THREAD_STATE_STOPPED;
+    }
+
     stimc_suspend ();
 }
 
@@ -425,7 +429,10 @@ void stimc_thread_exit (void)
 {
     assert (stimc_current_thread);
 
-    stimc_current_thread->state = STIMC_THREAD_STATE_STOPPED_TO_FINISH;
+    if (stimc_current_thread->state < STIMC_THREAD_STATE_STOPPED_TO_FINISH) {
+        stimc_current_thread->state = STIMC_THREAD_STATE_STOPPED_TO_FINISH;
+    }
+
     stimc_suspend ();
 }
 
@@ -453,6 +460,20 @@ static void stimc_thread_finish (struct stimc_thread_s *thread)
     thread->cleanup_self->cancel = true;
 #endif
 
+    /* final resume ? */
+    bool final_resume = false;
+    if (thread->resume_on_finish
+        && thread->state > STIMC_THREAD_STATE_CREATED
+        && thread->state < STIMC_THREAD_STATE_FINISHED) {
+        final_resume = true;
+    }
+
+    thread->state = STIMC_THREAD_STATE_CLEANUP;
+
+    if (final_resume) {
+        stimc_run (thread);
+    }
+
     /* remove resume callbacks */
     if (thread->call_handle != NULL) {
         vpi_remove_cb (thread->call_handle);
@@ -461,13 +482,6 @@ static void stimc_thread_finish (struct stimc_thread_s *thread)
         struct stimc_event_handle_s *h = &(thread->event_combination->events[i]);
         stimc_event_remove_thread (h->event, h->idx);
         h->event = NULL;
-    }
-
-    /* final resume ? */
-    if (thread->resume_on_finish &&
-        thread->state > STIMC_THREAD_STATE_CREATED &&
-        thread->state < STIMC_THREAD_STATE_FINISHED) {
-        // TODO: final run
     }
 
 #ifndef STIMC_DISABLE_CLEANUP
@@ -539,7 +553,9 @@ static void stimc_thread_wrap (STIMC_THREAD_ARG_DEF)
     thread->state = STIMC_THREAD_STATE_RUNNING;
     thread->func (thread->data);
 
-    thread->state = STIMC_THREAD_STATE_FINISHED;
+    if (thread->state < STIMC_THREAD_STATE_FINISHED) {
+        thread->state = STIMC_THREAD_STATE_FINISHED;
+    }
     stimc_suspend ();
 }
 
@@ -583,7 +599,8 @@ static inline void stimc_run (struct stimc_thread_s *thread)
 
     stimc_current_thread = NULL;
 
-    if (thread->state >= STIMC_THREAD_STATE_STOPPED_TO_FINISH) {
+    if (thread->state >= STIMC_THREAD_STATE_STOPPED_TO_FINISH
+        && thread->state < STIMC_THREAD_STATE_CLEANUP) {
         stimc_thread_finish (thread);
     }
 }
@@ -1118,8 +1135,10 @@ void stimc_finish (void)
     if (stimc_current_thread == NULL) {
         vpi_control (vpiFinish, 0);
     } else {
-        stimc_finish_pending        = true;
-        stimc_current_thread->state = STIMC_THREAD_STATE_STOPPED_TO_FINISH;
+        stimc_finish_pending = true;
+        if (stimc_current_thread->state < STIMC_THREAD_STATE_STOPPED_TO_FINISH) {
+            stimc_current_thread->state = STIMC_THREAD_STATE_STOPPED_TO_FINISH;
+        }
         stimc_suspend ();
     }
 }
