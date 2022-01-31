@@ -7,7 +7,8 @@ TESTCASES := \
 	dummy.tc_events_2 \
 	dummy.tc_events_3 \
 	dummy.tc_cleanup_simple \
-	dummy.tc_cleanup_ptr \
+	dummy.tc_cleanup_ptr1 \
+	dummy.tc_cleanup_ptr2 \
 	dummy.tc_cleanup_stack \
 	dummy_c.tc_sanity \
 	iotest.tc_sanity \

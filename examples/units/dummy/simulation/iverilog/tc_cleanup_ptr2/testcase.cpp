@@ -1,5 +1,4 @@
 #include <dummy.h>
-#include <logging.h>
 #include <tb_selfcheck.h>
 #include <stimc++cleanup.h>
 
@@ -9,6 +8,10 @@ static constexpr int alen = 256;
 
 static int errors = 0;
 static int checks = 0;
+
+#ifdef STIMCXX_DISABLE_STACK_UNWIND
+#error "this testcase should be run without STIMCXX_DISABLE_STACK_UNWIND defined"
+#endif
 
 void dummy::testcontrol ()
 {
