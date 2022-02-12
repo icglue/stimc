@@ -27,7 +27,6 @@
 #include <math.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdio.h>
 #include <stdbool.h>
 
 #include <assert.h>
@@ -56,9 +55,9 @@
 #endif
 
 #ifdef STIMC_DISABLE_CLEANUP
-#define STIMC_CLEANUP_ARG __attribute__((unused))
+#define STIMC_CLEANUP_ATTR __attribute__((unused))
 #else
-#define STIMC_CLEANUP_ARG
+#define STIMC_CLEANUP_ATTR
 #endif
 
 /******************************************************************************************************/
@@ -405,7 +404,7 @@ static struct stimc_thread_s *stimc_thread_create (void (*threadfunc)(void *user
     return thread;
 }
 
-void stimc_register_thread_cleanup (void (*cleanfunc)(void *userdata) STIMC_CLEANUP_ARG, void *userdata STIMC_CLEANUP_ARG)
+void stimc_register_thread_cleanup (void (*cleanfunc)(void *userdata) STIMC_CLEANUP_ATTR, void *userdata STIMC_CLEANUP_ATTR)
 {
     assert (stimc_current_thread);
 
@@ -1126,7 +1125,7 @@ void stimc_finish (void)
     }
 }
 
-void stimc_module_init (stimc_module *m, void (*cleanfunc)(void *cleandata) STIMC_CLEANUP_ARG, void *cleandata STIMC_CLEANUP_ARG)
+void stimc_module_init (stimc_module *m, void (*cleanfunc)(void *cleandata) STIMC_CLEANUP_ATTR, void *cleandata STIMC_CLEANUP_ATTR)
 {
     assert (m);
     const char *scope = stimc_get_caller_scope ();
