@@ -60,7 +60,7 @@ namespace stimcxx {
      */
     static inline void thread_finish_check ()
     {
-        if (enable_stack_unwind && stimc_thread_is_finished()) {
+        if (enable_stack_unwind && stimc_thread_is_finished ()) {
             throw thread_finish_exception ();
         }
     }
@@ -311,6 +311,7 @@ namespace stimcxx {
             void wait () &&
             {
                 stimc_event_combination c = _combination;
+
                 _combination = nullptr;
 
                 stimc_wait_event_combination (c, true);
@@ -346,6 +347,7 @@ namespace stimcxx {
             bool wait (double time_seconds) &&
             {
                 stimc_event_combination c = _combination;
+
                 _combination = nullptr;
 
                 bool result = stimc_wait_event_combination_timeout_seconds (c, true, time_seconds);
@@ -386,6 +388,7 @@ namespace stimcxx {
             bool wait (uint64_t time, enum stimc_time_unit exp) &&
             {
                 stimc_event_combination c = _combination;
+
                 _combination = nullptr;
 
                 bool result = stimc_wait_event_combination_timeout (c, true, time, exp);
