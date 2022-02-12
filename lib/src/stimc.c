@@ -88,6 +88,9 @@ const char    *stimc_version       = STIMC_VERSION_STR (STIMC_VERSION_MAJOR) "."
 static const char *stimc_get_caller_scope (void);
 static vpiHandle   stimc_module_handle_init (stimc_module *m, const char *name);
 
+static int stimc_module_register_init_cptf (PLI_BYTE8 *user_data);
+static int stimc_module_register_init_cltf (PLI_BYTE8 *user_data);
+
 /* threads */
 enum stimc_thread_state {
     STIMC_THREAD_STATE_CREATED, /* newly created */
@@ -565,10 +568,6 @@ void stimc_register_startup_thread (void (*threadfunc)(void *userdata), void *us
     assert (thread);
 
     stimc_thread_queue_enqueue (&stimc_main_queue, thread);
-
-    if (stimc_current_thread == NULL) {
-        stimc_main_queue_run_threads ();
-    }
 }
 
 static inline void stimc_run (struct stimc_thread_s *thread)
@@ -1144,6 +1143,52 @@ void stimc_module_init (stimc_module *m, void (*cleanfunc)(void *cleandata) STIM
 void stimc_module_free (stimc_module *m)
 {
     free (m->id);
+}
+
+static int stimc_module_register_init_cptf (PLI_BYTE8 *user_data __attribute__((unused)))
+{
+    return 0;
+}
+
+static int stimc_module_register_init_cltf (PLI_BYTE8 *user_data)
+{
+    void (*initfunc)(void) = (void (*)(void)) (uintptr_t) user_data;
+
+    initfunc ();
+
+    stimc_main_queue_run_threads ();
+
+    return 0;
+}
+
+void stimc_module_register (const char *name, void (*initfunc)(void))
+{
+    const char *task_prefix = "$stimc_";
+    const char *task_suffix = "_init";
+
+    size_t task_name_len = strlen (task_prefix) + strlen (name) + strlen (task_suffix);
+
+    char *task_name = (char *)malloc (task_name_len + 1);
+
+    assert (task_name);
+    task_name[0] = '\0';
+
+    strcat (task_name, task_prefix);
+    strcat (task_name, name);
+    strcat (task_name, task_suffix);
+
+    s_vpi_systf_data tf_data;
+
+    tf_data.type      = vpiSysTask;
+    tf_data.tfname    = task_name;
+    tf_data.calltf    = stimc_module_register_init_cltf;
+    tf_data.compiletf = stimc_module_register_init_cptf;
+    tf_data.sizetf    = 0;
+    tf_data.user_data = (void *)(uintptr_t)initfunc;
+
+    vpi_register_systf (&tf_data);
+
+    free (task_name);
 }
 
 static vpiHandle stimc_module_handle_init (stimc_module *m, const char *name)

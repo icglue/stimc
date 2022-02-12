@@ -754,6 +754,16 @@ void stimc_module_init (stimc_module *m, void (*cleanfunc)(void *cleandata), voi
 void stimc_module_free (stimc_module *m);
 
 /**
+ * @brief Register vpi system task for module initialization.
+ * @param name Module name
+ * @param initfunc function to call on initialization.
+ *
+ * Will register the verilog system task
+ * @c $stimc_name_init for module @c name.
+ */
+void stimc_module_register (const char *name, void (*initfunc)(void));
+
+/**
  * @brief Port creation function.
  * @param m Pointer to module instance the port belongs to.
  * @param name Port name.
@@ -796,30 +806,9 @@ void stimc_parameter_free (stimc_parameter p);
 #define STIMC_INIT(module) \
     static void _stimc_module_ ## module ## _init (void); \
 \
-    static int _stimc_module_ ## module ## _init_cptf (PLI_BYTE8 * user_data __attribute__((unused))) \
-    { \
-        return 0; \
-    } \
-\
-    static int _stimc_module_ ## module ## _init_cltf (PLI_BYTE8 * user_data __attribute__((unused))) \
-    { \
-        _stimc_module_ ## module ## _init (); \
-\
-        return 0; \
-    } \
-\
     void _stimc_module_ ## module ## _register (void) \
     { \
-        s_vpi_systf_data tf_data; \
-\
-        tf_data.type      = vpiSysTask; \
-        tf_data.tfname    = "$stimc_" #module "_init"; \
-        tf_data.calltf    = _stimc_module_ ## module ## _init_cltf; \
-        tf_data.compiletf = _stimc_module_ ## module ## _init_cptf; \
-        tf_data.sizetf    = 0; \
-        tf_data.user_data = NULL; \
-\
-        vpi_register_systf (&tf_data); \
+        stimc_module_register (#module, _stimc_module_ ## module ## _init); \
     } \
 \
     static void _stimc_module_ ## module ## _init (void)

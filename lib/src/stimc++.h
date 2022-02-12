@@ -1439,33 +1439,16 @@ namespace stimcxx {
  * will be indirectly used by @ref STIMCXX_EXPORT.
  */
 #define STIMCXX_INIT(module) \
-    static int _stimcxx_module_ ## module ## _init_cptf (PLI_BYTE8 * user_data __attribute__((unused))) \
-    { \
-        return 0; \
-    } \
-    \
-    static int _stimcxx_module_ ## module ## _init_cltf (PLI_BYTE8 * user_data __attribute__((unused))) \
+    static void _stimcxx_module_ ## module ## _init () \
     { \
         module *m __attribute__((unused)); \
         m = new module (); \
-    \
-        return 0; \
     } \
     \
     extern "C" { \
     void _stimc_module_ ## module ## _register (void) \
     { \
-        s_vpi_systf_data tf_data; \
-        static char      tf_name[] = "$stimc_" #module "_init"; \
-        \
-        tf_data.type      = vpiSysTask; \
-        tf_data.tfname    = tf_name; \
-        tf_data.calltf    = _stimcxx_module_ ## module ## _init_cltf; \
-        tf_data.compiletf = _stimcxx_module_ ## module ## _init_cptf; \
-        tf_data.sizetf    = 0; \
-        tf_data.user_data = NULL; \
-        \
-        vpi_register_systf (&tf_data); \
+        stimc_module_register (#module, _stimcxx_module_ ## module ## _init); \
     } \
     }
 
