@@ -561,32 +561,15 @@ static void stimc_thread_wrap (STIMC_THREAD_ARG_DEF)
 
 void stimc_register_startup_thread (void (*threadfunc)(void *userdata), void *userdata, size_t stacksize)
 {
-    s_cb_data   data;
-    s_vpi_time  data_time;
-    s_vpi_value data_value;
-
     struct stimc_thread_s *thread = stimc_thread_create (threadfunc, userdata, stacksize);
 
     assert (thread);
 
-    data.reason        = cbAfterDelay;
-    data.cb_rtn        = stimc_thread_callback_wrapper;
-    data.obj           = NULL;
-    data.time          = &data_time;
-    data.time->type    = vpiSimTime;
-    data.time->high    = 0;
-    data.time->low     = 0;
-    data.time->real    = 0;
-    data.value         = &data_value;
-    data.value->format = vpiSuppressVal;
-    data.index         = 0;
-    data.user_data     = (PLI_BYTE8 *)thread;
+    stimc_thread_queue_enqueue (&stimc_main_queue, thread);
 
-    vpiHandle start_handle = vpi_register_cb (&data);
-
-    assert (start_handle);
-
-    thread->call_handle = start_handle;
+    if (stimc_current_thread == NULL) {
+        stimc_main_queue_run_threads ();
+    }
 }
 
 static inline void stimc_run (struct stimc_thread_s *thread)
