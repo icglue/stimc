@@ -1,8 +1,17 @@
 # TODOs
-- addons lib
-- addons: check/fix install
-- startup-threads: run at end of init instead of via vpi callback
-- threads: allow standalone thread creation
-- documentation: update (cleanup, ...?)
-- simulation flow update (cvc, ...)
-- release 1.2
+- addons
+  - [ ] addons lib
+  - [ ] addons: check/fix install
+- lib
+  - [ ] libco: local copy for fallback
+  - [ ] lib: use local .so in simulation
+- threads
+  - [x] startup-threads: run at end of init instead of via vpi callback
+  - [x] threads: allow standalone thread creation
+  - [ ] examples: thread creation
+- doc
+  - [ ] documentation: update (cleanup, ...?)
+- flow
+  - [ ] simulation flow update (cvc, ...)
+- release
+  - [ ] release 1.2
