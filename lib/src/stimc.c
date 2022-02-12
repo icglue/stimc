@@ -563,6 +563,11 @@ static void stimc_thread_wrap (STIMC_THREAD_ARG_DEF)
 
 void stimc_register_startup_thread (void (*threadfunc)(void *userdata), void *userdata, size_t stacksize)
 {
+    stimc_spawn_thread (threadfunc, userdata, stacksize);
+}
+
+void stimc_spawn_thread (void (*threadfunc)(void *userdata), void *userdata, size_t stacksize)
+{
     struct stimc_thread_s *thread = stimc_thread_create (threadfunc, userdata, stacksize);
 
     assert (thread);

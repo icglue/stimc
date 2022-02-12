@@ -20,8 +20,9 @@ struct dummy_c* dummy_c_create (void)
     dummy_c->clk_event  = stimc_event_create ();
     dummy_c->din_event  = stimc_event_create ();
 
-    stimc_register_startup_thread (dummy_c_testcontrol, dummy_c, 0);
-    stimc_register_startup_thread (dummy_c_testcontrol2, dummy_c, 0);
+    stimc_spawn_thread (dummy_c_testcontrol, dummy_c, 0);
+    stimc_spawn_thread (dummy_c_testcontrol2, dummy_c, 0);
+
     stimc_register_posedge_method (dummy_c_clock, dummy_c, dummy_c->clk_i);
     stimc_register_change_method  (dummy_c_dinchange, dummy_c, dummy_c->data_in_i);
 

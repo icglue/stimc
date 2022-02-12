@@ -120,8 +120,28 @@ void stimc_register_change_method (void (*methodfunc)(void *userdata), void *use
  *
  * The stacksize must be large enough for the callstack of the created thread.
  * Not all thread backends will use this stacksize, some support growing stacks.
+ *
+ * @deprecated Is subsumed into @ref stimc_spawn_thread.
  */
-void stimc_register_startup_thread (void (*threadfunc)(void *userdata), void *userdata, size_t stacksize);
+void stimc_register_startup_thread (void (*threadfunc)(void *userdata), void *userdata, size_t stacksize)
+    __attribute__((deprecated("use stimc_spawn_thread")));
+
+/**
+ * @brief Enqueue a function to be started as thread.
+ * @param threadfunc Callback function accepting a single pointer as argument.
+ * @param userdata Data argument to be handed to threadfunc on call.
+ * @param stacksize Size of the thread's stack. Can be 0 (will use a default size then).
+ *
+ * The callback function will be started as a stimc thread together with other
+ * threads within the current simulation time step but typically not directly
+ * after spawning it (other threads might be run before and the spawning
+ * function must either return or suspend in case it is run as a thread itself).
+ * As separate thread it can be suspended and resumed via the different wait functions.
+ *
+ * The stacksize must be large enough for the callstack of the created thread.
+ * Not all thread backends will use this stacksize, some support growing stacks.
+ */
+void stimc_spawn_thread (void (*threadfunc)(void *userdata), void *userdata, size_t stacksize);
 
 /**
  * @brief Register a function to be called when the current thread is terminated.
@@ -165,7 +185,7 @@ void stimc_thread_exit (void);
  *
  * If used, any wait function or @ref stimc_thread_halt,
  * @ref stimc_thread_exit and @ref stimc_finish will return when finishing the
- * thread. this should then be checked with @ref stimc_thread_is_finished
+ * thread. This should then be checked with @ref stimc_thread_is_finished
  * to do the intended cleanup.
  */
 void stimc_thread_resume_on_finish (bool resume);

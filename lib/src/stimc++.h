@@ -1381,7 +1381,7 @@ namespace stimcxx {
  * @param thread The method to register.
  * @param stacksize The size of the thread's stack.
  *
- * Wraps @ref stimc_register_startup_thread for registering
+ * Wraps @ref stimc_spawn_thread for registering
  * a method with no parameters as startup thread.
  */
 #define STIMCXX_REGISTER_STARTUP_THREAD_STACKSIZE(thread, stacksize) \
@@ -1396,13 +1396,13 @@ namespace stimcxx {
                 } catch (stimcxx::thread_finish_exception &e) {} \
             } \
     }; \
-    stimc_register_startup_thread (_stimcxx_thread_init_ ## thread::callback, (void *)this, stacksize)
+    stimc_spawn_thread (_stimcxx_thread_init_ ## thread::callback, (void *)this, stacksize)
 
 /**
  * @brief Convenience wrapper for registering a method as startup thread.
  * @param thread The method to register.
  *
- * Wraps @ref stimc_register_startup_thread for registering
+ * Wraps @ref stimc_spawn_thread for registering
  * a method with no parameters as startup thread.
  */
 #define STIMCXX_REGISTER_STARTUP_THREAD(thread) \
