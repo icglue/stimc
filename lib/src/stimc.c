@@ -25,6 +25,7 @@
 #include "stimc.h"
 
 #include <math.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
@@ -782,7 +783,7 @@ static void stimc_thread_queue_clear (struct stimc_thread_queue_s *q)
 
 static void stimc_main_queue_run_threads ()
 {
-    while (true) {
+    while (!stimc_finish_pending) {
         if (stimc_main_queue.num == 0) break;
 
         stimc_thread_queue_enqueue_all (&stimc_main_queue_shadow, &stimc_main_queue);
@@ -799,7 +800,6 @@ static void stimc_main_queue_run_threads ()
             stimc_run (thread);
 
             if (stimc_finish_pending) {
-                stimc_finish_pending = false;
                 vpi_control (vpiFinish, 0);
                 break;
             }
