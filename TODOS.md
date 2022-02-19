@@ -9,13 +9,15 @@
   - [x] startup-threads: run at end of init instead of via vpi callback
   - [x] threads: allow standalone thread creation
   - [x] examples: thread creation
-  - [ ] stimc++: thread creation wrapper
+  - [ ] stimc++: thread creation wrapper with cleanup
 - cleanup
   - [ ] check final cleanup (causes problems in xcelium)
 - events
   - [ ] methods triggered by event (non-thread)
 - doc
-  - [ ] documentation: update (cleanup, ...?)
+  - [ ] cleanup
+  - [ ] standalone thread spawning
+  - [ ] changelog
 - flow
   - [ ] simulation flow update (cvc, ...)
 - release
