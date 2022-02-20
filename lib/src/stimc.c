@@ -245,11 +245,18 @@ static struct stimc_cleanup_entry_s *       stimc_cleanup_add          (void (*c
 static inline struct stimc_cleanup_entry_s *stimc_cleanup_add_internal (struct stimc_cleanup_entry_s *queue, void (*callback)(void *userdata), void *userdata);
 
 struct stimc_cleanup_data_main_s {
+    struct stimc_cleanup_entry_s *queue;
+
     vpiHandle cb_finish;
     vpiHandle cb_reset;
 };
 
-static void      stimc_cleanup_internal (void *userdata);
+enum stimc_cleanup_reason {
+    STIMC_CUR_FINISH,
+    STIMC_CUR_RESET,
+};
+
+static void      stimc_cleanup_internal (enum stimc_cleanup_reason reason);
 static PLI_INT32 stimc_cleanup_callback (struct t_cb_data *cb_data);
 
 static void stimc_cleanup_callback_wrap (void *userdata);
@@ -268,7 +275,7 @@ static struct stimc_thread_queue_s stimc_main_queue        = {0, 0, NULL};
 static struct stimc_thread_queue_s stimc_main_queue_shadow = {0, 0, NULL};
 
 #ifndef STIMC_DISABLE_CLEANUP
-static struct stimc_cleanup_entry_s *stimc_cleanup_queue = NULL;
+static struct stimc_cleanup_data_main_s stimc_cleanup_data = {NULL, NULL, NULL};
 #endif
 
 /******************************************************************************************************/
@@ -1763,10 +1770,6 @@ void stimc_net_set_double_nonblock (stimc_net net, double value)
 #ifndef STIMC_DISABLE_CLEANUP
 static void stimc_cleanup_init (void)
 {
-    struct stimc_cleanup_data_main_s *c_data = (struct stimc_cleanup_data_main_s *)malloc (sizeof (struct stimc_cleanup_data_main_s));
-
-    assert (c_data);
-
     s_cb_data data;
 
     data.reason    = cbEndOfSimulation;
@@ -1775,10 +1778,10 @@ static void stimc_cleanup_init (void)
     data.time      = NULL;
     data.value     = NULL;
     data.index     = 0;
-    data.user_data = NULL;
+    data.user_data = (void *)(uintptr_t)STIMC_CUR_FINISH;
 
-    c_data->cb_finish = vpi_register_cb (&data);
-    assert (c_data->cb_finish);
+    stimc_cleanup_data.cb_finish = vpi_register_cb (&data);
+    assert (stimc_cleanup_data.cb_finish);
 
     data.reason    = cbStartOfReset;
     data.cb_rtn    = stimc_cleanup_callback;
@@ -1786,13 +1789,11 @@ static void stimc_cleanup_init (void)
     data.time      = NULL;
     data.value     = NULL;
     data.index     = 0;
-    data.user_data = NULL;
+    data.user_data = (void *)(uintptr_t)STIMC_CUR_RESET;
 
-    c_data->cb_reset = vpi_register_cb (&data);
+    stimc_cleanup_data.cb_reset = vpi_register_cb (&data);
     /* might not be supported -> NULL ok */
-    /* assert (c_data->cb_reset); */
-
-    stimc_cleanup_queue = stimc_cleanup_add_internal (stimc_cleanup_queue, stimc_cleanup_internal, c_data);
+    /* assert (stimc_cleanup_data.cb_reset); */
 }
 
 static void stimc_cleanup_run (struct stimc_cleanup_entry_s **queue)
@@ -1820,10 +1821,10 @@ static void stimc_cleanup_run (struct stimc_cleanup_entry_s **queue)
 
 static struct stimc_cleanup_entry_s *stimc_cleanup_add (void (*callback)(void *userdata), void *userdata)
 {
-    if (stimc_cleanup_queue == NULL) stimc_cleanup_init ();
+    if (stimc_cleanup_data.queue == NULL) stimc_cleanup_init ();
 
-    stimc_cleanup_queue = stimc_cleanup_add_internal (stimc_cleanup_queue, callback, userdata);
-    return stimc_cleanup_queue;
+    stimc_cleanup_data.queue = stimc_cleanup_add_internal (stimc_cleanup_data.queue, callback, userdata);
+    return stimc_cleanup_data.queue;
 }
 
 static inline struct stimc_cleanup_entry_s *stimc_cleanup_add_internal (struct stimc_cleanup_entry_s *queue, void (*callback)(void *userdata), void *userdata)
@@ -1840,14 +1841,14 @@ static inline struct stimc_cleanup_entry_s *stimc_cleanup_add_internal (struct s
     return e;
 }
 
-static void stimc_cleanup_internal (void *userdata)
+static void stimc_cleanup_internal (enum stimc_cleanup_reason reason __attribute__((unused)))
 {
-    struct stimc_cleanup_data_main_s *data = (struct stimc_cleanup_data_main_s *)userdata;
+    /* process cleanup queue */
+    stimc_cleanup_run (&stimc_cleanup_data.queue);
 
     /* remove callbacks */
-    if (data->cb_finish != NULL) vpi_remove_cb (data->cb_finish);
-    if (data->cb_reset != NULL) vpi_remove_cb (data->cb_reset);
-    free (data);
+    if (stimc_cleanup_data.cb_finish != NULL) vpi_remove_cb (stimc_cleanup_data.cb_finish);
+    if (stimc_cleanup_data.cb_reset != NULL) vpi_remove_cb (stimc_cleanup_data.cb_reset);
 
     /* thread queue */
     stimc_thread_queue_free (&stimc_main_queue);
@@ -1856,11 +1857,13 @@ static void stimc_cleanup_internal (void *userdata)
     stimc_finish_pending = false;
 }
 
-static PLI_INT32 stimc_cleanup_callback (struct t_cb_data *cb_data __attribute__((unused)))
+static PLI_INT32 stimc_cleanup_callback (struct t_cb_data *cb_data)
 {
     assert (stimc_current_thread == NULL);
 
-    stimc_cleanup_run (&stimc_cleanup_queue);
+    enum stimc_cleanup_reason reason = (enum stimc_cleanup_reason)(uintptr_t)cb_data->user_data;
+
+    stimc_cleanup_internal (reason);
 
     return 0;
 }
