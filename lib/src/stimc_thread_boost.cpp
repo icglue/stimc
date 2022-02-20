@@ -57,9 +57,16 @@ struct stimc_thread_impl_s {
 };
 
 typedef stimc_thread_impl_s *stimc_thread_impl;
+typedef void (*stimc_thread_impl_func)(void);
 
 static stimc_thread_impl stimc_thread_impl_current = nullptr;
 
+/* postponed thread function */
+static stimc_thread_impl spawn_thread = nullptr;
+static stimc_thread_impl_func spawn_thread_func = nullptr;
+#ifdef STIMC_THREAD_IMPL_BOOST1
+static size_t spawn_thread_stacksize = 0;
+#endif
 
 static void stimc_thread_impl_boost_wrap (coro_t::pull_type &main)
 {
@@ -83,44 +90,72 @@ static void stimc_thread_impl_boost_wrap (coro_t::pull_type &main)
 
 extern "C" stimc_thread_impl stimc_thread_impl_create (void (*func)(void), size_t stacksize STIMC_THREAD_IMPL_STACKSIZE_ATTR)
 {
-    struct stimc_thread_impl_s *t = new struct stimc_thread_impl_s;
+    if (stimc_thread_impl_current == nullptr) {
+        struct stimc_thread_impl_s *t = new struct stimc_thread_impl_s;
 
-    t->main   = nullptr;
-    t->thread = nullptr;
+        t->main   = nullptr;
+        t->thread = nullptr;
 
-    coro_t::push_type *co = new coro_t::push_type (
-        stimc_thread_impl_boost_wrap
+        coro_t::push_type *co = new coro_t::push_type (
+            stimc_thread_impl_boost_wrap
 #ifdef STIMC_THREAD_IMPL_BOOST1
-        ,
-        boost::coroutines::attributes (stacksize)
+            ,
+            boost::coroutines::attributes (stacksize)
 #endif
-        );
+            );
 
-    assert (co);
-    t->thread = co;
+        assert (co);
+        t->thread = co;
 
-    stimc_thread_impl prev = stimc_thread_impl_current;
+        stimc_thread_impl_current = t;
+        coro_t::push_type &thread = *co;
 
-    stimc_thread_impl_current = t;
-    coro_t::push_type &thread = *co;
+        thread (func);
 
-    thread (func);
+        stimc_thread_impl_current = nullptr;
 
-    stimc_thread_impl_current = prev;
+        return t;
+    } else {
+        spawn_thread_func = func;
+#ifdef STIMC_THREAD_IMPL_BOOST1
+        spawn_thread_stacksize = stacksize;
+#endif
+        coro_t::pull_type &main = *(stimc_thread_impl_current->main);
 
-    return t;
+        main ();
+
+        return spawn_thread;
+    }
 }
 
 extern "C" void stimc_thread_impl_run (stimc_thread_impl t)
 {
-    stimc_thread_impl prev = stimc_thread_impl_current;
+    assert (stimc_thread_impl_current == nullptr);
 
     stimc_thread_impl_current = t;
     coro_t::push_type &thread = *(t->thread);
 
     thread (nullptr);
 
-    stimc_thread_impl_current = prev;
+    while (spawn_thread_func != nullptr) {
+        stimc_thread_impl_current = nullptr;
+
+        spawn_thread = stimc_thread_impl_create (
+            spawn_thread_func,
+#ifdef STIMC_THREAD_IMPL_BOOST1
+            spawn_thread_stacksize
+#else
+            0
+#endif
+            );
+
+        spawn_thread_func = nullptr;
+
+        stimc_thread_impl_current = t;
+        thread (nullptr);
+    }
+
+    stimc_thread_impl_current = nullptr;
 }
 
 extern "C" void stimc_thread_impl_suspend (void)
