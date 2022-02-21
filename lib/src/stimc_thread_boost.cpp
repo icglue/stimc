@@ -27,7 +27,7 @@
 #endif
 
 /*******************************************************************************/
-/* Boost version specific includes/typedefs */
+/* Boost version specific includes/aliases */
 /*******************************************************************************/
 #ifdef STIMC_THREAD_IMPL_BOOST1
 #define STIMC_THREAD_IMPL_BOOST_ANY
@@ -36,7 +36,7 @@
 #include <boost/coroutine/asymmetric_coroutine.hpp>
 #include <assert.h>
 
-typedef boost::coroutines::coroutine<void (*)(void)> coro_t;
+using coro_t = boost::coroutines::coroutine<void (*)(void)>;
 #endif
 
 #ifdef STIMC_THREAD_IMPL_BOOST2
@@ -44,7 +44,7 @@ typedef boost::coroutines::coroutine<void (*)(void)> coro_t;
 
 #include <boost/coroutine2/coroutine.hpp>
 
-typedef boost::coroutines2::coroutine<void (*)(void)> coro_t;
+using coro_t = boost::coroutines2::coroutine<void (*)(void)>;
 #endif
 
 /*******************************************************************************/
@@ -56,8 +56,8 @@ struct stimc_thread_impl_s {
     coro_t::pull_type *main;
 };
 
-typedef stimc_thread_impl_s *stimc_thread_impl;
-typedef void (*stimc_thread_impl_func)(void);
+using stimc_thread_impl      = stimc_thread_impl_s *;
+using stimc_thread_impl_func = void (*)(void);
 
 static stimc_thread_impl stimc_thread_impl_current = nullptr;
 

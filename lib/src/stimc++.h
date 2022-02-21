@@ -1385,11 +1385,11 @@ namespace stimcxx {
  * a method with no parameters as startup thread.
  */
 #define STIMCXX_REGISTER_STARTUP_THREAD_STACKSIZE(thread, stacksize) \
-    typedef decltype (this) _thisptype; \
+    using _thistype = decltype (this); \
     class _stimcxx_thread_init_ ## thread { \
         public: \
             static void callback (void *p) { \
-                _thisptype m = (_thisptype)p; \
+                _thistype m = (_thistype)p; \
                 stimc_thread_resume_on_finish (stimcxx::enable_stack_unwind); \
                 try { \
                     m->thread (); \
@@ -1418,11 +1418,11 @@ namespace stimcxx {
  * and @ref stimc_register_change_method for given port and function.
  */
 #define STIMCXX_REGISTER_METHOD(event, port, func) \
-    typedef decltype (this) _thisptype; \
+    using _thistype = decltype (this); \
     class _stimcxx_method_init_ ## event ## _ ## port ## _ ## func { \
         public: \
             static void callback (void *p) { \
-                _thisptype m = (_thisptype)p; \
+                _thistype m = (_thistype)p; \
                 m->func (); \
             } \
     }; \
