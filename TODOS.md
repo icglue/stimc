@@ -9,7 +9,7 @@
   * [x] startup-threads: run at end of init instead of via vpi callback
   * [x] threads: allow standalone thread creation
   * [x] examples: thread creation
-  * [ ] boost-impl: cleanup thread spawning workaround
+  * [x] boost-impl: cleanup thread spawning workaround
   * [ ] stimc++: thread creation wrapper with cleanup
 * cleanup
   * [x] distinguish cleanup-reason
