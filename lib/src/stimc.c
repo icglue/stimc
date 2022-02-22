@@ -262,6 +262,15 @@ static PLI_INT32 stimc_cleanup_callback (struct t_cb_data *cb_data);
 static void stimc_cleanup_callback_wrap (void *userdata);
 static void stimc_cleanup_thread        (void *userdata);
 static void stimc_cleanup_event         (void *userdata);
+
+enum stimc_simulator {
+    STIMC_SIM_IVERILOG,
+    STIMC_SIM_CVC,
+    STIMC_SIM_CADENCE,
+    STIMC_SIM_UNKNOWN,
+};
+
+static enum stimc_simulator stimc_get_simulator (void);
 #endif
 
 /******************************************************************************************************/
@@ -1772,28 +1781,35 @@ static void stimc_cleanup_init (void)
 {
     s_cb_data data;
 
-    data.reason    = cbEndOfSimulation;
-    data.cb_rtn    = stimc_cleanup_callback;
-    data.obj       = NULL;
-    data.time      = NULL;
-    data.value     = NULL;
-    data.index     = 0;
-    data.user_data = (void *)(uintptr_t)STIMC_CUR_FINISH;
+    if (stimc_cleanup_data.cb_finish == NULL) {
+        data.reason    = cbEndOfSimulation;
+        data.cb_rtn    = stimc_cleanup_callback;
+        data.obj       = NULL;
+        data.time      = NULL;
+        data.value     = NULL;
+        data.index     = 0;
+        data.user_data = (void *)(uintptr_t)STIMC_CUR_FINISH;
 
-    stimc_cleanup_data.cb_finish = vpi_register_cb (&data);
-    assert (stimc_cleanup_data.cb_finish);
+        stimc_cleanup_data.cb_finish = vpi_register_cb (&data);
+        assert (stimc_cleanup_data.cb_finish);
+    }
 
-    data.reason    = cbStartOfReset;
-    data.cb_rtn    = stimc_cleanup_callback;
-    data.obj       = NULL;
-    data.time      = NULL;
-    data.value     = NULL;
-    data.index     = 0;
-    data.user_data = (void *)(uintptr_t)STIMC_CUR_RESET;
+    if (stimc_cleanup_data.cb_reset == NULL) {
+        enum stimc_simulator sim = stimc_get_simulator ();
 
-    stimc_cleanup_data.cb_reset = vpi_register_cb (&data);
-    /* might not be supported -> NULL ok */
-    /* assert (stimc_cleanup_data.cb_reset); */
+        data.reason    = cbStartOfReset;
+        data.cb_rtn    = stimc_cleanup_callback;
+        data.obj       = NULL;
+        data.time      = NULL;
+        data.value     = NULL;
+        data.index     = 0;
+        data.user_data = (void *)(uintptr_t)STIMC_CUR_RESET;
+
+        if (sim != STIMC_SIM_IVERILOG) {
+            stimc_cleanup_data.cb_reset = vpi_register_cb (&data);
+            assert (stimc_cleanup_data.cb_reset);
+        }
+    }
 }
 
 static void stimc_cleanup_run (struct stimc_cleanup_entry_s **queue)
@@ -1847,8 +1863,15 @@ static void stimc_cleanup_internal (enum stimc_cleanup_reason reason __attribute
     stimc_cleanup_run (&stimc_cleanup_data.queue);
 
     /* remove callbacks */
-    if (stimc_cleanup_data.cb_finish != NULL) vpi_remove_cb (stimc_cleanup_data.cb_finish);
-    if (stimc_cleanup_data.cb_reset != NULL) vpi_remove_cb (stimc_cleanup_data.cb_reset);
+    enum stimc_simulator sim = stimc_get_simulator ();
+
+    if (sim != STIMC_SIM_CADENCE) {
+        if (stimc_cleanup_data.cb_finish != NULL) vpi_remove_cb (stimc_cleanup_data.cb_finish);
+        if (stimc_cleanup_data.cb_reset != NULL) vpi_remove_cb (stimc_cleanup_data.cb_reset);
+
+        stimc_cleanup_data.cb_finish = NULL;
+        stimc_cleanup_data.cb_reset  = NULL;
+    }
 
     /* thread queue */
     stimc_thread_queue_free (&stimc_main_queue);
@@ -1890,5 +1913,23 @@ static void stimc_cleanup_event (void *userdata)
     stimc_event_thread_queue_free (event);
     event->cleanup_self = NULL;
 }
+
+static enum stimc_simulator stimc_get_simulator (void)
+{
+    s_vpi_vlog_info info = {0, NULL, NULL, NULL};
+
+    if (!vpi_get_vlog_info (&info)) return STIMC_SIM_UNKNOWN;
+
+    const char *sim = info.product;
+
+    if (sim == NULL) return STIMC_SIM_UNKNOWN;
+    if (strcmp (sim, "Icarus Verilog") == 0) return STIMC_SIM_IVERILOG;
+    if (strncmp (sim, "CVC", 3) == 0) return STIMC_SIM_CVC;
+    if (strncmp (sim, "xmsim", 5) == 0) return STIMC_SIM_CADENCE;
+    if (strncmp (sim, "ncsim", 5) == 0) return STIMC_SIM_CADENCE;
+
+    return STIMC_SIM_UNKNOWN;
+}
+
 #endif
 
