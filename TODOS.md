@@ -13,7 +13,7 @@
   * [ ] stimc++: thread creation wrapper with cleanup
 * cleanup
   * [x] distinguish cleanup-reason
-  * [ ] simulator dependent final cleanup (cleanup callback removal, causes problems in xcelium)
+  * [x] simulator dependent final cleanup (cleanup callback removal, causes problems in xcelium)
 * events
   * [ ] methods triggered by event (non-thread)
 * doc
