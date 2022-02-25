@@ -10,7 +10,7 @@
   * [x] threads: allow standalone thread creation
   * [x] examples: thread creation
   * [x] boost-impl: cleanup thread spawning workaround
-  * [ ] stimc++: thread creation wrapper with cleanup
+  * [x] stimc++: thread creation wrapper with cleanup
 * cleanup
   * [x] distinguish cleanup-reason
   * [x] simulator dependent final cleanup (cleanup callback removal, causes problems in xcelium)

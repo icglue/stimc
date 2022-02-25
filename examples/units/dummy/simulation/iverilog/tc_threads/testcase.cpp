@@ -18,10 +18,8 @@ struct t_data {
 
 static unsigned value = 1;
 
-static void func_t (void *data)
+static void func_t (struct t_data *d)
 {
-    struct t_data *d = (struct t_data *) data;
-
     unsigned id = d->t_id;
 
     unsigned expected = id;
@@ -61,9 +59,9 @@ static struct t_data d3 (3, e3, e1);
 
 void dummy::testcontrol ()
 {
-    stimc_spawn_thread (func_t, &d1, 0);
-    stimc_spawn_thread (func_t, &d2, 0);
-    stimc_spawn_thread (func_t, &d3, 0);
+    STIMCXX_SPAWN_THREAD (func_t, &d1);
+    STIMCXX_SPAWN_THREAD (func_t, &d2);
+    STIMCXX_SPAWN_THREAD (func_t, &d3);
 
     wait (1, SC_NS);
     e1.trigger();

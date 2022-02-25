@@ -1377,6 +1377,40 @@ namespace stimcxx {
     port (*this, #port)
 
 /**
+ * @brief Convenience wrapper for spawning a function taking one pointer argument as a thread with specified stacksize.
+ * @param thread The function to spawn as thread.
+ * @param data The data pointer.
+ * @param stacksize The size of the thread's stack.
+ *
+ * Wraps @ref stimc_spawn_thread for spawning
+ * a function with a single pointer argument as a thread.
+ */
+#define STIMCXX_SPAWN_THREAD_STACKSIZE(thread, data, stacksize) \
+    do { \
+        using _datatype = decltype(data); \
+        void *_dataptr = reinterpret_cast<void *>(data); \
+        auto  _func = [](void *_ptr) { \
+                _datatype _data = reinterpret_cast<_datatype>(_ptr); \
+                stimc_thread_resume_on_finish (stimcxx::enable_stack_unwind); \
+                try { \
+                    thread (_data); \
+                } catch (stimcxx::thread_finish_exception &e) {} \
+            }; \
+        stimc_spawn_thread (_func, _dataptr, stacksize); \
+    } while (false)
+
+/**
+ * @brief Convenience wrapper for spawning a function taking one pointer argument as a thread.
+ * @param thread The function to spawn as thread.
+ * @param data The data pointer.
+ *
+ * Wraps @ref stimc_spawn_thread for spawning
+ * a function with a single pointer argument as a thread.
+ */
+#define STIMCXX_SPAWN_THREAD(thread, data) \
+    STIMCXX_SPAWN_THREAD_STACKSIZE (thread, data, 0)
+
+/**
  * @brief Convenience wrapper for registering a method as startup thread with specified stacksize.
  * @param thread The method to register.
  * @param stacksize The size of the thread's stack.
@@ -1385,18 +1419,7 @@ namespace stimcxx {
  * a method with no parameters as startup thread.
  */
 #define STIMCXX_REGISTER_STARTUP_THREAD_STACKSIZE(thread, stacksize) \
-    using _thistype = decltype (this); \
-    class _stimcxx_thread_init_ ## thread { \
-        public: \
-            static void callback (void *p) { \
-                _thistype m = (_thistype)p; \
-                stimc_thread_resume_on_finish (stimcxx::enable_stack_unwind); \
-                try { \
-                    m->thread (); \
-                } catch (stimcxx::thread_finish_exception &e) {} \
-            } \
-    }; \
-    stimc_spawn_thread (_stimcxx_thread_init_ ## thread::callback, (void *)this, stacksize)
+    STIMCXX_SPAWN_THREAD_STACKSIZE ([](decltype(this) ptr) {ptr->thread ();}, this, stacksize)
 
 /**
  * @brief Convenience wrapper for registering a method as startup thread.
