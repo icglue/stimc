@@ -4,7 +4,7 @@
   * [ ] addons: check/fix install
 * lib
   * [ ] libco: local copy for fallback
-  * [ ] lib: use local .so in simulation
+  * [x] lib: use local .so in simulation
 * threads
   * [x] startup-threads: run at end of init instead of via vpi callback
   * [x] threads: allow standalone thread creation
@@ -20,6 +20,7 @@
   * [ ] cleanup
   * [ ] standalone thread spawning
   * [ ] changelog
+  * [ ] examples: build lib beforehand
 * flow
   * [ ] simulation flow update (cvc, ...)
 * release

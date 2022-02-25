@@ -45,13 +45,15 @@ SRCDIR          ?= $(PREFIX)/src
 DOCDIR          ?= $(PREFIX)/share/doc
 MANDIR          ?= $(PREFIX)/share/man
 
+THREAD_IMPL     ?= pcl
+
 #-------------------------------------------------------
 # LIB
 .PHONY: lib
 
 lib:
-	@$(MAKE) --no-print-directory -C $(BUILD_BASE)
-	@$(MAKE) --no-print-directory -C $(BUILD_BASE) pkgconfig
+	@$(MAKE) THREAD_IMPL=$(THREAD_IMPL) --no-print-directory -C $(BUILD_BASE)
+	@$(MAKE) THREAD_IMPL=$(THREAD_IMPL) --no-print-directory -C $(BUILD_BASE) pkgconfig
 
 .DEFAULT_GOAL: lib
 
@@ -115,7 +117,7 @@ export ICPRO_DIR
 cleantest:
 	@$(MAKE) --no-print-directory -sC $(REGDIR) cleanall
 
-test:
+test: lib
 	@$(MAKE) --no-print-directory simcheck
 	@$(MAKE) --no-print-directory memcheck
 

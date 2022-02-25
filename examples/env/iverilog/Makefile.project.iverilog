@@ -29,9 +29,13 @@ TMPDIR         ?= /tmp
 COMPILE_DEPS   ?= $(foreach incdir, $(INCLUDEDIRS), $(wildcard $(incdir)/*.vh))
 
 # ------------  generate the names of the stimc related files  -----------------
+STIMC_INCDIR    = ${ICPRO_DIR}/resources/stimc/lib/src
+STIMC_LIBDIR    = ${ICPRO_DIR}/resources/stimc/lib/lib
 STIMC_BASENAMES = $(notdir $(basename $(STIMC_SOURCES)))
 STIMC_OBJECTS   = $(addprefix $(WORK_DIR)/, $(addsuffix .o, $(STIMC_BASENAMES)))
 STIMC_DEPS      = $(addprefix $(WORK_DIR)/, $(addsuffix .d, $(STIMC_BASENAMES)))
+STIMC_LDFLAGS   = -L$(STIMC_LIBDIR) -lstimc -Wl,-rpath,$(STIMC_LIBDIR)
+STIMC_CPPFLAGS  = -I$(STIMC_INCDIR)
 
 # ------------  build and run tools  -------------------------------------------
 IVERILOG        ?= iverilog
@@ -57,7 +61,6 @@ VVP_EXTARGS     ?=
 VVP_EXTARGS_RUN ?= -none
 
 # ------------  tool flags for stimc  ------------------------------------------
-STIMC_LDFLAGS   ?= -lpcl
 
 WARNFLAGS       ?= -Wall -Wextra -Wshadow -pedantic -Werror
 OPTFLAGS        ?= -O2 -fdata-sections -ffunction-sections
@@ -68,29 +71,9 @@ DEFINES         ?=
 CPPFLAGS        += $(addprefix -I,$(STIMC_DIRS))
 CPPFLAGS        += $(addprefix -D,$(DEFINES))
 
-# default
-STIMC_THREAD_IMPL ?=pcl
-
-ifeq ($(STIMC_THREAD_IMPL),pcl)
-CPPFLAGS        += -D STIMC_THREAD_IMPL_PCL
-LDFLAGS         += -lpcl
-endif
-ifeq ($(STIMC_THREAD_IMPL),libco)
-CPPFLAGS        += -D STIMC_THREAD_IMPL_LIBCO
-LDFLAGS         += -lco
-endif
-ifeq ($(STIMC_THREAD_IMPL),boost2)
-CPPFLAGS        += -D STIMC_THREAD_IMPL_BOOST2
-LDFLAGS         += -lboost_context
-endif
-ifeq ($(STIMC_THREAD_IMPL),boost1)
-CPPFLAGS        += -D STIMC_THREAD_IMPL_BOOST1
-LDFLAGS         += -lboost_coroutine
-endif
-
 ifneq ($(strip $(STIMC_MODULES)),)
-  VPI_CPPFLAGS  = $(shell iverilog-vpi --cflags | egrep -o -- '-I\s*\S*')
-  VPI_LDFLAGS   = $(shell iverilog-vpi --ldflags)
+  VPI_CPPFLAGS  = $(shell iverilog-vpi --cflags | egrep -o -- '-I\s*\S*') $(STIMC_CPPFLAGS)
+  VPI_LDFLAGS   = $(shell iverilog-vpi --ldflags) $(STIMC_LDFLAGS)
   VPI_MODULE   ?= $(WORK_DIR)/stimc_model.vpi
   VVP_FLAGS    += -M$(WORK_DIR) -m$(notdir $(basename $(VPI_MODULE)))
 endif

@@ -35,23 +35,27 @@ jobs:
         env:
           CC: gcc
           CXX: g++
-          STIMC_THREAD_IMPL: pcl
+          THREAD_IMPL: pcl
         run: |
+          make cleanall
           make -j3 test
       - name: "Run tests with pcl coroutines, clang"
         env:
           CC: clang
           CXX: clang++
-          STIMC_THREAD_IMPL: pcl
+          THREAD_IMPL: pcl
         run: |
+          make cleanall
           make -j3 test
       - name: "Run tests with boost1 coroutines, default cc"
         env:
-          STIMC_THREAD_IMPL: boost1
+          THREAD_IMPL: boost1
         run: |
+          make cleanall
           make -j3 test
       - name: "Run tests with boost2 coroutines, default cc"
         env:
-          STIMC_THREAD_IMPL: boost2
+          THREAD_IMPL: boost2
         run: |
+          make cleanall
           make -j3 test

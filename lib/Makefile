@@ -204,6 +204,7 @@ $(TARGET_DIR)/%.o: $(SOURCE_DIR)/%.cpp $(DEPS_DIR)/%.d | $(TARGET_DIR) $(ASM_DIR
 
 $(TARGET_DIR)/%.so: $(OBJECTS)
 	$(CXX) $(WARNFLAGS) $(OBJECTS) -shared $(ALL_LDFLAGS) -o $@
+	ldconfig -n $(TARGET_DIR)
 
 $(TARGET_DIR)/%.a: $(OBJECTS)
 	$(AR) rcs $@ $(OBJECTS)
@@ -247,7 +248,7 @@ viewdoc:
 	@$${BROWSER:-firefox} $(DOXY_DOCPATH)/html/index.html >/dev/null 2>&1 &
 
 clean:
-	-@$(RM) $(addprefix $(TARGET_DIR)/, *.o *.so *.a $(TARGET)) $(ASM_DIR)/*.s $(addprefix $(DEPS_DIR)/, *.d) $(PC_TRG)
+	-@$(RM) $(addprefix $(TARGET_DIR)/, *.o *.so *.so.* *.a $(TARGET)) $(ASM_DIR)/*.s $(addprefix $(DEPS_DIR)/, *.d) $(PC_TRG)
 	-@$(RMDIR) $(DEPS_DIR) $(TARGET_DIR) $(ASM_DIR) 2>/dev/null; true
 	-@$(RM) -rf $(addprefix ./$(DOXY_DOCPATH)/, html latex rtf man); true
 	-@$(RMDIR) ./$(DOXY_DOCPATH) 2>/dev/null; true
