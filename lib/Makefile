@@ -27,7 +27,7 @@ EXECUTABLE      ?=
 LIB             ?= libstimc.so
 STATICLIB       ?= libstimc.a
 
-VERSION         ?= 1.1
+VERSION         ?= 1.2
 VERSION_MAIN     = $(shell echo $(VERSION) | sed -r -n -e 's/([0-9]+)\..*/\1/p')
 SONAME           = $(LIB).$(VERSION_MAIN)
 
