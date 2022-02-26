@@ -17,10 +17,10 @@
 * events
   * [ ] methods triggered by event (non-thread)
 * doc
-  * [ ] cleanup
+  * [x] cleanup
   * [ ] standalone thread spawning
-  * [ ] changelog
-  * [ ] examples: build lib beforehand
+  * [x] changelog
+  * [x] examples: build lib beforehand
 * flow
   * [ ] simulation flow update (cvc, ...)
 * release

@@ -116,13 +116,13 @@ be called and a stimc thread will be created and run at simulation start calling
 
 #### Initialization
 To provide the Verilog initializer system task and functionality
-the preprocessor define `STIMCXX_EXPORT (<module-name>)` (without semi colon)
+the preprocessor define `STIMCXX_EXPORT (<module-name>)` (without semicolon)
 should be put at some place in the code.
 
 This will provide the system tasks for all modules on loading the vpi library.
 
 #### Functionality
-To interact parameters can be read, ports can be read and assigned.
+To interact with simulation, parameters can be read, ports can be read and assigned.
 For reading it is possible to directly assign a port or parameter to a variable.
 For writing to a port you can assign an integer type to it directly (corresponding
 to Verilog blocking assignment) or via the overloaded `<<=` operator (corresponding
@@ -130,7 +130,7 @@ to Verilog non-blocking assignment, optical similarity to Verilog is intended,
 while risking misinterpretation as shift operation).
 
 In case only a bit-range of a port should be accessed or an integer type is not sufficiently
-wide it is possible to access the ports `operator{} (<msb>,<lsb>)` and similarly read from
+wide it is possible to access the ports `operator() (<msb>,<lsb>)` and similarly read from
 or write to the bit-range.
 Ports can also be assigned to verilog `x` or `z` values using the similarly named constants `X`
 and `Z` or checked to contain unknown values via comparison against `X`.
@@ -148,7 +148,7 @@ Furthermore there are helper functions in the `stimcxx` namespace:
   * `wait(<time>)` to wait an amount of time in seconds (double) or
   * `wait(<time>, <unit>)` to wait an integral amount of time in specified unit (similarly `SC_PS` and so on).
   * `wait(<event or combination>, <time>)`, `wait(<event or combination>, <time>, <unit>)` to wait for
-    an event or combination (any/ⱥll) of events with the specified time as timeout.
+    an event or combination (any/all) of events with the specified time as timeout.
     In contrast to the other wait functions the wait with timeout returns `true` in case of timeout,
     `false` otherwise.
 
@@ -159,10 +159,26 @@ able to trigger) or first trigger (and not yet waiting on the event, so not bein
 trigger).
 
 #### Cleanup
-In order to free memory and cleanup resources like memory or open files
+Resource cleanup is mainly useful in cases where simulation can be reset.
+Threads will be recreated and run after a reset and might cause conflicts
+with remaining resources from a previous run.
+
+##### Stack unwinding
+Since version 1.2 a stimc++ thread's stack will by default be unwound on termination at and
+of simulation or simulator reset. If programmed accordingly by writing the associated thread
+code exception safe it is possible to have resources freed this way.
+
+Stack unwinding is achieved by letting `wait` functions throw a stimc++ specific exception
+at end of simulation which therefore should not be caught or otherwise rethrown if necessary.
+It is important to consider, that all thread's stacks can be unwound in any order.
+
+If stack unwinding causes problems it can be disabled by defining `STIMCXX_DISABLE_STACK_UNWIND`.
+Alternatively it can be selectively disabled for individual threads by calling
+`stimc_thread_resume_on_finish (false)`.
+
+##### Explicit cleanup
+In order to explicitly control freeing of memory or cleanup of resources like open files
 when a thread is terminated it is possible to register a cleanup callback.
-This is mainly useful in cases where simulation can be reset as threads will be recreated
-and run after a reset and might cause conflicts with remaining resources from a previous run.
 
 In stimc++ it is possible to wrap this into one or more objects of custom cleanup classes
 inheriting `stimcxx::thread_cleanup` which is created within the thread via `new` and performs
@@ -178,7 +194,7 @@ In all of these cases the cleanup in the destructor should do the right thing (e
 allocated resources and ignore not yet allocated or already freed resources).
 
 Here an example with a snippet from a thread and a cleanup class for 2 variables a and b
-being objects of two classes A and B:
+being objects of two classes A and B shows the general idea:
 
 ```cpp
 /* custom cleanup class */
@@ -223,16 +239,18 @@ void dummy::testcontrol ()
 ```
 
 In case cleanup functionality causes unwanted problems (use after free or similar),
-it is possible to disable it via the `STIMC_DISABLE_CLEANUP` preprocessor define.
+it is possible to disable it via the `STIMC_DISABLE_CLEANUP` preprocessor define
+when compiling stimc.
 In this case besides memory being leaked, resetting simulation will likely cause problems.
 
 ## Building
 ### Compiling
 For compiling everything (depending on the simulator) you need to build a vpi library
-containing the stimc/stimc++ code, the module export code created with the
-`STIMCXX_EXPORT (<module-name>)` macro.
+containing the stimc/stimc++ code or linking against stimc as a shared library, and
+the module export code created with the `STIMCXX_EXPORT (<module-name>)` macro.
 
-The vpi library needs to be linked against `pcl` library for thread coroutine implementation.
+The vpi library, if compiled with stimc, or the linked stimc library needs to be linked against
+the used coroutine library for thread implementation, by default `pcl`.
 Alternatively coroutines can be implemented with libco (preprocessor define `STIMC_THREAD_IMPL_LIBCO`
 and link against `libco`) or boost coroutines (preprocessor define
 `STIMC_THREAD_IMPL_BOOST2` and link against `boost_context` for `boost/coroutine2` implementation
@@ -240,18 +258,21 @@ or define `STIMC_THREAD_IMPL_BOOST1` and link against `boost_coroutine` for `boo
 implementation). Although boost would probably not count as lightweight, it is probably
 one of the more available alternatives.
 
+vpi headers are by default included via icarus verilog. In case a different simulator
+is to be used, the relevant include path might be changed.
+
 ### Installation
 There is no need to install stimc, as you can just compile the sources together with your
 own code into a vpi shared library for the simulator to load.
 But it is also possible to compile it into a standalone shared library to link against the
-vpi library. This can be achieved via
+vpi library. This can be achieved via running
 ```shell
 make
 make install
 ```
 and can be controlled by
 * `THREAD_IMPL` (one of `pcl`, `libco`, `boost1` or `boost2`, depending on available
-  coroutine implementation backends),
+  coroutine implementation libraries),
 * `PREFIX` (install prefix, e.g. `/usr`),
 * `DESTDIR` (e.g. your temporary package directory)
 variables.
@@ -264,19 +285,21 @@ can be overwritten with `make BROWSER=<browser> showdocs`.
 
 ### Examples
 Examples are provided in the examples directory.
-To use it you need icarus verilog, GTKWave and the portable coroutine library (libpcl) installed
-and gcc as compiler.
+To use it you need icarus verilog, GTKWave and the portable coroutine library (libpcl) installed.
 You can load the project environment by sourcing the `env.sh` in the project examples directory.
+Simulation of the given examples depends on stimc being precompiled as a library
+(run `make` in the project's root directory first).
 
-The examples provide 3 stimc design units: dummy (the shown dummy), ff (a stimc flip-flop model)
+The examples provide 3 stimc design units: dummy (the shown dummy, also in a plain c version
+for reference), ff (a stimc flip-flop model)
 and ff\_real (flip-flop with real-value port interface).
-The Verilog shell can be found in `source/behavioral/verilog`, the module stimc code in
-`source/behavioral/stimc`. To run example simulations enter the unit's `simulation/iverilog/tc_...`
+The Verilog shell can be found in `source/behavioral/verilog` of the given unit, the module stimc code in
+`source/behavioral/stimc`. To run example simulations enter the unit's `simulation/iverilog/tc_<...>`
 testcase directory and run `make`. The code will be compiled, run and GTKWave will be started
 for browsing the simulated waveforms.
 
 ## License
 stimc itself is licensed under the GNU LGPLv3. But depending on the used coroutine library the
-derived work might be licensed depending on the coroutine library. `pcl` is licensed
+derived work might fall under the coroutine library's license. `pcl` is licensed
 under GNU GPL, so here the combination is also licensed as GPL, whereas when using `libco` or `boost`
 the combination will be licensed under GNU LGPL.

@@ -1,6 +1,6 @@
 # stimc Changelog
 ## Version 1.2
-* Events are now movable.
+* Events are movable.
 * stimc++ stack unwinding for thread cleanup.
 * Standalone thread spawning.
 * Simulator dependent cleanup callbacks.
