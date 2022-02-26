@@ -135,10 +135,13 @@ or write to the bit-range.
 Ports can also be assigned to verilog `x` or `z` values using the similarly named constants `X`
 and `Z` or checked to contain unknown values via comparison against `X`.
 
-Furthermore there are helper functions in the `stimcxx` namespace:
-* `time()` (simulation time in seconds), `time(<unit>)` (simulation
-  time as integer in specified unit, similar to SystemC units are defined as `SC_PS`, `SC_US` and so on).
-* `finish()` to finish simulation.
+### Threads and Events
+Apart from a module method it is also possible to spawn a standalone function taking
+a single pointer argument as a thread via `STIMCXX_SPAWN_THREAD (<function>, <data>);`
+Threads can be suspended to wait for a specified amount of simulation time and/or an
+event to be triggered.
+
+There are some helper functions in the `stimcxx` namespace:
 * Multiple wait functions.
   They can only be called from within a thread
   (as only initialized threads can be suspended and resumed):
@@ -151,6 +154,9 @@ Furthermore there are helper functions in the `stimcxx` namespace:
     an event or combination (any/all) of events with the specified time as timeout.
     In contrast to the other wait functions the wait with timeout returns `true` in case of timeout,
     `false` otherwise.
+* `time()` (current simulation time in seconds), `time(<unit>)` (current simulation
+  time as integer in specified unit, similar to SystemC units are defined as `SC_PS`, `SC_US` and so on).
+* `finish()` to finish simulation.
 
 Events can be triggered by calling their `trigger()` member function.
 When triggering an event, all threads currently waiting for it will be resumed (in any order).
@@ -158,12 +164,15 @@ It is not possible for a thread to trigger itself as it would either need to fir
 able to trigger) or first trigger (and not yet waiting on the event, so not being resumed on this
 trigger).
 
-#### Cleanup
+### Cleanup
 Resource cleanup is mainly useful in cases where simulation can be reset.
 Threads will be recreated and run after a reset and might cause conflicts
 with remaining resources from a previous run.
 
-##### Stack unwinding
+While modules are cleaned up by their destructor being called at end of simulation,
+threads could be suspended in a waiting state, having their resources still acquired.
+
+#### Stack unwinding
 Since version 1.2 a stimc++ thread's stack will by default be unwound on termination at and
 of simulation or simulator reset. If programmed accordingly by writing the associated thread
 code exception safe it is possible to have resources freed this way.
@@ -176,7 +185,7 @@ If stack unwinding causes problems it can be disabled by defining `STIMCXX_DISAB
 Alternatively it can be selectively disabled for individual threads by calling
 `stimc_thread_resume_on_finish (false)`.
 
-##### Explicit cleanup
+#### Explicit cleanup
 In order to explicitly control freeing of memory or cleanup of resources like open files
 when a thread is terminated it is possible to register a cleanup callback.
 

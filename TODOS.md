@@ -18,7 +18,7 @@
   * [ ] methods triggered by event (non-thread)
 * doc
   * [x] cleanup
-  * [ ] standalone thread spawning
+  * [x] standalone thread spawning
   * [x] changelog
   * [x] examples: build lib beforehand
 * flow
