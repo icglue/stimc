@@ -1,0 +1,6 @@
+
+-include Makefile.rtl.sources
+
+DEFINES += STIMCXX_DISABLE_STACK_UNWIND
+
+include ${ICPRO_DIR}/env/simulation/Makefile.project.simulation

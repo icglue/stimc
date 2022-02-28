@@ -29,7 +29,9 @@ CFLAGS          ?= -std=c11 -Wstrict-prototypes
 CXXFLAGS        ?= -std=c++11 -Weffc++
 CFLAGS          += -fpic
 CXXFLAGS        += -fpic
+DEFINES         ?=
 CPPFLAGS        += $(addprefix -I,$(STIMC_DIRS))
+CPPFLAGS        += $(addprefix -D,$(DEFINES))
 
 VPI_EXTENSION   ?= .vpi
 
