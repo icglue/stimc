@@ -32,8 +32,8 @@ VLOG_SOURCES    += $(foreach f,$(VLOG_SRC_FILES), $(shell echo $(shell cat $f | 
 
 # ------------  tool flags for stimc  ------------------------------------------
 ifneq ($(strip $(STIMC_MODULES)),)
-  VPI_CPPFLAGS  = $(shell pkgconf --cflags oss-cvc-vpi)
-  VPI_LDFLAGS   = -shared
+  VPI_CPPFLAGS += $(shell pkgconf --cflags oss-cvc-vpi)
+  VPI_LDFLAGS  += -shared
   CVC_FLAGS    += +acc+2 +loadvpi=$(VPI_MODULE):stimc_vpi_init
 endif
 
@@ -83,6 +83,11 @@ elab-dump: vlog-dump vpi-run
 run: $(SIM_EXEC) $(VPI_MODULE) Makefile
 	$q$(call echo, "\n$${b}$(runcolor)RUN $${c} $$(basename $(SIM_EXEC))\n")
 	$q$(SIM_EXEC)
+
+memcheck: $(SIM_EXEC) $(VPI_MODULE) Makefile
+	$q$(call echo, "\n$${b}$(runcolor)MEMCHECK $${c} $$(basename $(SIM_EXEC))\n")
+	$q$(MEMCHK) $(SIM_EXEC)
+
 
 runbatch: $(SIM_EXEC) $(VPI_MODULE) Makefile
 	$q$(call echo, "\n$${b}$(runcolor)RUN $${c} $$(basename $(SIM_EXEC))\n")

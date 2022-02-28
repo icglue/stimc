@@ -26,8 +26,8 @@ VLOG_SOURCES    += $(foreach f,$(VLOG_SRC_FILES), $(shell echo $(shell cat $f | 
 
 # ------------  tool flags for stimc  ------------------------------------------
 ifneq ($(strip $(STIMC_MODULES)),)
-  VPI_CPPFLAGS  = $(shell iverilog-vpi --cflags | egrep -o -- '-I\s*\S*')
-  VPI_LDFLAGS   = $(shell iverilog-vpi --ldflags)
+  VPI_CPPFLAGS += $(shell iverilog-vpi --cflags | egrep -o -- '-I\s*\S*')
+  VPI_LDFLAGS  += $(shell iverilog-vpi --ldflags)
   VVP_FLAGS    += -M$(WORK_DIR) -m$(notdir $(basename $(VPI_MODULE)))
 endif
 

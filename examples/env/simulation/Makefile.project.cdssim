@@ -72,8 +72,8 @@ ELAB_TARGET      = $(ELAB_LOG)
 
 # ------------  tool flags for stimc  ------------------------------------------
 ifneq ($(strip $(STIMC_MODULES)),)
-  VPI_CPPFLAGS  = -I $(CDSROOT)/tools/include
-  VPI_LDFLAGS   = -shared
+  VPI_CPPFLAGS += -I $(CDSROOT)/tools/include
+  VPI_LDFLAGS  += -shared
   ELAB_FLAGS   += -loadvpi $(VPI_MODULE):stimc_vpi_init
 endif
 

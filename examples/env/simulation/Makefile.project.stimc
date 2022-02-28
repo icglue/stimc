@@ -5,14 +5,20 @@
 
 
 # ------------  generate the names of the stimc related files  -----------------
+STIMC_BASEDIR   = ${ICPRO_DIR}/resources/stimc/lib
+STIMC_INCDIR    = $(STIMC_BASEDIR)/src
+STIMC_LIBDIR    = $(STIMC_BASEDIR)/lib
 STIMC_BASENAMES = $(notdir $(basename $(STIMC_SOURCES)))
 STIMC_OBJECTS   = $(addprefix $(WORK_DIR)/, $(addsuffix .o, $(STIMC_BASENAMES)))
 STIMC_DEPS      = $(addprefix $(WORK_DIR)/, $(addsuffix .d, $(STIMC_BASENAMES)))
+STIMC_LDFLAGS   = -L$(STIMC_LIBDIR) -lstimc -Wl,-rpath,$(STIMC_LIBDIR)
+STIMC_CPPFLAGS  = -I$(STIMC_INCDIR)
 
 # ------------  build and run tools  -------------------------------------------
 CC              ?= gcc
 CXX             ?= g++
 LD              ?= ld
+LDEXE           ?= $(CXX)
 MEMCHK          ?= valgrind --leak-check=full --error-exitcode=1 --suppressions=${ICPRO_DIR}/env/iverilog/vvp.valgrind.supp -s
 
 # ------------  tool flags for stimc  ------------------------------------------
@@ -27,31 +33,9 @@ CPPFLAGS        += $(addprefix -I,$(STIMC_DIRS))
 
 VPI_EXTENSION   ?= .vpi
 
-# default
-STIMC_THREAD_IMPL ?=pcl-static
-
-ifeq ($(STIMC_THREAD_IMPL),pcl-static)
-CPPFLAGS        += -I ${ICPRO_DIR}/resources/pcl/include -D STIMC_THREAD_IMPL_PCL
-LDFLAGS         += -L ${ICPRO_DIR}/resources/pcl/lib -lpcl
-endif
-ifeq ($(STIMC_THREAD_IMPL),pcl)
-CPPFLAGS        += -D STIMC_THREAD_IMPL_PCL
-LDFLAGS         += -lpcl
-endif
-ifeq ($(STIMC_THREAD_IMPL),libco)
-CPPFLAGS        += -D STIMC_THREAD_IMPL_LIBCO
-LDFLAGS         += -lco
-endif
-ifeq ($(STIMC_THREAD_IMPL),boost2)
-CPPFLAGS        += -D STIMC_THREAD_IMPL_BOOST2
-LDFLAGS         += -lboost_context
-endif
-ifeq ($(STIMC_THREAD_IMPL),boost1)
-CPPFLAGS        += -D STIMC_THREAD_IMPL_BOOST1
-LDFLAGS         += -lboost_coroutine
-endif
-
 ifneq ($(strip $(STIMC_MODULES)),)
+  VPI_CPPFLAGS += $(STIMC_CPPFLAGS)
+  VPI_LDFLAGS  += $(STIMC_LDFLAGS)
   VPI_MODULE   ?= $(WORK_DIR)/stimc_model$(VPI_EXTENSION)
 endif
 
@@ -102,7 +86,7 @@ $(WORK_DIR)/%.o: %.cpp $(WORK_DIR)/%.d $(MAKEFILE_LIST) | $(WORK_DIR) info-cxx
 
 $(WORK_DIR)/%.so $(WORK_DIR)/%.vpi: $(STIMC_OBJECTS) | info-ld
 	$q$(call echo, "$${b}$(stimccolor)LD  $${c} $@")
-	$q$(CXX) $(WARNFLAGS) $(STIMC_OBJECTS) $(ALL_LDFLAGS) -o $@
+	$q$(LDEXE) $(WARNFLAGS) $(STIMC_OBJECTS) $(ALL_LDFLAGS) -o $@
 
 vpi-run: $(VPI_MODULE)
 
