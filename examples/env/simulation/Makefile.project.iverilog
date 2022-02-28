@@ -17,6 +17,11 @@ VVP_FILE        ?= $(WORK_DIR)/$(SIM_NAME)-simulate
 IVERILOG        ?= iverilog
 VVP             ?= vvp
 
+# ------------  tool flags for vvp  --------------------------------------------
+VVP_FLAGS       ?= -n -i -l$(VVP_LOG)
+VVP_EXTARGS     ?=
+VVP_EXTARGS_RUN ?= -none
+
 # ------------  tool flags for iverilog  ---------------------------------------
 IVERILOG_FLAGS  ?= -Wall -Wno-timescale -Wno-implicit-dimensions \
                    -Wno-sensitivity-entire-array -Wno-portbind \
