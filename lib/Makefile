@@ -62,6 +62,10 @@ LIBS            ?=
 # can be one of pcl, libco, boost1, boost2
 THREAD_IMPL     ?= pcl
 
+#-------------  simulator  -----------------------------------------------------
+# can be one of iverilog, cvc, ius, xcelium
+SIMULATOR       ?= iverilog
+
 #-------------  pkg-config settings  -------------------------------------------
 PREFIX          ?= /usr/local
 LIBDIR          ?= $(PREFIX)/lib
@@ -143,8 +147,21 @@ ifneq ($(PKG_CFG_LIBS),)
 endif
 
 # vpi
+ifeq ($(SIMULATOR),iverilog)
 VPI_CPPFLAGS    ?= $(shell iverilog-vpi --cflags | egrep -o -- '-I\s*\S*')
 VPI_LDFLAGS     ?= $(shell iverilog-vpi --ldflags | egrep -o -- '-[lL]\s*\S*')
+endif
+ifeq ($(SIMULATOR),cvc)
+VPI_CPPFLAGS    ?= -I /usr/include/oss-cvc
+endif
+ifeq ($(SIMULATOR),ius)
+CDSROOT          = $(shell ncroot)
+VPI_CPPFLAGS    ?= -I $(CDSROOT)/tools/include
+endif
+ifeq ($(SIMULATOR),xcelium)
+CDSROOT          = $(shell xmroot)
+VPI_CPPFLAGS    ?= -I $(CDSROOT)/tools/include
+endif
 
 ALL_CFLAGS      := $(WARNFLAGS) $(OPTFLAGS) $(ARCHFLAGS) $(CFLAGS) $(CPPFLAGS) $(VPI_CPPFLAGS) $(THREAD_CPPFLAGS)
 ALL_CXXFLAGS    := $(WARNFLAGS) $(OPTFLAGS) $(ARCHFLAGS) $(CXXFLAGS) $(CPPFLAGS) $(VPI_CPPFLAGS) $(THREAD_CPPFLAGS)
