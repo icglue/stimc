@@ -19,7 +19,7 @@ CC              ?= gcc
 CXX             ?= g++
 LD              ?= ld
 LDEXE           ?= $(CXX)
-MEMCHK          ?= valgrind --leak-check=full --error-exitcode=1 --suppressions=${ICPRO_DIR}/env/iverilog/vvp.valgrind.supp -s
+MEMCHK          ?= valgrind --leak-check=full --error-exitcode=1 --suppressions=${ICPRO_DIR}/env/simulation/vvp.valgrind.supp -s
 
 # ------------  tool flags for stimc  ------------------------------------------
 WARNFLAGS       ?= -Wall -Wextra -Wshadow -pedantic -Werror
