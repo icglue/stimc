@@ -1,4 +1,0 @@
-
--include Makefile.rtl.sources
-
-include ${ICPRO_DIR}/env/iverilog/Makefile.project.iverilog
