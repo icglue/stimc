@@ -20,7 +20,6 @@ VLOG_INCDIRS += \
 STIMC_MODULES ?= dummy
 STIMC_DIRS     = \
 	. \
-    ${ICPRO_DIR}/resources/stimc/lib/src \
     ${ICPRO_DIR}/resources/stimc/lib/addons \
     ${ICPRO_DIR}/global_src/stimc \
     ${ICPRO_DIR}/units/dummy/source/behavioral/stimc \
