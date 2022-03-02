@@ -748,7 +748,7 @@ static inline double stimc_net_get_double (stimc_net net)
  * @brief Module type.
  */
 typedef struct stimc_module_s {
-    char *id; /**< @brief Hierarchical identifier. */
+    vpiHandle mod; /**< @brief vpi handle for access. */
 } stimc_module;
 
 /**

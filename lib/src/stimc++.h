@@ -599,7 +599,7 @@ namespace stimcxx {
              */
             const char *module_id () noexcept
             {
-                return _module.id;
+                return vpi_get_str (vpiFullName, _module.mod);
             }
 
         protected:

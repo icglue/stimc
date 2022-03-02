@@ -26,7 +26,7 @@ struct dummy_c* dummy_c_create (void)
     stimc_register_posedge_method (dummy_c_clock, dummy_c, dummy_c->clk_i);
     stimc_register_change_method  (dummy_c_dinchange, dummy_c, dummy_c->data_in_i);
 
-    log_debug ("dummy_c module \"%s\" has DATA_W %d", dummy_c->module.id, stimc_parameter_get_int32 (dummy_c->DATA_W));
+    log_debug ("dummy_c module \"%s\" has DATA_W %d", vpi_get_str (vpiFullName, dummy_c->module.mod), stimc_parameter_get_int32 (dummy_c->DATA_W));
 
     return dummy_c;
 }

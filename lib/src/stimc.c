@@ -85,8 +85,8 @@ const char    *stimc_version       = STIMC_VERSION_STR (STIMC_VERSION_MAJOR) "."
 #undef STIMC_USE_INTERNAL_HEADER
 
 /* modules and co */
-static const char *stimc_get_caller_scope (void);
-static vpiHandle   stimc_module_handle_init (stimc_module *m, const char *name);
+static vpiHandle stimc_get_caller_scope (void);
+static vpiHandle stimc_module_handle_init (stimc_module *m, const uint32_t *types, const char *name);
 
 static int stimc_module_register_init_cptf (PLI_BYTE8 *user_data);
 static int stimc_module_register_init_cltf (PLI_BYTE8 *user_data);
@@ -290,7 +290,7 @@ static struct stimc_cleanup_data_main_s stimc_cleanup_data = {NULL, NULL, NULL};
 /******************************************************************************************************/
 /* implementation */
 /******************************************************************************************************/
-static const char *stimc_get_caller_scope (void)
+static vpiHandle stimc_get_caller_scope (void)
 {
     vpiHandle taskref = vpi_handle (vpiSysTfCall, NULL);
 
@@ -298,11 +298,10 @@ static const char *stimc_get_caller_scope (void)
     vpiHandle taskscope = vpi_handle (vpiScope, taskref);
 
     assert (taskscope);
-    const char *scope_name = vpi_get_str (vpiFullName, taskscope);
 
-    assert (scope_name);
+    assert (vpi_get (vpiType, taskscope) == vpiModule);
 
-    return scope_name;
+    return taskscope;
 }
 
 static inline void stimc_valuechange_method_callback_wrapper (struct t_cb_data *cb_data, int edge)
@@ -1147,11 +1146,9 @@ void stimc_finish (void)
 void stimc_module_init (stimc_module *m, void (*cleanfunc)(void *cleandata) STIMC_CLEANUP_ATTR, void *cleandata STIMC_CLEANUP_ATTR)
 {
     assert (m);
-    const char *scope = stimc_get_caller_scope ();
+    vpiHandle mod = stimc_get_caller_scope ();
 
-    m->id = (char *)malloc (sizeof (char) * (strlen (scope) + 1));
-    assert (m->id);
-    strcpy (m->id, scope);
+    m->mod = mod;
 
 #ifndef STIMC_DISABLE_CLEANUP
     if (cleanfunc != NULL) {
@@ -1160,10 +1157,8 @@ void stimc_module_init (stimc_module *m, void (*cleanfunc)(void *cleandata) STIM
 #endif
 }
 
-void stimc_module_free (stimc_module *m)
-{
-    free (m->id);
-}
+void stimc_module_free (stimc_module *m __attribute__((unused)))
+{}
 
 static int stimc_module_register_init_cptf (PLI_BYTE8 *user_data __attribute__((unused)))
 {
@@ -1211,33 +1206,37 @@ void stimc_module_register (const char *name, void (*initfunc)(void))
     free (task_name);
 }
 
-static vpiHandle stimc_module_handle_init (stimc_module *m, const char *name)
+static vpiHandle stimc_module_handle_init (stimc_module *m, const uint32_t *types, const char *name)
 {
-    const char *scope = m->id;
+    vpiHandle h = NULL;
 
-    size_t scope_len = strlen (scope);
-    size_t name_len  = strlen (name);
+    for (const uint32_t *t = types; *t != 0; t++) {
+        vpiHandle iterator = vpi_iterate (*t, m->mod);
 
-    char *net_name = (char *)malloc (sizeof (char) * (scope_len + name_len + 2));
+        if (iterator == NULL) continue;
 
-    assert (net_name);
+        for (h = vpi_scan (iterator); h != NULL; h = vpi_scan (iterator)) {
+            const char *h_name = vpi_get_str (vpiName, h);
 
-    strcpy (net_name, scope);
-    net_name[scope_len] = '.';
-    strcpy (&(net_name[scope_len + 1]), name);
+            if (strcmp (h_name, name) == 0) {
+                vpi_free_object (iterator);
 
-    vpiHandle net = vpi_handle_by_name (net_name, NULL);
+                goto stimc_module_handle_init_found;
+            }
+        }
+    }
 
-    free (net_name);
+stimc_module_handle_init_found:
+    assert (h);
 
-    assert (net);
-
-    return net;
+    return h;
 }
 
 stimc_port stimc_port_init (stimc_module *m, const char *name)
 {
-    vpiHandle handle = stimc_module_handle_init (m, name);
+    static const uint32_t types[] = {vpiNet, vpiReg, vpiRealVar, 0};
+
+    vpiHandle handle = stimc_module_handle_init (m, types, name);
 
     stimc_port result = (stimc_port)malloc (sizeof (struct stimc_net_s));
 
@@ -1266,7 +1265,9 @@ void stimc_port_free (stimc_port p)
 
 stimc_parameter stimc_parameter_init (stimc_module *m, const char *name)
 {
-    return stimc_module_handle_init (m, name);
+    static const uint32_t types[] = {vpiParameter, 0};
+
+    return stimc_module_handle_init (m, types, name);
 }
 
 void stimc_parameter_free (stimc_parameter p __attribute__((unused)))
