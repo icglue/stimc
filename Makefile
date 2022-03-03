@@ -47,6 +47,11 @@ MANDIR          ?= $(PREFIX)/share/man
 
 THREAD_IMPL     ?= pcl
 
+PACK_FORMAT     ?= tar.gz
+PACK_NAME       ?= stimc
+PACK_PREFIX     ?= $(PACK_NAME)/
+PACK_REF        ?= HEAD
+
 #-------------------------------------------------------
 # LIB
 .PHONY: lib
@@ -156,3 +161,22 @@ cleandoc:
 
 mrproper cleanall: cleandoc cleantest cleanlib
 
+#-------------------------------------------------------
+# archive
+.PHONY: pack
+
+PACK_OUTPUT = $(PACK_NAME).$(PACK_FORMAT)
+PACK_FLAGS  = --prefix=$(PACK_PREFIX) $(PACK_REF)
+
+pack: $(PACK_OUTPUT)
+
+$(PACK_NAME).tar.zst:
+	@git archive --format=tar $(PACK_FLAGS) | zstd - -o $@
+$(PACK_NAME).tar.xz:
+	@git archive --format=tar $(PACK_FLAGS) | xz > $@
+$(PACK_NAME).tar.gz:
+	@git archive --format=tar $(PACK_FLAGS) | gzip > $@
+$(PACK_NAME).tar.bz2:
+	@git archive --format=tar $(PACK_FLAGS) | bzip2 > $@
+$(PACK_NAME).zip:
+	@git archive --format=zip $(PACK_FLAGS) > $@
