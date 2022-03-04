@@ -8,5 +8,7 @@
 * events
   * [ ] methods triggered by event (non-thread)
 * flow
-  * [ ] simulation flow update (cvc, ...)
+  * [x] simulation flow update (cvc, ...)
+  * [ ] more simulators
 * doc
+  * [ ] examples: simulation flow
