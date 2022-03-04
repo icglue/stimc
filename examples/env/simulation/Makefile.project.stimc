@@ -6,13 +6,14 @@
 
 # ------------  generate the names of the stimc related files  -----------------
 STIMC_BASEDIR   = ${ICPRO_DIR}/resources/stimc/lib
-STIMC_INCDIR    = $(STIMC_BASEDIR)/src
+STIMC_INCDIRS  += $(STIMC_BASEDIR)/src $(STIMC_BASEDIR)/addons
+STIMC_SOURCES  += $(STIMC_BASEDIR)/addons/logging.c
 STIMC_LIBDIR    = $(STIMC_BASEDIR)/lib
 STIMC_BASENAMES = $(notdir $(basename $(STIMC_SOURCES)))
 STIMC_OBJECTS   = $(addprefix $(WORK_DIR)/, $(addsuffix .o, $(STIMC_BASENAMES)))
 STIMC_DEPS      = $(addprefix $(WORK_DIR)/, $(addsuffix .d, $(STIMC_BASENAMES)))
 STIMC_LDFLAGS   = -L$(STIMC_LIBDIR) -lstimc -Wl,-rpath,$(STIMC_LIBDIR)
-STIMC_CPPFLAGS  = -I$(STIMC_INCDIR)
+STIMC_CPPFLAGS  = $(addprefix -I,$(STIMC_INCDIRS))
 
 # ------------  build and run tools  -------------------------------------------
 CC              ?= gcc
@@ -30,7 +31,6 @@ CXXFLAGS        ?= -std=c++11 -Weffc++
 CFLAGS          += -fpic
 CXXFLAGS        += -fpic
 DEFINES         ?=
-CPPFLAGS        += $(addprefix -I,$(STIMC_DIRS))
 CPPFLAGS        += $(addprefix -D,$(DEFINES))
 
 VPI_EXTENSION   ?= .vpi
@@ -46,7 +46,7 @@ ALL_CFLAGS      = $(WARNFLAGS) $(OPTFLAGS) $(ARCHFLAGS) $(CFLAGS)   $(ALL_CPPFLA
 ALL_CXXFLAGS    = $(WARNFLAGS) $(OPTFLAGS) $(ARCHFLAGS) $(CXXFLAGS) $(ALL_CPPFLAGS)
 ALL_LDFLAGS     = $(VPI_LDFLAGS) $(LDFLAGS)
 
-VPATH = $(subst $() $(),:,$(STIMC_DIRS))
+VPATH = $(subst $() $(),:,$(STIMC_DIRS) $(STIMC_BASEDIR)/addons)
 
 # ------------  info output ----------------------------------------------------
 info-c:
