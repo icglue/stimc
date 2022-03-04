@@ -171,7 +171,7 @@ PACK_FLAGS  = --prefix=$(PACK_PREFIX) $(PACK_REF)
 pack: $(PACK_OUTPUT)
 
 $(PACK_NAME).tar.zst:
-	@git archive --format=tar $(PACK_FLAGS) | zstd - -o $@
+	@git archive --format=tar $(PACK_FLAGS) | zstd -10 - -o $@
 $(PACK_NAME).tar.xz:
 	@git archive --format=tar $(PACK_FLAGS) | xz > $@
 $(PACK_NAME).tar.gz:
