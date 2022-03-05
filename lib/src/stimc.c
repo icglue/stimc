@@ -244,16 +244,21 @@ static void                                 stimc_cleanup_run          (struct s
 static struct stimc_cleanup_entry_s *       stimc_cleanup_add          (void (*callback)(void *userdata), void *userdata);
 static inline struct stimc_cleanup_entry_s *stimc_cleanup_add_internal (struct stimc_cleanup_entry_s *queue, void (*callback)(void *userdata), void *userdata);
 
-struct stimc_cleanup_data_main_s {
-    struct stimc_cleanup_entry_s *queue;
-
-    vpiHandle cb_finish;
-    vpiHandle cb_reset;
-};
-
 enum stimc_cleanup_reason {
     STIMC_CUR_FINISH,
     STIMC_CUR_RESET,
+    STIMC_CUR__SIZE_,
+};
+
+static const int32_t stimc_cleanup_callback_list[STIMC_CUR__SIZE_] = {
+    cbEndOfSimulation,
+    cbStartOfReset,
+};
+
+struct stimc_cleanup_data_main_s {
+    struct stimc_cleanup_entry_s *queue;
+
+    vpiHandle cb_list[STIMC_CUR__SIZE_];
 };
 
 static void      stimc_cleanup_internal (enum stimc_cleanup_reason reason);
@@ -263,14 +268,25 @@ static void stimc_cleanup_callback_wrap (void *userdata);
 static void stimc_cleanup_thread        (void *userdata);
 static void stimc_cleanup_event         (void *userdata);
 
-enum stimc_simulator {
-    STIMC_SIM_IVERILOG,
-    STIMC_SIM_CVC,
-    STIMC_SIM_CADENCE,
-    STIMC_SIM_UNKNOWN,
+/* simulator data */
+struct stimc_vlog_product_data {
+    const char *name;
+    bool        remove_callbacks;
+    bool        cleanup_callbacks[STIMC_CUR__SIZE_];
 };
 
-static enum stimc_simulator stimc_get_simulator (void);
+static const struct stimc_vlog_product_data stimc_vlog_products[] = {
+    /* name,           remove, finish, reset */
+    {"Icarus Verilog", true,  {true,  false}},
+    {"CVC",            true,  {true,  true}},
+    {"xmsim",          false, {true,  true}},
+    {"ncsim",          false, {true,  true}},
+    {"xmelab",         false, {false, false}},
+    {"ncelab",         false, {false, false}},
+    {NULL,             false, {false, false}},
+};
+
+static const struct stimc_vlog_product_data *stimc_get_vlog_product_data (void);
 #endif
 
 /******************************************************************************************************/
@@ -284,7 +300,7 @@ static struct stimc_thread_queue_s stimc_main_queue        = {0, 0, NULL};
 static struct stimc_thread_queue_s stimc_main_queue_shadow = {0, 0, NULL};
 
 #ifndef STIMC_DISABLE_CLEANUP
-static struct stimc_cleanup_data_main_s stimc_cleanup_data = {NULL, NULL, NULL};
+static struct stimc_cleanup_data_main_s stimc_cleanup_data = {NULL, {NULL, NULL}};
 #endif
 
 /******************************************************************************************************/
@@ -1782,34 +1798,22 @@ static void stimc_cleanup_init (void)
 {
     s_cb_data data;
 
-    if (stimc_cleanup_data.cb_finish == NULL) {
-        data.reason    = cbEndOfSimulation;
+    const struct stimc_vlog_product_data *p_data = stimc_get_vlog_product_data ();
+
+    for (enum stimc_cleanup_reason i = 0; i < STIMC_CUR__SIZE_; i++) {
+        if (stimc_cleanup_data.cb_list[i] != NULL) continue;
+        if (!p_data->cleanup_callbacks[i]) continue;
+
+        data.reason    = stimc_cleanup_callback_list[i];
         data.cb_rtn    = stimc_cleanup_callback;
         data.obj       = NULL;
         data.time      = NULL;
         data.value     = NULL;
         data.index     = 0;
-        data.user_data = (void *)(uintptr_t)STIMC_CUR_FINISH;
+        data.user_data = (void *)(uintptr_t)i;
 
-        stimc_cleanup_data.cb_finish = vpi_register_cb (&data);
-        assert (stimc_cleanup_data.cb_finish);
-    }
-
-    if (stimc_cleanup_data.cb_reset == NULL) {
-        enum stimc_simulator sim = stimc_get_simulator ();
-
-        data.reason    = cbStartOfReset;
-        data.cb_rtn    = stimc_cleanup_callback;
-        data.obj       = NULL;
-        data.time      = NULL;
-        data.value     = NULL;
-        data.index     = 0;
-        data.user_data = (void *)(uintptr_t)STIMC_CUR_RESET;
-
-        if (sim != STIMC_SIM_IVERILOG) {
-            stimc_cleanup_data.cb_reset = vpi_register_cb (&data);
-            assert (stimc_cleanup_data.cb_reset);
-        }
+        stimc_cleanup_data.cb_list[i] = vpi_register_cb (&data);
+        assert (stimc_cleanup_data.cb_list[i]);
     }
 }
 
@@ -1864,14 +1868,16 @@ static void stimc_cleanup_internal (enum stimc_cleanup_reason reason __attribute
     stimc_cleanup_run (&stimc_cleanup_data.queue);
 
     /* remove callbacks */
-    enum stimc_simulator sim = stimc_get_simulator ();
+    const struct stimc_vlog_product_data *p_data = stimc_get_vlog_product_data ();
 
-    if (sim != STIMC_SIM_CADENCE) {
-        if (stimc_cleanup_data.cb_finish != NULL) vpi_remove_cb (stimc_cleanup_data.cb_finish);
-        if (stimc_cleanup_data.cb_reset != NULL) vpi_remove_cb (stimc_cleanup_data.cb_reset);
+    if (p_data->remove_callbacks) {
+        for (enum stimc_cleanup_reason i = 0; i < STIMC_CUR__SIZE_; i++) {
+            vpiHandle cb = stimc_cleanup_data.cb_list[i];
 
-        stimc_cleanup_data.cb_finish = NULL;
-        stimc_cleanup_data.cb_reset  = NULL;
+            if (cb != NULL) vpi_remove_cb (cb);
+
+            stimc_cleanup_data.cb_list[i] = NULL;
+        }
     }
 
     /* thread queue */
@@ -1915,21 +1921,27 @@ static void stimc_cleanup_event (void *userdata)
     event->cleanup_self = NULL;
 }
 
-static enum stimc_simulator stimc_get_simulator (void)
+static const struct stimc_vlog_product_data *stimc_get_vlog_product_data (void)
 {
     s_vpi_vlog_info info = {0, NULL, NULL, NULL};
 
-    if (!vpi_get_vlog_info (&info)) return STIMC_SIM_UNKNOWN;
+    const char *p_name = NULL;
 
-    const char *sim = info.product;
+    if (vpi_get_vlog_info (&info)) {
+        p_name = info.product;
+    }
 
-    if (sim == NULL) return STIMC_SIM_UNKNOWN;
-    if (strcmp (sim, "Icarus Verilog") == 0) return STIMC_SIM_IVERILOG;
-    if (strncmp (sim, "CVC", 3) == 0) return STIMC_SIM_CVC;
-    if (strncmp (sim, "xmsim", 5) == 0) return STIMC_SIM_CADENCE;
-    if (strncmp (sim, "ncsim", 5) == 0) return STIMC_SIM_CADENCE;
+    const struct stimc_vlog_product_data *i = NULL;
 
-    return STIMC_SIM_UNKNOWN;
+    for (i = stimc_vlog_products; i->name != NULL; i++) {
+        const char *cmp_name = i->name;
+        size_t      cmp_len  = strlen (cmp_name);
+        if (strncmp (p_name, cmp_name, cmp_len) == 0) {
+            return i;
+        }
+    }
+
+    return i;
 }
 
 #endif
