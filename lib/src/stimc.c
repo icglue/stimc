@@ -283,7 +283,7 @@ static const struct stimc_vlog_product_data stimc_vlog_products[] = {
     {"ncsim",          false, {true,  true}},
     {"xmelab",         false, {false, false}},
     {"ncelab",         false, {false, false}},
-    {NULL,             false, {false, false}},
+    {NULL,             true,  {true,  true}}, /* default */
 };
 
 static const struct stimc_vlog_product_data *stimc_get_vlog_product_data (void);
