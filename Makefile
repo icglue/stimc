@@ -45,7 +45,7 @@ SRCDIR          ?= $(PREFIX)/src
 DOCDIR          ?= $(PREFIX)/share/doc
 MANDIR          ?= $(PREFIX)/share/man
 
-THREAD_IMPL     ?= pcl
+THREAD_IMPL     ?= libcolocal
 
 PACK_FORMAT     ?= tar.gz
 PACK_NAME       ?= stimc
@@ -54,11 +54,20 @@ PACK_REF        ?= HEAD
 
 #-------------------------------------------------------
 # LIB
-.PHONY: lib
+.PHONY: lib libco libbuild
 
-lib:
+ifeq ($(THREAD_IMPL),libcolocal)
+libbuild: libco
+endif
+
+lib: libbuild
+
+libbuild:
 	@$(MAKE) THREAD_IMPL=$(THREAD_IMPL) --no-print-directory -C $(BUILD_BASE)
 	@$(MAKE) THREAD_IMPL=$(THREAD_IMPL) --no-print-directory -C $(BUILD_BASE) pkgconfig
+
+libco:
+	@$(MAKE) --no-print-directory -C libco
 
 .DEFAULT_GOAL: lib
 
@@ -156,10 +165,13 @@ $(DOXYDIR):
 cleanlib:
 	@$(MAKE) --no-print-directory -C $(BUILD_BASE) clean
 
+cleanlibco:
+	@$(MAKE) --no-print-directory -C libco clean
+
 cleandoc:
 	@rm -rf $(DOXYDIR)
 
-mrproper cleanall: cleandoc cleantest cleanlib
+mrproper cleanall: cleandoc cleantest cleanlib cleanlibco
 
 #-------------------------------------------------------
 # archive

@@ -24,21 +24,16 @@
 
 #-------------  name of the executable binary  ---------------------------------
 EXECUTABLE      ?=
-LIB             ?= libstimc.so
-STATICLIB       ?= libstimc.a
-
-VERSION         ?= 1.2
-VERSION_MAIN     = $(shell echo $(VERSION) | sed -r -n -e 's/([0-9]+)\..*/\1/p')
-SONAME           = $(LIB).$(VERSION_MAIN)
+LIB             ?= libco.o
 
 #-------------  name of the target (can also be a library *.{a,so})  -----------
-TARGET          ?= $(LIB) $(STATICLIB)
+TARGET          ?= $(LIB)
 
 #-------------  directory of the target  ---------------------------------------
 TARGET_DIR      ?= ./lib
 
 #-------------  list of all source files  --------------------------------------
-SOURCES         ?= *.c *.cpp *.c++ *.cc
+SOURCES         ?= libco.c
 
 #-------------  directory of source files --------------------------------------
 SOURCE_DIR      ?= src
@@ -58,21 +53,6 @@ LIB_DIR         ?=
 #-------------  library linkflags  ---------------------------------------------
 LIBS            ?=
 
-#-------------  thread backend  ------------------------------------------------
-# can be one of pcl, libco, libcolocal, boost1, boost2
-THREAD_IMPL     ?= libcolocal
-
-#-------------  simulator  -----------------------------------------------------
-# can be one of iverilog, cvc, ius, xcelium
-SIMULATOR       ?= iverilog
-
-#-------------  pkg-config settings  -------------------------------------------
-PREFIX          ?= /usr/local
-LIBDIR          ?= $(PREFIX)/lib
-INCLUDEDIR      ?= $(PREFIX)/include
-PC_SRC           = ./pkgconfig/stimc.pc.src
-PC_TRG           = ./pkgconfig/stimc.pc
-
 #-------------  directory of the dependency  -----------------------------------
 DEPS_DIR        ?= ./.deps
 
@@ -86,7 +66,9 @@ ASM_DIR         ?= ./.asm
 USE_LTO         ?= NO
 
 # ------------  compiler flags  ------------------------------------------------
-WARNFLAGS       ?= -Wall -Wextra -Wshadow -pedantic
+WARNFLAGS       ?= -Wall -Wextra -Wshadow -Wpedantic
+# temporarily disable libco warnings
+WARNFLAGS       += -Wno-pedantic -Wno-parentheses
 OPTFLAGS        ?= -O2 -fdata-sections -ffunction-sections
 ARCHFLAGS       ?=
 CFLAGS          ?= -std=c11
@@ -113,36 +95,9 @@ ifeq ($(USE_LTO), YES)
   LDFLAGS       := -flto -fuse-linker-plugin $(LDFLAGS)
 endif
 
-ifeq ($(suffix $(LIB)), .so)
+ifeq ($(suffix $(LIB)), .lo)
   CFLAGS        := -fpic $(CFLAGS)
   CXXFLAGS      := -fpic $(CXXFLAGS)
-  LDFLAGS       := -shared $(LDFLAGS) -Wl,-soname=$(SONAME)
-endif
-
-# stimc thread implementation backend
-ifeq ($(THREAD_IMPL),pcl)
-CPPFLAGS        += -D STIMC_THREAD_IMPL_PCL
-THREAD_CPPFLAGS +=
-THREAD_LDFLAGS  += -lpcl
-endif
-ifeq ($(THREAD_IMPL),libcolocal)
-CPPFLAGS        += -D STIMC_THREAD_IMPL_LIBCO
-THREAD_CPPFLAGS += -I ../libco/src
-THREAD_LDFLAGS  += ../libco/lib/libco.o
-endif
-ifeq ($(THREAD_IMPL),libco)
-CPPFLAGS        += -D STIMC_THREAD_IMPL_LIBCO
-PKG_CFG_LIBS    += libco
-endif
-ifeq ($(THREAD_IMPL),boost2)
-CPPFLAGS        += -D STIMC_THREAD_IMPL_BOOST2
-THREAD_CPPFLAGS +=
-THREAD_LDFLAGS  += -lboost_context
-endif
-ifeq ($(THREAD_IMPL),boost1)
-CPPFLAGS        += -D STIMC_THREAD_IMPL_BOOST1
-THREAD_CPPFLAGS +=
-THREAD_LDFLAGS  += -lboost_coroutine
 endif
 
 #pkg-config
@@ -151,26 +106,9 @@ ifneq ($(PKG_CFG_LIBS),)
   LDFLAGS       += $(shell pkg-config --libs $(PKG_CFG_LIBS))
 endif
 
-# vpi
-ifeq ($(SIMULATOR),iverilog)
-VPI_CPPFLAGS    ?= $(shell iverilog-vpi --cflags | egrep -o -- '-I\s*\S*')
-VPI_LDFLAGS     ?= $(shell iverilog-vpi --ldflags | egrep -o -- '-[lL]\s*\S*')
-endif
-ifeq ($(SIMULATOR),cvc)
-VPI_CPPFLAGS    ?= -I /usr/include/oss-cvc
-endif
-ifeq ($(SIMULATOR),ius)
-CDSROOT          = $(shell ncroot)
-VPI_CPPFLAGS    ?= -I $(CDSROOT)/tools/include
-endif
-ifeq ($(SIMULATOR),xcelium)
-CDSROOT          = $(shell xmroot)
-VPI_CPPFLAGS    ?= -I $(CDSROOT)/tools/include
-endif
-
-ALL_CFLAGS      := $(WARNFLAGS) $(OPTFLAGS) $(ARCHFLAGS) $(CFLAGS) $(CPPFLAGS) $(VPI_CPPFLAGS) $(THREAD_CPPFLAGS)
-ALL_CXXFLAGS    := $(WARNFLAGS) $(OPTFLAGS) $(ARCHFLAGS) $(CXXFLAGS) $(CPPFLAGS) $(VPI_CPPFLAGS) $(THREAD_CPPFLAGS)
-ALL_LDFLAGS     := $(LDFLAGS) $(VPI_LDFLAGS) $(THREAD_LDFLAGS)
+ALL_CFLAGS      := $(WARNFLAGS) $(OPTFLAGS) $(ARCHFLAGS) $(CFLAGS) $(CPPFLAGS)
+ALL_CXXFLAGS    := $(WARNFLAGS) $(OPTFLAGS) $(ARCHFLAGS) $(CXXFLAGS) $(CPPFLAGS)
+ALL_LDFLAGS     := $(LDFLAGS)
 
 # ------------  generate the names of the source/object files  -----------------
 ALL_SOURCES      = $(wildcard $(addprefix $(SOURCE_DIR)/,$(SOURCES)))
@@ -203,14 +141,14 @@ endif
 
 
 $(DEPS_DIR)/%.d: $(SOURCE_DIR)/%.c Makefile | $(DEPS_DIR)
-	@$(CC) -MM -E $(CPPFLAGS) $(VPI_CPPFLAGS) $< | perl -p -e 's#[^:]*:#$(TARGET_DIR)/$$&#' > $@
+	@$(CC) -MM -E $(CPPFLAGS) $< | perl -p -e 's#[^:]*:#$(TARGET_DIR)/$$&#' > $@
 
 $(DEPS_DIR)/%.d: $(SOURCE_DIR)/%.cc Makefile | $(DEPS_DIR)
-	@$(CXX) -MM -E $(CPPFLAGS) $(VPI_CPPFLAGS) $< | perl -p -e 's#[^:]*:#$(TARGET_DIR)/$$&#' > $@
+	@$(CXX) -MM -E $(CPPFLAGS) $< | perl -p -e 's#[^:]*:#$(TARGET_DIR)/$$&#' > $@
 $(DEPS_DIR)/%.d: $(SOURCE_DIR)/%.c++ Makefile | $(DEPS_DIR)
-	@$(CXX) -MM -E $(CPPFLAGS) $(VPI_CPPFLAGS) $< | perl -p -e 's#[^:]*:#$(TARGET_DIR)/$$&#' > $@
+	@$(CXX) -MM -E $(CPPFLAGS) $< | perl -p -e 's#[^:]*:#$(TARGET_DIR)/$$&#' > $@
 $(DEPS_DIR)/%.d: $(SOURCE_DIR)/%.cpp Makefile | $(DEPS_DIR)
-	@$(CXX) -MM -E $(CPPFLAGS) $(VPI_CPPFLAGS) $< | perl -p -e 's#[^:]*:#$(TARGET_DIR)/$$&#' > $@
+	@$(CXX) -MM -E $(CPPFLAGS) $< | perl -p -e 's#[^:]*:#$(TARGET_DIR)/$$&#' > $@
 
 -include $(DEPS)
 
@@ -223,6 +161,9 @@ $(TARGET_DIR)/%.o: $(SOURCE_DIR)/%.c++ $(DEPS_DIR)/%.d | $(TARGET_DIR) $(ASM_DIR
 	$(CXX) $(ALL_CXXFLAGS) -g -c $< -o $@ $(GEN_ASM_FLAGS)
 $(TARGET_DIR)/%.o: $(SOURCE_DIR)/%.cpp $(DEPS_DIR)/%.d | $(TARGET_DIR) $(ASM_DIR)
 	$(CXX) $(ALL_CXXFLAGS) -g -c $< -o $@ $(GEN_ASM_FLAGS)
+
+$(TARGET_DIR)/%.lo: $(OBJECTS)
+	$(CXX) $(WARNFLAGS) $(OBJECTS) -Wl,-no-pie -Wl,-r $(ALL_LDFLAGS) -o $@
 
 $(TARGET_DIR)/%.so: $(OBJECTS)
 	$(CXX) $(WARNFLAGS) $(OBJECTS) -shared $(ALL_LDFLAGS) -o $@
@@ -258,8 +199,6 @@ pkgconfig: $(PC_TRG)
 		-e "s#%%includedir%%#$(INCLUDEDIR)#g" \
 		-e "s#%%version%%#$(VERSION)#g" \
 		-e "s#%%requires%%#$(PKG_CFG_LIBS)#g" \
-		-e "s#%%libs%%#$(VPI_LDFLAGS) $(THREAD_LDFLAGS)#g" \
-		-e "s#%%cflags%%#$(VPI_CPPFLAGS) $(THREAD_CPPFLAGS)#g" \
 		-e 's#\s\+$$##g' \
 		> $@
 
