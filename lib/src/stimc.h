@@ -123,8 +123,8 @@ void stimc_register_change_method (void (*methodfunc)(void *userdata), void *use
  *
  * @deprecated Is subsumed into @ref stimc_spawn_thread.
  */
-void stimc_register_startup_thread (void (*threadfunc)(void *userdata), void *userdata, size_t stacksize)
-    __attribute__((deprecated("use stimc_spawn_thread")));
+void __attribute__((deprecated ("use stimc_spawn_thread")))
+stimc_register_startup_thread (void (*threadfunc)(void *userdata), void *userdata, size_t stacksize);
 
 /**
  * @brief Enqueue a function to be started as thread.

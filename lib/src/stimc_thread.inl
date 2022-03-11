@@ -104,13 +104,13 @@ extern "C" {
 /* *auto-indent-on* */
 #endif
 
-#define STIMC_INTERNAL_ATTR __attribute__((visibility("internal")))
+#define STIMC_INTERNAL_ATTR __attribute__((visibility ("internal")))
 typedef void *stimc_thread_impl;
 
 stimc_thread_impl STIMC_INTERNAL_ATTR stimc_thread_impl_create (void (*func)(STIMC_THREAD_ARG_DECL), size_t stacksize);
-void              STIMC_INTERNAL_ATTR stimc_thread_impl_run (stimc_thread_impl t);
-void              STIMC_INTERNAL_ATTR stimc_thread_impl_suspend (void);
-void              STIMC_INTERNAL_ATTR stimc_thread_impl_delete (stimc_thread_impl t);
+void STIMC_INTERNAL_ATTR              stimc_thread_impl_run (stimc_thread_impl t);
+void STIMC_INTERNAL_ATTR              stimc_thread_impl_suspend (void);
+void STIMC_INTERNAL_ATTR              stimc_thread_impl_delete (stimc_thread_impl t);
 
 #ifdef __cplusplus
 /* *auto-indent-off* */
