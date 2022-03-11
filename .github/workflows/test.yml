@@ -16,6 +16,7 @@ jobs:
       - uses: actions/checkout@v2
       - name: "Install dependencies"
         run: |
+          sudo apt-get update
           sudo apt-get install -y --no-upgrade clang g++ gcc iverilog libboost-coroutine-dev libpcl1 libpcl1-dev make valgrind
       - name: "Build library with gcc"
         env:
