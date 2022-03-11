@@ -29,6 +29,7 @@
 #error "stimc internal header should not be included outside of stimc core"
 #endif
 
+#include <stddef.h>
 
 /*******************************************************************************/
 /* implementation variants - default: pcl */
@@ -103,12 +104,13 @@ extern "C" {
 /* *auto-indent-on* */
 #endif
 
+#define STIMC_INTERNAL_ATTR __attribute__((visibility("internal")))
 typedef void *stimc_thread_impl;
 
-stimc_thread_impl stimc_thread_impl_create (void (*func)(STIMC_THREAD_ARG_DECL), size_t stacksize);
-void              stimc_thread_impl_run (stimc_thread_impl t);
-void              stimc_thread_impl_suspend (void);
-void              stimc_thread_impl_delete (stimc_thread_impl t);
+stimc_thread_impl STIMC_INTERNAL_ATTR stimc_thread_impl_create (void (*func)(STIMC_THREAD_ARG_DECL), size_t stacksize);
+void              STIMC_INTERNAL_ATTR stimc_thread_impl_run (stimc_thread_impl t);
+void              STIMC_INTERNAL_ATTR stimc_thread_impl_suspend (void);
+void              STIMC_INTERNAL_ATTR stimc_thread_impl_delete (stimc_thread_impl t);
 
 #ifdef __cplusplus
 /* *auto-indent-off* */
@@ -151,6 +153,8 @@ typedef cothread_t stimc_thread_impl;
 #endif
 
 #ifdef STIMC_THREAD_IMPL_LIBCO_PCL
+#include <assert.h>
+
 static stimc_thread_impl stimc_thread_impl_main = NULL;
 
 static inline stimc_thread_impl stimc_thread_impl_create (void (*func)(STIMC_THREAD_ARG_DECL), size_t stacksize)

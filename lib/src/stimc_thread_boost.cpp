@@ -52,6 +52,11 @@ using coro_t = boost::coroutines2::coroutine<void (*)(void)>;
 
 #include <memory>
 
+/* internal header */
+#define STIMC_USE_INTERNAL_HEADER
+#include "stimc_thread.inl"
+#undef STIMC_USE_INTERNAL_HEADER
+
 using stimc_thread_impl_func = void (*)(void);
 
 struct stimc_thread_impl_s {
@@ -75,9 +80,9 @@ struct stimc_thread_impl_s {
     ~stimc_thread_impl_s () = default;
 };
 
-using stimc_thread_impl = stimc_thread_impl_s *;
+using stimc_thread_impl_boost = stimc_thread_impl_s *;
 
-static stimc_thread_impl stimc_thread_impl_current = nullptr;
+static stimc_thread_impl_boost stimc_thread_impl_current = nullptr;
 
 
 static void stimc_thread_impl_boost_wrap (coro_t::pull_type &main)
@@ -93,7 +98,7 @@ static void stimc_thread_impl_boost_wrap (coro_t::pull_type &main)
     func ();
 }
 
-static inline void stimc_thread_impl_boost_init (stimc_thread_impl t)
+static inline void stimc_thread_impl_boost_init (stimc_thread_impl_boost t)
 {
     if (t->thread != nullptr) return;
 
@@ -110,13 +115,15 @@ static inline void stimc_thread_impl_boost_init (stimc_thread_impl t)
 
 extern "C" stimc_thread_impl stimc_thread_impl_create (stimc_thread_impl_func func, size_t stacksize)
 {
-    struct stimc_thread_impl_s *t = new struct stimc_thread_impl_s (func, stacksize);
+    stimc_thread_impl_boost t = new struct stimc_thread_impl_s (func, stacksize);
 
     return t;
 }
 
-extern "C" void stimc_thread_impl_run (stimc_thread_impl t)
+extern "C" void stimc_thread_impl_run (stimc_thread_impl t_ext)
 {
+    stimc_thread_impl_boost t = reinterpret_cast<stimc_thread_impl_boost>(t_ext);
+
     assert (stimc_thread_impl_current == nullptr);
 
     stimc_thread_impl_boost_init (t);
@@ -138,8 +145,10 @@ extern "C" void stimc_thread_impl_suspend (void)
     main ();
 }
 
-extern "C" void stimc_thread_impl_delete (stimc_thread_impl t)
+extern "C" void stimc_thread_impl_delete (stimc_thread_impl t_ext)
 {
+    stimc_thread_impl_boost t = reinterpret_cast<stimc_thread_impl_boost>(t_ext);
+
     delete t;
 }
 #endif
