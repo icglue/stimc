@@ -1388,9 +1388,9 @@ namespace stimcxx {
 #define STIMCXX_SPAWN_THREAD_STACKSIZE(thread, data, stacksize) \
     do { \
         using _datatype = decltype(data); \
-        void *_dataptr = reinterpret_cast<void *>(data); \
+        void *_dataptr = static_cast<void *>(data); \
         auto  _func = [](void *_ptr) { \
-                _datatype _data = reinterpret_cast<_datatype>(_ptr); \
+                _datatype _data = static_cast<_datatype>(_ptr); \
                 stimc_thread_resume_on_finish (stimcxx::enable_stack_unwind); \
                 try { \
                     thread (_data); \
@@ -1441,15 +1441,15 @@ namespace stimcxx {
  * and @ref stimc_register_change_method for given port and function.
  */
 #define STIMCXX_REGISTER_METHOD(event, port, func) \
-    using _thistype = decltype (this); \
-    class _stimcxx_method_init_ ## event ## _ ## port ## _ ## func { \
-        public: \
-            static void callback (void *p) { \
-                _thistype m = (_thistype)p; \
-                m->func (); \
-            } \
-    }; \
-    port.register_ ## event ## _method (_stimcxx_method_init_ ## event ## _ ## port ## _ ## func ::callback, (void *)this)
+    do { \
+        using _thistype = decltype (this); \
+        void *_dataptr = static_cast<void *>(this); \
+        auto  _func = [](void *_ptr) { \
+                _thistype _data = static_cast<_thistype>(_ptr); \
+                _data->func (); \
+            }; \
+        port.register_ ## event ## _method (_func, _dataptr); \
+    } while (false)
 
 
 /**
