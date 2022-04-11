@@ -122,7 +122,7 @@ extern "C" stimc_thread_impl stimc_thread_impl_create (stimc_thread_impl_func fu
 
 extern "C" void stimc_thread_impl_run (stimc_thread_impl t_ext)
 {
-    stimc_thread_impl_boost t = reinterpret_cast<stimc_thread_impl_boost>(t_ext);
+    stimc_thread_impl_boost t = static_cast<stimc_thread_impl_boost>(t_ext);
 
     assert (stimc_thread_impl_current == nullptr);
 
@@ -147,7 +147,7 @@ extern "C" void stimc_thread_impl_suspend (void)
 
 extern "C" void stimc_thread_impl_delete (stimc_thread_impl t_ext)
 {
-    stimc_thread_impl_boost t = reinterpret_cast<stimc_thread_impl_boost>(t_ext);
+    stimc_thread_impl_boost t = static_cast<stimc_thread_impl_boost>(t_ext);
 
     delete t;
 }

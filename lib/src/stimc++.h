@@ -562,7 +562,7 @@ namespace stimcxx {
              */
             static void cleanup (void *m) noexcept
             {
-                module *mod = (module *)m;
+                module *mod = static_cast<module *>(m);
 
                 delete mod;
             }
@@ -1338,7 +1338,7 @@ namespace stimcxx {
              */
             static void cleanup_callback (void *cleanup_data)
             {
-                thread_cleanup *cleanup = (thread_cleanup *)cleanup_data;
+                thread_cleanup *cleanup = static_cast<thread_cleanup *>(cleanup_data);
 
                 delete cleanup;
             }
@@ -1346,7 +1346,8 @@ namespace stimcxx {
         protected:
             thread_cleanup () noexcept
             {
-                stimc_register_thread_cleanup (thread_cleanup::cleanup_callback, this);
+                void *callback_data = static_cast<void *>(this);
+                stimc_register_thread_cleanup (thread_cleanup::cleanup_callback, callback_data);
             }
 
             virtual ~thread_cleanup () = default; /**< @brief Ensure derived destructor is called. */

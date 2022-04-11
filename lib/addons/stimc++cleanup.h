@@ -127,7 +127,7 @@ namespace stimcxx {
         protected:
             static T *retype (void *p)
             {
-                T *tptr = reinterpret_cast<T *>(p);
+                T *tptr = static_cast<T *>(p);
 
                 return tptr;
             }
@@ -162,7 +162,7 @@ namespace stimcxx {
         protected:
             static T *retype (void *p)
             {
-                T *tptr = reinterpret_cast<T *>(p);
+                T *tptr = static_cast<T *>(p);
 
                 return tptr;
             }
