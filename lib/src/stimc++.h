@@ -1329,7 +1329,7 @@ namespace stimcxx {
      * E.g. set a pointer to NULL to indicate no cleanup is necessary.
      */
     class thread_cleanup {
-        protected:
+        private:
             /**
              * @brief The actual cleanup callback function.
              * @param cleanup_data casted pointer to @ref thread_cleanup derived object.
