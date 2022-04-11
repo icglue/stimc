@@ -138,7 +138,7 @@ namespace stimcxx {
                 _ptr = nullptr;
             }
         public:
-            cleanup_ptr (T *ptr                           = nullptr) : cleanup_ptr_base (ptr) {}
+            cleanup_ptr (T *ptr = nullptr) : cleanup_ptr_base (static_cast<void *>(ptr)) {}
             cleanup_ptr            (const cleanup_ptr &c) = delete;     /**< @brief Do not copy/change internals */
             cleanup_ptr& operator= (const cleanup_ptr &c) = delete;     /**< @brief Do not copy/change internals */
 
@@ -173,7 +173,7 @@ namespace stimcxx {
                 _ptr = nullptr;
             }
         public:
-            cleanup_ptr (T *ptr                           = nullptr) : cleanup_ptr_base (ptr) {}
+            cleanup_ptr (T *ptr = nullptr) : cleanup_ptr_base (static_cast<void *>(ptr)) {}
             cleanup_ptr            (const cleanup_ptr &c) = delete;     /**< @brief Do not copy/change internals */
             cleanup_ptr& operator= (const cleanup_ptr &c) = delete;     /**< @brief Do not copy/change internals */
 

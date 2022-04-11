@@ -117,7 +117,7 @@ extern "C" stimc_thread_impl stimc_thread_impl_create (stimc_thread_impl_func fu
 {
     stimc_thread_impl_boost t = new struct stimc_thread_impl_s (func, stacksize);
 
-    return t;
+    return static_cast<stimc_thread_impl>(t);
 }
 
 extern "C" void stimc_thread_impl_run (stimc_thread_impl t_ext)
