@@ -13,7 +13,7 @@
 * doc
   * [ ] examples: simulation flow
 * cmake
-  * [ ] initial setup
+  * [x] initial setup
   * [ ] local libco
   * [ ] thread impl
   * [ ] simulator detect

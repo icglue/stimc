@@ -1,0 +1,15 @@
+# stimc pkg-config file
+
+prefix=@CMAKE_INSTALL_PREFIX@
+libdir=${prefix}/@CMAKE_INSTALL_LIBDIR@
+includedir=${prefix}/@CMAKE_INSTALL_INCLUDEDIR@
+
+Name: stimc
+Description: a lightweight Verilog-vpi Wrapper for Stimuli Generation
+URL: https://stimc.icglue.org
+Version: @PROJECT_VERSION@
+# Requires.private: %%requires%%
+Libs: -L${libdir} -lstimc
+# Libs.private: %%libs%%
+Cflags: -I${includedir}
+# Cflags: -I${includedir} %%cflags%%
