@@ -14,8 +14,8 @@
   * [ ] examples: simulation flow
 * cmake
   * [x] initial setup
-  * [ ] local libco
-  * [ ] thread impl
+  * [x] local libco
+  * [x] thread impl
   * [ ] simulator detect
   * [ ] archive
   * [ ] uncrustify

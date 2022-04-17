@@ -1,5 +1,6 @@
-
 # general setup
+add_library (stimc SHARED)
+
 set (
     STIMC_HEADERS
     stimc.h
@@ -9,21 +10,24 @@ set (
     STIMC_SOURCES
     stimc.c
     stimc_init.c
-    stimc_thread_boost.cpp
 )
 
 # vpi header
 if (SIMULATOR STREQUAL icarus)
-    find_program (ICARUSVPI iverilog-vpi REQUIRED)
+    find_program (
+        ICARUSVPI
+        iverilog-vpi
+        REQUIRED
+    )
     execute_process (
-        COMMAND iverilog-vpi --cflags
+        COMMAND ${ICARUSVPI} --cflags
         COMMAND tr " " "\n"
         COMMAND grep "^-I"
         COMMAND sed -e "s/^-I//"
         OUTPUT_VARIABLE ICARUS_INCDIR
     )
     find_path (
-        VPI_HEADER_PATH
+        INC_VPI_USER
         vpi_user.h
         REQUIRED
         HINTS ${ICARUS_INCDIR}
@@ -34,20 +38,45 @@ else ()
     message (FATAL_ERROR "unknown or invalid simulator specified: ${SIMULATOR}")
 endif ()
 
+include_directories (${INC_VPI_USER})
+
 # thread implementation
 if (THREAD_IMPL STREQUAL libco-local)
-    # TODO: define, include, add sources
+    target_compile_definitions (stimc PRIVATE STIMC_THREAD_IMPL_LIBCO)
+    target_include_directories (stimc PRIVATE "${CMAKE_SOURCE_DIR}/libco/src")
+    target_link_libraries      (stimc libco_local)
 elseif (THREAD_IMPL STREQUAL libco)
+    find_library (LIB_LIBCO co      REQUIRED)
+    find_path    (INC_LIBCO libco.h REQUIRED)
+
+    target_compile_definitions (stimc PRIVATE STIMC_THREAD_IMPL_LIBCO)
+    target_include_directories (stimc PRIVATE ${INC_LIBCO})
+    target_link_libraries      (stimc PRIVATE ${LIB_LIBCO})
+elseif (THREAD_IMPL STREQUAL pcl)
+    find_library (LIB_PCL pcl   REQUIRED)
+    find_path    (INC_PCL pcl.h REQUIRED)
+
+    target_compile_definitions (stimc PRIVATE STIMC_THREAD_IMPL_PCL)
+    target_include_directories (stimc PRIVATE ${INC_PCL})
+    target_link_libraries      (stimc PRIVATE ${LIB_PCL})
+elseif (THREAD_IMPL STREQUAL boost1)
+    find_path (INC_BOOST_CO boost/coroutine/asymmetric_coroutine.hpp REQUIRED)
+
+    target_compile_definitions (stimc PRIVATE STIMC_THREAD_IMPL_BOOST1)
+    target_include_directories (stimc PRIVATE ${INC_BOOST_CO})
+    list (APPEND STIMC_SOURCES stimc_thread_boost.cpp)
+elseif (THREAD_IMPL STREQUAL boost2)
+    find_path (INC_BOOST_CO boost/coroutine2/coroutine.hpp REQUIRED)
+
+    target_compile_definitions (stimc PRIVATE STIMC_THREAD_IMPL_BOOST2)
+    target_include_directories (stimc PRIVATE ${INC_BOOST_CO})
+    list (APPEND STIMC_SOURCES stimc_thread_boost.cpp)
 else ()
     message (FATAL_ERROR "unknown or invalid thread implementation: ${THREAD_IMPL}")
 endif ()
-# TODO: thread implementation (defines + inc + link?)
 
 # library build
-include_directories (${VPI_HEADER_PATH})
 set (CMAKE_INCLUDE_CURRENT_DIR yes)
-
-add_library (stimc SHARED ${STIMC_SOURCES})
 
 target_compile_features(stimc PUBLIC cxx_std_11)
 target_compile_features(stimc PUBLIC c_std_11)
@@ -59,6 +88,7 @@ set_target_properties (
     VERSION       ${PROJECT_VERSION}
     SOVERSION     ${STIMC_VERSION_MAJOR}
     PUBLIC_HEADER "${STIMC_HEADERS}"
+    SOURCES       "${STIMC_SOURCES}"
 )
 
 install (TARGETS stimc PUBLIC_HEADER)
