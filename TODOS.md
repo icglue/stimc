@@ -12,3 +12,13 @@
   * [ ] more simulators
 * doc
   * [ ] examples: simulation flow
+* cmake
+  * [ ] initial setup
+  * [ ] local libco
+  * [ ] thread impl
+  * [ ] simulator detect
+  * [ ] archive
+  * [ ] uncrustify
+  * [ ] pkgconfig
+  * [ ] doxygen
+  * [ ] test
