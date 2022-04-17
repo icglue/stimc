@@ -23,5 +23,6 @@ a.out
 .work*
 dump.v
 
+/build
 /doc
 /examples/regression/runs

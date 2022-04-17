@@ -15,9 +15,35 @@ project (
     DESCRIPTION ${STIMC_DESCRIPTION}
 )
 
+# Options
+set (
+    SIMULATOR icarus
+    CACHE
+    STRING "set simulator for vpi headers and test, one of: icarus, cvc, ncsim, xcelium (default=icarus)"
+)
+set_property (
+    CACHE
+    SIMULATOR
+    PROPERTY STRINGS icarus cvc ncsim xcelium
+)
+
+set (
+    THREAD_IMPL libco-local
+    CACHE
+    STRING "set thread implementation, one of: libco-local, libco, pcl, boost1, boost2 (default=libco-local)"
+)
+set_property (
+    CACHE
+    THREAD_IMPL
+    PROPERTY STRINGS libco-local libco pcl boost1 boost2
+)
+
 # Current dir
 include (GNUInstallDirs)
 install (FILES README.md LICENSE.md TYPE DOC)
 
 # Subdirs
+if (THREAD_IMPL STREQUAL "libco-local")
+    add_subdirectory (libco)
+endif ()
 add_subdirectory (lib)
