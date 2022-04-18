@@ -16,9 +16,11 @@
   * [x] initial setup
   * [x] local libco
   * [x] thread impl
-  * [ ] simulator detect
+  * [x] simulator detect
   * [ ] archive
   * [ ] uncrustify
   * [ ] pkgconfig
   * [ ] doxygen
   * [ ] test
+  * [ ] optional warnings
+  * [ ] refine
