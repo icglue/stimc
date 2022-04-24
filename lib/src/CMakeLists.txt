@@ -11,6 +11,22 @@ set (
     stimc.c
     stimc_init.c
 )
+set (
+    STIMC_SOURCES_BOOST
+    stimc_thread_boost.cpp
+)
+
+set (
+    UNCRUSTIFY_FILES_C
+    ${STIMC_SOURCES}
+    stimc.h
+    stimc_thread.inl
+)
+set (
+    UNCRUSTIFY_FILES_CXX
+    ${STIMC_SOURCES_BOOST}
+    stimc++.h
+)
 
 # vpi header
 if (SIMULATOR STREQUAL icarus)
@@ -82,13 +98,13 @@ elseif (THREAD_IMPL STREQUAL boost1)
 
     target_compile_definitions (stimc PRIVATE STIMC_THREAD_IMPL_BOOST1)
     target_include_directories (stimc PRIVATE ${INC_BOOST_CO})
-    list (APPEND STIMC_SOURCES stimc_thread_boost.cpp)
+    list (APPEND STIMC_SOURCES ${STIMC_SOURCES_BOOST})
 elseif (THREAD_IMPL STREQUAL boost2)
     find_path (INC_BOOST_CO boost/coroutine2/coroutine.hpp REQUIRED)
 
     target_compile_definitions (stimc PRIVATE STIMC_THREAD_IMPL_BOOST2)
     target_include_directories (stimc PRIVATE ${INC_BOOST_CO})
-    list (APPEND STIMC_SOURCES stimc_thread_boost.cpp)
+    list (APPEND STIMC_SOURCES ${STIMC_SOURCES_BOOST})
 else ()
     message (FATAL_ERROR "unknown or invalid thread implementation: ${THREAD_IMPL}")
 endif ()
@@ -110,3 +126,11 @@ set_target_properties (
 )
 
 install (TARGETS stimc PUBLIC_HEADER)
+
+# uncrustify
+foreach (file ${UNCRUSTIFY_FILES_C})
+    add_uncrustify_file (${file} C)
+endforeach ()
+foreach (file ${UNCRUSTIFY_FILES_CXX})
+    add_uncrustify_file (${file} CPP)
+endforeach ()

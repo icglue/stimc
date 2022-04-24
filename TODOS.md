@@ -18,7 +18,7 @@
   * [x] thread impl
   * [x] simulator detect
   * [ ] archive
-  * [ ] uncrustify
+  * [x] uncrustify
   * [ ] pkgconfig
   * [ ] doxygen
   * [ ] test
