@@ -541,9 +541,9 @@ namespace stimcxx {
         not_XZ, /**< @brief not x/z for comparison */
     };
 
-    static const bit X      = bit::X;      /**< @brief x value (verilog-x ~ unknown) */
-    static const bit Z      = bit::Z;      /**< @brief z value (verilog-z ~ high impedance) */
-    static const bit not_XZ = bit::not_XZ; /**< @brief not x/z for comparison */
+    static constexpr bit X      = bit::X;      /**< @brief x value (verilog-x ~ unknown) */
+    static constexpr bit Z      = bit::Z;      /**< @brief z value (verilog-z ~ high impedance) */
+    static constexpr bit not_XZ = bit::not_XZ; /**< @brief not x/z for comparison */
 
 
     /**
