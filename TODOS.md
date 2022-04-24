@@ -17,10 +17,12 @@
   * [x] local libco
   * [x] thread impl
   * [x] simulator detect
-  * [ ] archive
   * [x] uncrustify
+  * [x] doxygen
+  * [ ] archive
   * [ ] pkgconfig
-  * [ ] doxygen
   * [ ] test
   * [ ] optional warnings
+  * [ ] config-header (version, ...)
+  * [ ] optionally include addons/logging/...
   * [ ] refine
