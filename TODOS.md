@@ -19,7 +19,7 @@
   * [x] simulator detect
   * [x] uncrustify
   * [x] doxygen
-  * [ ] archive
+  * [x] archive
   * [ ] pkgconfig
   * [ ] test
   * [ ] optional warnings

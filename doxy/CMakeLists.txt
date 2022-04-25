@@ -8,10 +8,16 @@ if (DOXYGEN_FOUND)
 
     configure_file (${doxyfile_in} ${doxyfile} @ONLY)
 
+    add_custom_command (
+        OUTPUT html man
+        COMMAND ${DOXYGEN_EXECUTABLE} ${doxyfile}
+        COMMENT "Create html and man"
+        VERBATIM
+    )
+
     add_custom_target (
         doc
-        COMMAND ${DOXYGEN_EXECUTABLE} ${doxyfile}
-        WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+        DEPENDS html man
         COMMENT "Create Documentation"
         VERBATIM
     )

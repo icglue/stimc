@@ -48,3 +48,72 @@ if (THREAD_IMPL STREQUAL "libco-local")
 endif ()
 add_subdirectory (lib)
 add_subdirectory (doxy)
+
+# Packing
+set (
+    PACK_FORMAT "tar.xz"
+    CACHE
+    STRING "set pack format, one of zip, tar, tar.bz2, tar.gz, tar.xz, tar.zstd"
+)
+set_property (
+    CACHE
+    PACK_FORMAT
+    PROPERTY STRINGS zip tar tar.bz2 tar.gz tar.xz tar.zstd
+)
+
+set (PACK_NAME   "stimc-${STIMC_VERSION}")
+set (PACK_PREFIX "${PACK_NAME}/")
+set (PACK_REF    HEAD)
+set (PACK_FILE   "${PACK_NAME}.${PACK_FORMAT}")
+
+add_custom_command (
+    OUTPUT  ${PACK_NAME}.tar
+    COMMAND git archive --format=tar --prefix=${PACK_PREFIX} ${PACK_REF} --output=${CMAKE_CURRENT_BINARY_DIR}/${PACK_NAME}.tar
+    COMMENT "Create tar archive"
+    WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
+    VERBATIM
+)
+add_custom_command (
+    OUTPUT  ${PACK_NAME}.zip
+    COMMAND git archive --format=zip --prefix=${PACK_PREFIX} ${PACK_REF} --output=${CMAKE_CURRENT_BINARY_DIR}/${PACK_NAME}.zip
+    COMMENT "Create zip archive"
+    WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
+    VERBATIM
+)
+add_custom_command (
+    OUTPUT  ${PACK_NAME}.tar.zstd
+    DEPENDS ${PACK_NAME}.tar
+    COMMAND zstd -10 --rm ${PACK_NAME}.tar -o ${PACK_NAME}.tar.zstd --force
+    COMMENT "Create tar.zstd archive"
+    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+    VERBATIM
+)
+add_custom_command (
+    OUTPUT  ${PACK_NAME}.tar.xz
+    DEPENDS ${PACK_NAME}.tar
+    COMMAND xz ${PACK_NAME}.tar --force
+    COMMENT "Create tar.xz archive"
+    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+    VERBATIM
+)
+add_custom_command (
+    OUTPUT  ${PACK_NAME}.tar.gz
+    DEPENDS ${PACK_NAME}.tar
+    COMMAND gzip ${PACK_NAME}.tar --force
+    COMMENT "Create tar.gz archive"
+    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+    VERBATIM
+)
+add_custom_command (
+    OUTPUT  ${PACK_NAME}.tar.bz2
+    DEPENDS ${PACK_NAME}.tar
+    COMMAND bzip2 ${PACK_NAME}.tar --force
+    COMMENT "Create tar.bz2 archive"
+    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+    VERBATIM
+)
+add_custom_target (
+    pack
+    DEPENDS ${PACK_NAME}.${PACK_FORMAT}
+    COMMENT "Create archive"
+)
