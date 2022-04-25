@@ -223,7 +223,7 @@ enum stimc_time_unit {
  * @param time Amount of time in unit specified by @c exp.
  * @param exp Time unit (e.g. SC_US).
  *
- * Suspends the current thread (created with @ref stimc_register_startup_thread)
+ * Suspends the current thread (created with @ref stimc_spawn_thread)
  * for the specified amount of simulation time.
  */
 void stimc_wait_time (uint64_t time, enum stimc_time_unit exp);
@@ -232,7 +232,7 @@ void stimc_wait_time (uint64_t time, enum stimc_time_unit exp);
  * @brief Suspend thread for specified amount of simulation time.
  * @param time Amount of time in seconds.
  *
- * Suspends the current thread (created with @ref stimc_register_startup_thread)
+ * Suspends the current thread (created with @ref stimc_spawn_thread)
  * for the specified amount of simulation time in seconds.
  */
 void stimc_wait_time_seconds (double time);
