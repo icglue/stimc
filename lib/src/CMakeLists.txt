@@ -28,6 +28,11 @@ set (
     stimc++.h
 )
 
+# pkgconfig vars
+set (STIMC_PC_INCFLAGS)
+set (STIMC_PC_LIBFLAGS)
+set (STIMC_PC_REQUIRES)
+
 # vpi header
 if (SIMULATOR STREQUAL icarus)
     find_program (ICARUSVPI iverilog-vpi REQUIRED)
@@ -72,6 +77,7 @@ else ()
     message (FATAL_ERROR "unknown or invalid simulator specified: ${SIMULATOR}")
 endif ()
 
+list (APPEND STIMC_PC_INCFLAGS "-I${INC_VPI_USER}")
 include_directories (${INC_VPI_USER})
 
 # thread implementation
@@ -91,6 +97,13 @@ elseif (THREAD_IMPL STREQUAL libco)
     target_compile_definitions (stimc PRIVATE STIMC_THREAD_IMPL_LIBCO)
     target_include_directories (stimc PRIVATE ${INC_LIBCO})
     target_link_libraries      (stimc PRIVATE ${LIB_LIBCO})
+
+    if (PC_LIBCO_FOUND)
+        list (APPEND STIMC_PC_REQUIRES libco)
+    else ()
+        cmake_path (GET LIB_LIBCO PARENT_PATH lib_libco_dir)
+        list (APPEND STIMC_PC_LIBFLAGS "-L${lib_libco_dir} -lco")
+    endif ()
 elseif (THREAD_IMPL STREQUAL pcl)
     find_package (PkgConfig)
     if (PKG_CONFIG_FOUND)
@@ -103,6 +116,13 @@ elseif (THREAD_IMPL STREQUAL pcl)
     target_compile_definitions (stimc PRIVATE STIMC_THREAD_IMPL_PCL)
     target_include_directories (stimc PRIVATE ${INC_PCL})
     target_link_libraries      (stimc PRIVATE ${LIB_PCL})
+
+    if (PC_PCL_FOUND)
+        list (APPEND STIMC_PC_REQUIRES pcl)
+    else ()
+        cmake_path (GET LIB_PCL PARENT_PATH lib_pcl_dir)
+        list (APPEND STIMC_PC_LIBFLAGS "-L${lib_pcl_dir} -lpcl")
+    endif ()
 elseif (THREAD_IMPL STREQUAL boost1)
     find_path (INC_BOOST_CO boost/coroutine/asymmetric_coroutine.hpp REQUIRED)
 
@@ -144,3 +164,8 @@ endforeach ()
 foreach (file ${UNCRUSTIFY_FILES_CXX})
     add_uncrustify_file (${file} CPP)
 endforeach ()
+
+# package-config vars
+set (STIMC_PC_INCFLAGS ${STIMC_PC_INCFLAGS} PARENT_SCOPE)
+set (STIMC_PC_LIBFLAGS ${STIMC_PC_LIBFLAGS} PARENT_SCOPE)
+set (STIMC_PC_REQUIRES ${STIMC_PC_REQUIRES} PARENT_SCOPE)

@@ -8,8 +8,7 @@ Name: stimc
 Description: a lightweight Verilog-vpi Wrapper for Stimuli Generation
 URL: https://stimc.icglue.org
 Version: @PROJECT_VERSION@
-# Requires.private: %%requires%%
+Requires.private:@PC_REQUIRES@
 Libs: -L${libdir} -lstimc
-# Libs.private: %%libs%%
-Cflags: -I${includedir}
-# Cflags: -I${includedir} %%cflags%%
+Libs.private:@PC_PRIV_LIBS@
+Cflags: -I${includedir}@PC_PRIV_INCS@

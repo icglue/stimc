@@ -20,7 +20,7 @@
   * [x] uncrustify
   * [x] doxygen
   * [x] archive
-  * [ ] pkgconfig
+  * [x] pkgconfig
   * [ ] test
   * [ ] optional warnings
   * [ ] config-header (version, ...)
