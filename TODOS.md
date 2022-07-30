@@ -21,7 +21,7 @@
   * [x] doxygen
   * [x] archive
   * [x] pkgconfig
-  * [ ] test
+  * [x] test
   * [ ] optional warnings
   * [ ] config-header (version, ...)
   * [ ] optionally include addons/logging/...

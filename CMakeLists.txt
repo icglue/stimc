@@ -48,6 +48,10 @@ if (THREAD_IMPL STREQUAL "libco-local")
 endif ()
 add_subdirectory (lib)
 add_subdirectory (doxy)
+add_subdirectory (examples)
+
+# Tests
+enable_testing ()
 
 # Packing
 set (
