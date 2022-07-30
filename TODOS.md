@@ -22,7 +22,7 @@
   * [x] archive
   * [x] pkgconfig
   * [x] test
-  * [ ] optional warnings
+  * [x] optional warnings
   * [ ] config-header (version, ...)
   * [ ] optionally include addons/logging/...
   * [ ] refine

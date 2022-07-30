@@ -38,6 +38,17 @@ set_property (
     PROPERTY STRINGS libco-local libco pcl boost1 boost2
 )
 
+set (
+    WARN_LEVEL default
+    CACHE
+    STRING "set compiler warning level, one of: default, strict"
+)
+set_property (
+    CACHE
+    WARN_LEVEL
+    PROPERTY STRINGS default strict
+)
+
 # Current dir
 include (GNUInstallDirs)
 install (FILES README.md LICENSE.md TYPE DOC)
