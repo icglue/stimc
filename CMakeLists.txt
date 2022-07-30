@@ -66,20 +66,28 @@ set (PACK_PREFIX "${PACK_NAME}/")
 set (PACK_REF    HEAD)
 set (PACK_FILE   "${PACK_NAME}.${PACK_FORMAT}")
 
-add_custom_command (
-    OUTPUT  ${PACK_NAME}.tar
-    COMMAND git archive --format=tar --prefix=${PACK_PREFIX} ${PACK_REF} --output=${CMAKE_CURRENT_BINARY_DIR}/${PACK_NAME}.tar
-    COMMENT "Create tar archive"
-    WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
-    VERBATIM
-)
-add_custom_command (
-    OUTPUT  ${PACK_NAME}.zip
-    COMMAND git archive --format=zip --prefix=${PACK_PREFIX} ${PACK_REF} --output=${CMAKE_CURRENT_BINARY_DIR}/${PACK_NAME}.zip
-    COMMENT "Create zip archive"
-    WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
-    VERBATIM
-)
+foreach (ext IN ITEMS tar zip)
+    add_custom_command (
+        OUTPUT  ${PACK_NAME}.${ext}
+        COMMAND git archive --format=${ext} --prefix=${PACK_PREFIX} ${PACK_REF} --output=${CMAKE_CURRENT_BINARY_DIR}/${PACK_NAME}.${ext}
+        COMMENT "Create ${ext} archive"
+        WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
+        VERBATIM
+    )
+endforeach ()
+
+set (PACK_COMP_EXTENSIONS xz gz   bz2)
+set (PACK_COMP_TOOLS      xz gzip bzip2)
+foreach (ext tool IN ZIP_LISTS PACK_COMP_EXTENSIONS PACK_COMP_TOOLS)
+    add_custom_command (
+        OUTPUT  ${PACK_NAME}.tar.${ext}
+        DEPENDS ${PACK_NAME}.tar
+        COMMAND ${tool} ${PACK_NAME}.tar --force
+        COMMENT "Create tar.${ext} archive"
+        WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+        VERBATIM
+    )
+endforeach ()
 add_custom_command (
     OUTPUT  ${PACK_NAME}.tar.zstd
     DEPENDS ${PACK_NAME}.tar
@@ -88,30 +96,7 @@ add_custom_command (
     WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
     VERBATIM
 )
-add_custom_command (
-    OUTPUT  ${PACK_NAME}.tar.xz
-    DEPENDS ${PACK_NAME}.tar
-    COMMAND xz ${PACK_NAME}.tar --force
-    COMMENT "Create tar.xz archive"
-    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-    VERBATIM
-)
-add_custom_command (
-    OUTPUT  ${PACK_NAME}.tar.gz
-    DEPENDS ${PACK_NAME}.tar
-    COMMAND gzip ${PACK_NAME}.tar --force
-    COMMENT "Create tar.gz archive"
-    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-    VERBATIM
-)
-add_custom_command (
-    OUTPUT  ${PACK_NAME}.tar.bz2
-    DEPENDS ${PACK_NAME}.tar
-    COMMAND bzip2 ${PACK_NAME}.tar --force
-    COMMENT "Create tar.bz2 archive"
-    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-    VERBATIM
-)
+
 add_custom_target (
     pack
     DEPENDS ${PACK_NAME}.${PACK_FORMAT}
