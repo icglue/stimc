@@ -5,8 +5,8 @@
 
 
 # ------------  generate the names of the stimc related files  -----------------
-STIMC_BASEDIR   = ${ICPRO_DIR}/resources/stimc/lib
-STIMC_INCDIRS  += $(STIMC_BASEDIR)/src $(STIMC_BASEDIR)/addons
+STIMC_BASEDIR   = ${ICPRO_DIR}/resources/stimc
+STIMC_INCDIRS  += $(STIMC_BASEDIR)/include $(STIMC_BASEDIR)/addons
 STIMC_SOURCES  += $(STIMC_BASEDIR)/addons/logging.c
 STIMC_LIBDIR    = $(STIMC_BASEDIR)/lib
 STIMC_BASENAMES = $(notdir $(basename $(STIMC_SOURCES)))
