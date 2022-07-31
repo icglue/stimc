@@ -23,6 +23,8 @@
   * [x] pkgconfig
   * [x] test
   * [x] optional warnings
-  * [ ] config-header (version, ...)
+  * [ ] config-header (version, coroutine setup, ...)
   * [ ] optionally include addons/logging/...
+  * [ ] readme/doc update (build/install)
+  * [ ] ci test update
   * [ ] refine
