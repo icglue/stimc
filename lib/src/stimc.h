@@ -39,9 +39,9 @@ extern "C" {
 /******************************************************************************************************/
 /* version */
 /******************************************************************************************************/
-extern const unsigned stimc_version_major; /**< @brief stimc major version number */
-extern const unsigned stimc_version_minor; /**< @brief stimc minor version number */
-extern const char    *stimc_version;       /**< @brief stimc version as string of form "<major>.<minor>" */
+extern const unsigned    stimc_version_major;  /**< @brief stimc major version number */
+extern const unsigned    stimc_version_minor;  /**< @brief stimc minor version number */
+extern const char *const stimc_version;        /**< @brief stimc version as string of form "<major>.<minor>" */
 
 /******************************************************************************************************/
 /* ports/nets/parameters */
