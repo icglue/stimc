@@ -704,8 +704,8 @@ namespace stimcxx {
 
                             subbits            (const subbits &sb) noexcept = default; /**< @brief default copy constructor */
                             subbits            (subbits &&sb) noexcept      = default; /**< @brief default move constructor */
-                            subbits& operator= (const subbits &sb) = delete;           /**< @brief delete assignment - assignment to be used with values */
-                            subbits& operator= (subbits &&sb)      = delete;           /**< @brief delete assignment - assignment to be used with values */
+                            subbits& operator= (const subbits &sb)          = delete;  /**< @brief delete assignment - assignment to be used with values */
+                            subbits& operator= (subbits &&sb)               = delete;  /**< @brief delete assignment - assignment to be used with values */
 
                             ~subbits () noexcept = default; /**< @brief default destructor */
 
@@ -1347,6 +1347,7 @@ namespace stimcxx {
             thread_cleanup () noexcept
             {
                 void *callback_data = static_cast<void *>(this);
+
                 stimc_register_thread_cleanup (thread_cleanup::cleanup_callback, callback_data);
             }
 
