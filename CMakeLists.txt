@@ -39,6 +39,22 @@ set_property (
 )
 
 set (
+    VALVECTOR_MAX_STATIC 0
+    CACHE
+    STRING "integer for maximum vpi on-stack vecval, 0 for default implementation"
+)
+set (
+    THREAD_STACK_SIZE_DEFAULT 0
+    CACHE
+    STRING "default stack size for coroutines, 0 for default implementation"
+)
+set (
+    DISABLE_CLEANUP FALSE
+    CACHE
+    BOOL "disable end-of-simulation resource cleanup"
+)
+
+set (
     WARN_LEVEL default
     CACHE
     STRING "set compiler warning level, one of: default, strict"

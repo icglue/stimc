@@ -1,0 +1,21 @@
+
+/* version number */
+#define STIMC_VERSION_MAJOR @STIMC_VERSION_MAJOR@
+#define STIMC_VERSION_MINOR @STIMC_VERSION_MINOR@
+#define STIMC_VERSION_PATCH @STIMC_VERSION_PATCH@
+
+/* select coroutine backend */
+#cmakedefine STIMC_THREAD_IMPL_PCL
+#cmakedefine STIMC_THREAD_IMPL_LIBCO
+#cmakedefine STIMC_THREAD_IMPL_BOOST1
+#cmakedefine STIMC_THREAD_IMPL_BOOST2
+
+/* default coroutine stack size */
+#cmakedefine STIMC_THREAD_STACK_SIZE_DEFAULT @STIMC_THREAD_STACK_SIZE_DEFAULT@
+
+/* internal parameter to tweak stack usage vs. malloc inside coroutines */
+#cmakedefine STIMC_VALVECTOR_MAX_STATIC @STIMC_VALVECTOR_MAX_STATIC@
+
+/* define to disable end-of-simulation resource cleanup */
+#cmakedefine STIMC_DISABLE_CLEANUP
+

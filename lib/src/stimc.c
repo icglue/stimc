@@ -23,6 +23,7 @@
  */
 
 #include "stimc.h"
+#include "stimc_config.h"
 
 #include <math.h>
 #include <stdlib.h>
@@ -63,12 +64,6 @@
 /******************************************************************************************************/
 /* version */
 /******************************************************************************************************/
-#ifndef STIMC_VERSION_MAJOR
-#define STIMC_VERSION_MAJOR 1
-#endif
-#ifndef STIMC_VERSION_MINOR
-#define STIMC_VERSION_MINOR 2
-#endif
 #define STIMC_VERSION_STR(s) #s
 
 /* external constants for version information */

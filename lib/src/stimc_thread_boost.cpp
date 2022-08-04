@@ -22,6 +22,8 @@
  * @brief stimc thread boost implementation.
  */
 
+#include "stimc_config.h"
+
 #ifdef STIMC_THREAD_IMPL_BOOST
 #define STIMC_THREAD_IMPL_BOOST2
 #endif
