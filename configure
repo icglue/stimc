@@ -1,0 +1,52 @@
+#!/bin/sh
+
+# Variables
+PROJDIR="$(dirname "$(readlink -e "$0")")"
+BUILDDIR="${PROJDIR}/build"
+MAKEFILE="${PROJDIR}/Makefile"
+
+prepare_build() {
+    mkdir -p "${BUILDDIR}"
+    cd "${BUILDDIR}" || return 1
+    cmake ..
+}
+
+gen_makefile() {
+    cat > "${MAKEFILE}" << EOF
+# adapted from https://gist.github.com/doitian/4978329
+
+TARGET_BUILDDIR := build
+TARGET_MAKEFILE := \$(TARGET_BUILDDIR)/Makefile
+TARGET_TEST     := test
+NCPUS           := \$(shell nproc)
+
+# List targets defined in this file
+TARGETS_SELF := \$(TARGET_BUILDDIR) \$(TARGET_MAKEFILE) \$(TARGET_TEST)
+# Exclude targets defined in this file
+TARGETS_OTHER := \$(filter-out \$(TARGETS_SELF), \$(MAKECMDGOALS))
+
+# Call all targets using 'Makefile' in build directory in one 'make' command. It
+# can depend on targets defined in this file, e.g., depending on a target to
+# create the Makefile.
+#
+# If no targets are specified, use the dummy 'all' target
+\$(or \$(lastword \$(TARGETS_OTHER)),all): \$(TARGET_MAKEFILE)
+	@\$(MAKE) --no-print-directory -C \$(TARGET_BUILDDIR) \$(TARGETS_OTHER)
+.PHONY: \$(TARGETS_OTHER) all
+
+# Do nothing for all targets but last. Also quiet the message "Noting to be done on xxx"
+\$(filter-out \$(lastword \$(TARGETS_OTHER)), \$(TARGETS_OTHER)):
+	@cd .
+
+\$(TARGET_BUILDDIR):
+	mkdir -p \$(TARGET_BUILDDIR)
+\$(TARGET_MAKEFILE): | \$(TARGET_BUILDDIR)
+	cd \$(TARGET_BUILDDIR) && cmake ..
+\$(TARGET_TEST): all
+	cd \$(TARGET_BUILDDIR) && ctest -j\$(NCPUS)
+
+.PHONY: \$(TARGET_TEST)
+EOF
+}
+
+prepare_build && gen_makefile

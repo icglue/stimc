@@ -26,3 +26,4 @@ dump.v
 /build
 /doc
 /examples/regression/runs
+/Makefile
