@@ -5,6 +5,7 @@ PROJDIR="$(dirname "$(readlink -e "$0")")"
 BUILDDIR="${PROJDIR}/build"
 MAKEFILE="${PROJDIR}/Makefile"
 CONFIGFLAGS=""
+CLEAN=0
 
 die() {
     echo "$1"
@@ -21,6 +22,9 @@ printhelp() {
 Usage: $0 [OPTION]...
 
 With arguments from
+--clean                                 delete files from previous build if existing
+--incremental                           update files in case of existing previous build
+
 --prefix                    <PATH>      installation prefix
 
 --with-docs                             build and install documentation
@@ -62,6 +66,15 @@ parse_options() {
         fi
 
         case "${option}" in
+            "--clean")
+                CLEAN=1
+                optshift=1
+                ;;
+            "--incremental")
+                CLEAN=0
+                optshift=1
+                ;;
+
             "--prefix")
                 CONFIGFLAGS="${CONFIGFLAGS} -DCMAKE_INSTALL_PREFIX:PATH=${value}"
                 ;;
@@ -128,6 +141,11 @@ parse_options() {
     done
 }
 
+clean_build() {
+    [ -d "${BUILDDIR}" ] && rm -rf "${BUILDDIR}"
+    [ -f "${MAKEFILE}" ] && rm -f  "${MAKEFILE}"
+}
+
 prepare_build() {
     mkdir -p "${BUILDDIR}"
     cd "${BUILDDIR}" || die "could not enter ${BUILDDIR}"
@@ -173,5 +191,7 @@ EOF
 }
 
 parse_options "$@"
+
+[ "${CLEAN}" -eq 1 ] && clean_build
 
 prepare_build && gen_makefile
