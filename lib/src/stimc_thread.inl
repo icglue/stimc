@@ -55,7 +55,7 @@
 #endif
 
 #ifndef STIMC_THREAD_IMPL
-#define STIMC_THREAD_IMPL_PCL
+#define STIMC_THREAD_IMPL_LIBCO
 #endif
 
 
