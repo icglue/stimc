@@ -17,46 +17,38 @@ jobs:
       - name: "Install dependencies"
         run: |
           sudo apt-get update
-          sudo apt-get install -y --no-upgrade clang g++ gcc iverilog libboost-coroutine-dev libpcl1 libpcl1-dev make valgrind
+          sudo apt-get install -y --no-upgrade clang cmake g++ gcc iverilog libboost-coroutine-dev libpcl1 libpcl1-dev make valgrind
       - name: "Build library with gcc"
         env:
           CC: gcc
           CXX: g++
         run: |
-          make cleanlib
+          ./configure --clean --enable-strict-warning
           make -j3
       - name: "Build library with clang"
         env:
           CC: clang
           CXX: clang++
         run: |
-          make cleanlib
+          ./configure --clean --enable-strict-warning
           make -j3
-      - name: "Run tests with pcl coroutines, gcc"
-        env:
-          CC: gcc
-          CXX: g++
-          THREAD_IMPL: pcl
+      - name: "Run tests with libco coroutines, default cc"
         run: |
-          make cleanall
-          make -j3 test
-      - name: "Run tests with pcl coroutines, clang"
-        env:
-          CC: clang
-          CXX: clang++
-          THREAD_IMPL: pcl
+          ./configure --clean --thread-implementation=libco-local
+          make -j3
+          make test
+      - name: "Run tests with pcl coroutines, default cc"
         run: |
-          make cleanall
-          make -j3 test
+          ./configure --clean --thread-implementation=pcl
+          make -j3
+          make test
       - name: "Run tests with boost1 coroutines, default cc"
-        env:
-          THREAD_IMPL: boost1
         run: |
-          make cleanall
-          make -j3 test
+          ./configure --clean --thread-implementation=boost1
+          make -j3
+          make test
       - name: "Run tests with boost2 coroutines, default cc"
-        env:
-          THREAD_IMPL: boost2
         run: |
-          make cleanall
-          make -j3 test
+          ./configure --clean --thread-implementation=boost2
+          make -j3
+          make test
