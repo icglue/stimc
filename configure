@@ -4,11 +4,110 @@
 PROJDIR="$(dirname "$(readlink -e "$0")")"
 BUILDDIR="${PROJDIR}/build"
 MAKEFILE="${PROJDIR}/Makefile"
+CONFIGFLAGS=""
+
+die() {
+    echo "$1"
+    exit 1
+}
+diehelp() {
+    echo "$1"
+    printhelp
+    exit 1
+}
+
+printhelp() {
+    cat << EOF
+Usage: $0 [OPTION]...
+
+With arguments from
+--prefix                    <PATH>      installation prefix
+
+--simulator                 <SIMULATOR> set simulator for vpi headers and test, one of:
+                                        icarus, cvc, ncsim, xcelium (default=icarus)
+--thread-implementation     <IMPL>      set thread implementation, one of:
+                                        libco-local, libco, pcl, boost1, boost2 (default=libco-local)
+
+--valvector-max-stack       <N>         integer for maximum vpi on-stack vecval, 0 for default implementation
+--thread-stack-size-default <SIZE>      default stack size for coroutines, 0 for default implementation
+--disable-cleanup                       disable end-of-simulation resource cleanup
+--enable-cleanup                        enable end-of-simulation resource cleanup (default)
+
+--disable-strict-warning                set compiler warning level to normal (default)
+--enable-strict-warning                 set compiler warning level to strict
+
+-h, --help                              print this help text
+EOF
+}
+
+parse_options() {
+    local option
+    local value
+    local optshift
+
+    while [ $# -ge 1 ] ; do
+        option="$1"
+        value="$2"
+        optshift=2
+
+        if echo "${option}" | grep '=' ; then
+            value="$(echo "${option}" | sed -e 's/\(.*\)=\(.*\)/\2/')"
+            option="$(echo "${option}" | sed -e 's/\(.*\)=\(.*\)/\1/')"
+            optshift=1
+        fi
+
+        case "${option}" in
+            "--prefix")
+                CONFIGFLAGS="${CONFIGFLAGS} -DCMAKE_INSTALL_PREFIX:PATH=${value}"
+                ;;
+            "--simulator")
+                CONFIGFLAGS="${CONFIGFLAGS} -DSIMULATOR=${value}"
+                ;;
+            "--thread-implementation")
+                CONFIGFLAGS="${CONFIGFLAGS} -DTHREAD_IMPL=${value}"
+                ;;
+
+            "--valvector-max-stack")
+                CONFIGFLAGS="${CONFIGFLAGS} -DVALVECTOR_MAX_STATIC=${value}"
+                ;;
+            "--thread-stack-size-default")
+                CONFIGFLAGS="${CONFIGFLAGS} -DTHREAD_STACK_SIZE_DEFAULT=${value}"
+                ;;
+            "--disable-cleanup")
+                CONFIGFLAGS="${CONFIGFLAGS} -DDISABLE_CLEANUP=1"
+                optshift=1
+                ;;
+            "--enable-cleanup")
+                CONFIGFLAGS="${CONFIGFLAGS} -DDISABLE_CLEANUP=0"
+                optshift=1
+                ;;
+            "--disable-strict-warning")
+                CONFIGFLAGS="${CONFIGFLAGS} -DWARN_LEVEL=strict"
+                optshift=1
+                ;;
+            "--enable-strict-warning")
+                CONFIGFLAGS="${CONFIGFLAGS} -DWARN_LEVEL=default=0"
+                optshift=1
+                ;;
+
+            "-h"|"--help"|"-?"|"-help")
+                printhelp
+                exit 0
+                ;;
+
+            *)
+                diehelp "invalid option ${option}"
+                ;;
+        esac
+
+        [ $# -ge ${optshift} ] && shift ${optshift} || diehelp "missing argument for ${option}"
+    done
+}
 
 prepare_build() {
     mkdir -p "${BUILDDIR}"
-    cd "${BUILDDIR}" || return 1
-    cmake ..
+    cd "${BUILDDIR}" || die "could not enter ${BUILDDIR}"
+    cmake ${CONFIGFLAGS} ..
 }
 
 gen_makefile() {
@@ -48,5 +147,7 @@ TARGETS_OTHER := \$(filter-out \$(TARGETS_SELF), \$(MAKECMDGOALS))
 .PHONY: \$(TARGET_TEST)
 EOF
 }
+
+parse_options "$@"
 
 prepare_build && gen_makefile
