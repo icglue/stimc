@@ -127,18 +127,24 @@ elseif (THREAD_IMPL STREQUAL pcl)
         list (APPEND STIMC_PC_LIBFLAGS "-L${lib_pcl_dir} -lpcl")
     endif ()
 elseif (THREAD_IMPL STREQUAL boost1)
-    find_path (INC_BOOST_CO boost/coroutine/asymmetric_coroutine.hpp REQUIRED)
+    find_path    (INC_BOOST_CO boost/coroutine/asymmetric_coroutine.hpp REQUIRED)
+    find_library (LIB_BOOST_CO boost_coroutine REQUIRED)
 
     set (STIMC_THREAD_IMPL_BOOST1 TRUE)
 
     target_include_directories (stimc PRIVATE ${INC_BOOST_CO})
+    target_link_libraries      (stimc PRIVATE ${LIB_BOOST_CO})
+
     list (APPEND STIMC_SOURCES ${STIMC_SOURCES_BOOST})
 elseif (THREAD_IMPL STREQUAL boost2)
-    find_path (INC_BOOST_CO boost/coroutine2/coroutine.hpp REQUIRED)
+    find_path    (INC_BOOST_CO boost/coroutine2/coroutine.hpp REQUIRED)
+    find_library (LIB_BOOST_CO boost_context REQUIRED)
 
     set (STIMC_THREAD_IMPL_BOOST2 TRUE)
 
     target_include_directories (stimc PRIVATE ${INC_BOOST_CO})
+    target_link_libraries      (stimc PRIVATE ${LIB_BOOST_CO})
+
     list (APPEND STIMC_SOURCES ${STIMC_SOURCES_BOOST})
 else ()
     message (FATAL_ERROR "unknown or invalid thread implementation: ${THREAD_IMPL}")
