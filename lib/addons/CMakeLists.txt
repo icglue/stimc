@@ -1,4 +1,4 @@
-add_library (logging-vpi SHARED)
+option (ADDONS "Build and install addons" OFF)
 
 set (
     LOGGING_HEADERS
@@ -28,35 +28,39 @@ set (
     ${ADDON_HEADERS}
 )
 
-set (CMAKE_INCLUDE_CURRENT_DIR yes)
+if (ADDONS)
+    add_library (logging-vpi SHARED)
 
-include_directories (${INC_VPI_USER})
-target_compile_features(stimc PUBLIC c_std_11)
+    set (CMAKE_INCLUDE_CURRENT_DIR yes)
 
-set_target_properties (
-    logging-vpi PROPERTIES
+    include_directories (${INC_VPI_USER})
+    target_compile_features(stimc PUBLIC c_std_11)
 
-    OUTPUT_NAME   logging-vpi
-    VERSION       ${PROJECT_VERSION}
-    SOVERSION     ${STIMC_VERSION_MAJOR}
-    PUBLIC_HEADER "${LOGGING_HEADERS}"
-    SOURCES       "${LOGGING_SOURCES}"
-)
+    set_target_properties (
+        logging-vpi PROPERTIES
 
-set_target_properties (
-    stimc PROPERTIES
-    PUBLIC_HEADER "${ADDON_HEADERS}"
-)
+        OUTPUT_NAME   logging-vpi
+        VERSION       ${PROJECT_VERSION}
+        SOVERSION     ${STIMC_VERSION_MAJOR}
+        PUBLIC_HEADER "${LOGGING_HEADERS}"
+        SOURCES       "${LOGGING_SOURCES}"
+    )
+
+    set_target_properties (
+        stimc PROPERTIES
+        PUBLIC_HEADER "${ADDON_HEADERS}"
+    )
 
 
-install (TARGETS logging-vpi PUBLIC_HEADER)
-install (TARGETS stimc       PUBLIC_HEADER)
+    install (TARGETS logging-vpi PUBLIC_HEADER)
+    install (TARGETS stimc       PUBLIC_HEADER)
 
-install (FILES "${ADDON_SOURCES}" TYPE DOC)
+    install (FILES "${ADDON_SOURCES}" TYPE DOC)
 
-foreach (file ${UNCRUSTIFY_FILES_C})
-    add_uncrustify_file (${file} C)
-endforeach ()
-foreach (file ${UNCRUSTIFY_FILES_CXX})
-    add_uncrustify_file (${file} CPP)
-endforeach ()
+    foreach (file ${UNCRUSTIFY_FILES_C})
+        add_uncrustify_file (${file} C)
+    endforeach ()
+    foreach (file ${UNCRUSTIFY_FILES_CXX})
+        add_uncrustify_file (${file} CPP)
+    endforeach ()
+endif()

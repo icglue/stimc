@@ -23,6 +23,9 @@ Usage: $0 [OPTION]...
 With arguments from
 --prefix                    <PATH>      installation prefix
 
+--with-addons                           build and install addons
+--without-addons                        omit addons
+
 --simulator                 <SIMULATOR> set simulator for vpi headers and test, one of:
                                         icarus, cvc, ncsim, xcelium (default=icarus)
 --thread-implementation     <IMPL>      set thread implementation, one of:
@@ -60,6 +63,16 @@ parse_options() {
             "--prefix")
                 CONFIGFLAGS="${CONFIGFLAGS} -DCMAKE_INSTALL_PREFIX:PATH=${value}"
                 ;;
+
+            "--with-addons")
+                CONFIGFLAGS="${CONFIGFLAGS} -DADDONS=1"
+                optshift=1
+                ;;
+            "--without-addons")
+                CONFIGFLAGS="${CONFIGFLAGS} -DADDONS=0"
+                optshift=1
+                ;;
+
             "--simulator")
                 CONFIGFLAGS="${CONFIGFLAGS} -DSIMULATOR=${value}"
                 ;;
@@ -81,6 +94,7 @@ parse_options() {
                 CONFIGFLAGS="${CONFIGFLAGS} -DDISABLE_CLEANUP=0"
                 optshift=1
                 ;;
+
             "--disable-strict-warning")
                 CONFIGFLAGS="${CONFIGFLAGS} -DWARN_LEVEL=strict"
                 optshift=1

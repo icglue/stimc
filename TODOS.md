@@ -24,7 +24,7 @@
   * [x] test
   * [x] optional warnings
   * [x] config-header (version, coroutine setup, ...)
-  * [ ] optionally include addons/logging/...
+  * [x] optionally include addons/logging/...
   * [ ] readme/doc update (build/install)
   * [ ] ci test update
   * [ ] refine
