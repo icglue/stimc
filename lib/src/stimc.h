@@ -41,6 +41,7 @@ extern "C" {
 /******************************************************************************************************/
 extern const unsigned    stimc_version_major;  /**< @brief stimc major version number */
 extern const unsigned    stimc_version_minor;  /**< @brief stimc minor version number */
+extern const unsigned    stimc_version_patch;  /**< @brief stimc patch version number */
 extern const char *const stimc_version;        /**< @brief stimc version as string of form "<major>.<minor>" */
 
 /******************************************************************************************************/
