@@ -39,7 +39,7 @@ set_target_properties (
     SOURCES       "${LOGGING_SOURCES}"
 )
 
-install (TARGETS stimc PUBLIC_HEADER)
+install (TARGETS logging-vpi PUBLIC_HEADER)
 
 foreach (file ${UNCRUSTIFY_FILES_C})
     add_uncrustify_file (${file} C)
