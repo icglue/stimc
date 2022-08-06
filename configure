@@ -23,6 +23,8 @@ Usage: $0 [OPTION]...
 With arguments from
 --prefix                    <PATH>      installation prefix
 
+--with-docs                             build and install documentation
+--without-docs                          omit documentation
 --with-addons                           build and install addons
 --without-addons                        omit addons
 
@@ -64,6 +66,14 @@ parse_options() {
                 CONFIGFLAGS="${CONFIGFLAGS} -DCMAKE_INSTALL_PREFIX:PATH=${value}"
                 ;;
 
+            "--with-docs")
+                CONFIGFLAGS="${CONFIGFLAGS} -DBUILD_DOC=1"
+                optshift=1
+                ;;
+            "--without-docs")
+                CONFIGFLAGS="${CONFIGFLAGS} -DBUILD_DOC=0"
+                optshift=1
+                ;;
             "--with-addons")
                 CONFIGFLAGS="${CONFIGFLAGS} -DADDONS=1"
                 optshift=1
