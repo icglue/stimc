@@ -1321,7 +1321,7 @@ namespace stimcxx {
      * in derived class's destructor.
      *
      * Derived objects can only be created within a stimc thread,
-     * as they will register their destruction in @ref cleanup_callback
+     * as they will register their destruction in @c cleanup_callback
      * as stimc end of thread cleanup callback via @ref stimc_register_thread_cleanup.
      *
      * Take care of scenarios where cleanup is not yet or no longer necessary
