@@ -1,7 +1,7 @@
 # TODOs
 * addons
-  * [ ] addons lib
-  * [ ] addons: check/fix install
+  * [x] addons lib
+  * [x] addons: check/fix install
 * lib
   * [x] libco: local copy for fallback
   * [x] stimc: module + port/parameter access via vpiHandles instead of string
