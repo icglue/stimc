@@ -8,21 +8,25 @@ set (
     LOGGING_SOURCES
     logging.c
 )
+set (
+    ADDON_HEADERS
+    stimc_sc_compat.h
+)
+set (
+    ADDON_SOURCES
+    stimc-export.c
+)
 
 set (
     UNCRUSTIFY_FILES_C
     ${LOGGING_SOURCES}
     ${LOGGING_HEADERS}
-    stimc-export.c
+    ${ADDON_SOURCES}
 )
 set (
     UNCRUSTIFY_FILES_CXX
-    stimc_sc_compat.h
+    ${ADDON_HEADERS}
 )
-
-# TODO:
-# - install addon headers
-# - install addon sources (to shared?)
 
 set (CMAKE_INCLUDE_CURRENT_DIR yes)
 
@@ -39,7 +43,16 @@ set_target_properties (
     SOURCES       "${LOGGING_SOURCES}"
 )
 
+set_target_properties (
+    stimc PROPERTIES
+    PUBLIC_HEADER "${ADDON_HEADERS}"
+)
+
+
 install (TARGETS logging-vpi PUBLIC_HEADER)
+install (TARGETS stimc       PUBLIC_HEADER)
+
+install (FILES "${ADDON_SOURCES}" TYPE DOC)
 
 foreach (file ${UNCRUSTIFY_FILES_C})
     add_uncrustify_file (${file} C)
