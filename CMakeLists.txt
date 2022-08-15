@@ -1,4 +1,4 @@
-cmake_minimum_required (VERSION 3.23)
+cmake_minimum_required (VERSION 3.17)
 
 # Project setup
 set (STIMC_DESCRIPTION "a lightweight Verilog-vpi Wrapper for Stimuli Generation")
@@ -7,7 +7,7 @@ set (STIMC_VERSION_MAJOR 1)
 set (STIMC_VERSION_MINOR 2)
 set (STIMC_VERSION_PATCH 0)
 
-include (scripts/cmake_patch_version.cmake)
+include (${CMAKE_SOURCE_DIR}/scripts/cmake_patch_version.cmake)
 
 set (STIMC_VERSION ${STIMC_VERSION_MAJOR}.${STIMC_VERSION_MINOR}.${STIMC_VERSION_PATCH})
 
@@ -17,11 +17,16 @@ project (
     DESCRIPTION ${STIMC_DESCRIPTION}
 )
 
-include (scripts/cmake_options.cmake)
+include (${CMAKE_SOURCE_DIR}/scripts/cmake_options.cmake)
 
 # Current dir
 include (GNUInstallDirs)
-install (FILES README.md LICENSE.md TYPE DOC)
+
+install (
+    FILES
+    README.md LICENSE.md
+    TYPE DOC
+)
 
 # Subdirs
 if (THREAD_IMPL STREQUAL "libco-local")
@@ -34,4 +39,5 @@ add_subdirectory (examples)
 # Tests
 enable_testing ()
 
-include (scripts/cmake_packaging.cmake)
+# Pack
+include (${CMAKE_SOURCE_DIR}/scripts/cmake_packaging.cmake)

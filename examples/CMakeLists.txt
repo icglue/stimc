@@ -1,8 +1,7 @@
-
 enable_testing ()
 
 # Tests
-set (tests
+set (STIMC_TESTS
 	ff.tc_sanity
     ff_real.tc_sanity
     dummy.tc_sanity
@@ -18,7 +17,7 @@ set (tests
 
 string (REPLACE "icarus" "iverilog" TESTSIMULATOR "${SIMULATOR}")
 
-foreach (test IN LISTS tests)
+foreach (test IN LISTS STIMC_TESTS)
     string (REGEX REPLACE "^([^.]+)\\.([^.]+)$" "\\1" unit     "${test}")
     string (REGEX REPLACE "^([^.]+)\\.([^.]+)$" "\\2" testcase "${test}")
 
@@ -38,5 +37,3 @@ foreach (test IN LISTS tests)
     set_tests_properties ("${test}.run" PROPERTIES DEPENDS "${test}.prepare")
     set_tests_properties ("${test}.memcheck" PROPERTIES DEPENDS "${test}.run")
 endforeach ()
-
-

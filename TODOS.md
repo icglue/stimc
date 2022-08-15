@@ -26,5 +26,6 @@
   * [x] config-header (version, coroutine setup, ...)
   * [x] optionally include addons/logging/...
   * [x] ci test update
-  * [ ] readme/doc update (build/install)
+  * [x] find out minimum required cmake version
   * [ ] refine
+  * [ ] readme/doc update (build/install)

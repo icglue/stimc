@@ -1,4 +1,6 @@
 # Options
+
+# Stimc dependencies
 set (
     SIMULATOR icarus
     CACHE
@@ -21,6 +23,7 @@ set_property (
     PROPERTY STRINGS libco-local libco pcl boost1 boost2
 )
 
+# Code options
 set (
     VALVECTOR_MAX_STATIC 0
     CACHE
@@ -37,6 +40,20 @@ set (
     BOOL "disable end-of-simulation resource cleanup"
 )
 
+# Extras
+option (
+    ADDONS
+    "Build and install addons"
+    OFF
+)
+
+option (
+    BUILD_DOC
+    "Build documentation"
+    OFF
+)
+
+# Build options
 set (
     WARN_LEVEL default
     CACHE

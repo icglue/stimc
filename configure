@@ -159,10 +159,16 @@ gen_makefile() {
 TARGET_BUILDDIR := build
 TARGET_MAKEFILE := \$(TARGET_BUILDDIR)/Makefile
 TARGET_TEST     := test
+TARGET_CLEAN    := mrproper
 NCPUS           := \$(shell nproc)
 
 # List targets defined in this file
-TARGETS_SELF := \$(TARGET_BUILDDIR) \$(TARGET_MAKEFILE) \$(TARGET_TEST)
+TARGETS_SELF := \\
+    \$(TARGET_BUILDDIR) \\
+    \$(TARGET_MAKEFILE) \\
+    \$(TARGET_TEST) \\
+    \$(TARGET_CLEAN)
+
 # Exclude targets defined in this file
 TARGETS_OTHER := \$(filter-out \$(TARGETS_SELF), \$(MAKECMDGOALS))
 
@@ -185,6 +191,9 @@ TARGETS_OTHER := \$(filter-out \$(TARGETS_SELF), \$(MAKECMDGOALS))
 	cd \$(TARGET_BUILDDIR) && cmake ..
 \$(TARGET_TEST): all
 	cd \$(TARGET_BUILDDIR) && ctest -j\$(NCPUS)
+\$(TARGET_CLEAN):
+	rm -rf \$(TARGET_BUILDDIR)
+	rm -f  Makefile
 
 .PHONY: \$(TARGET_TEST)
 EOF

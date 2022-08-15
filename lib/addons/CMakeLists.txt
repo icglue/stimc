@@ -1,5 +1,3 @@
-option (ADDONS "Build and install addons" OFF)
-
 set (
     LOGGING_HEADERS
     logging.h
@@ -50,7 +48,6 @@ if (ADDONS)
         stimc PROPERTIES
         PUBLIC_HEADER "${ADDON_HEADERS}"
     )
-
 
     install (TARGETS logging-vpi PUBLIC_HEADER)
     install (TARGETS stimc       PUBLIC_HEADER)

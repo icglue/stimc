@@ -33,122 +33,12 @@ set (STIMC_PC_INCFLAGS)
 set (STIMC_PC_LIBFLAGS)
 set (STIMC_PC_REQUIRES)
 
-# vpi header
-if (SIMULATOR STREQUAL icarus)
-    find_program (ICARUSVPI iverilog-vpi REQUIRED)
-
-    execute_process (
-        COMMAND ${ICARUSVPI} --cflags
-        COMMAND tr " " "\n"
-        COMMAND grep "^-I"
-        COMMAND sed -e "s/^-I//"
-        OUTPUT_VARIABLE ICARUS_INCDIR
-    )
-
-    find_path (
-        INC_VPI_USER vpi_user.h REQUIRED
-        HINTS ${ICARUS_INCDIR}
-        PATH_SUFFIXES iverilog
-    )
-elseif (SIMULATOR STREQUAL cvc)
-    find_program (CVC cvc REQUIRED)
-
-    cmake_path (GET CVC     PARENT_PATH CVC_BIN)
-    cmake_path (GET CVC_BIN PARENT_PATH CVC_ROOT)
-    cmake_path (APPEND CVC_BIN include OUTPUT_VARIABLE CVC_INC)
-
-    find_path (
-        INC_VPI_USER vpi_user.h REQUIRED
-        HINTS ${CVC_INC}
-        PATH_SUFFIXES cvc oss-cvc
-    )
-elseif (SIMULATOR STREQUAL xcelium OR SIMULATOR STREQUAL ncsim)
-    find_program (CDSROOT NAMES xmroot ncroot REQUIRED)
-
-    execute_process (COMMAND ${CDSROOT} OUTPUT_VARIABLE CDS_PATH)
-    string (STRIP ${CDS_PATH} CDS_PATH)
-    cmake_path (APPEND CDS_PATH tools include OUTPUT_VARIABLE CDS_INC)
-
-    find_path (
-        INC_VPI_USER vpi_user.h REQUIRED
-        HINTS ${CDS_INC}
-    )
-else ()
-    message (FATAL_ERROR "unknown or invalid simulator specified: ${SIMULATOR}")
-endif ()
+include (${CMAKE_SOURCE_DIR}/scripts/cmake_simulator.cmake)
 
 list (APPEND STIMC_PC_INCFLAGS "-I${INC_VPI_USER}")
 include_directories (${INC_VPI_USER})
 
-# thread implementation
-if (THREAD_IMPL STREQUAL libco-local)
-    set (STIMC_THREAD_IMPL_LIBCO TRUE)
-
-    target_include_directories (stimc PRIVATE "${CMAKE_SOURCE_DIR}/libco/src")
-    target_link_libraries      (stimc libco_local)
-elseif (THREAD_IMPL STREQUAL libco)
-    find_package (PkgConfig)
-    if (PKG_CONFIG_FOUND)
-        pkg_check_modules (PC_LIBCO libco QUIET)
-    endif ()
-
-    find_library (LIB_LIBCO co      REQUIRED HINTS ${PC_LIBCO_LIBRARY_DIRS})
-    find_path    (INC_LIBCO libco.h REQUIRED HINTS ${PC_LIBCO_INCLUDE_DIRS})
-
-    set (STIMC_THREAD_IMPL_LIBCO TRUE)
-
-    target_include_directories (stimc PRIVATE ${INC_LIBCO})
-    target_link_libraries      (stimc PRIVATE ${LIB_LIBCO})
-
-    if (PC_LIBCO_FOUND)
-        list (APPEND STIMC_PC_REQUIRES libco)
-    else ()
-        cmake_path (GET LIB_LIBCO PARENT_PATH lib_libco_dir)
-        list (APPEND STIMC_PC_LIBFLAGS "-L${lib_libco_dir} -lco")
-    endif ()
-elseif (THREAD_IMPL STREQUAL pcl)
-    find_package (PkgConfig)
-    if (PKG_CONFIG_FOUND)
-        pkg_check_modules (PC_PCL pcl QUIET)
-    endif ()
-
-    find_library (LIB_PCL pcl   REQUIRED HINTS ${PC_PCL_LIBRARY_DIRS})
-    find_path    (INC_PCL pcl.h REQUIRED HINTS ${PC_PCL_INCLUDE_DIRS})
-
-    set (STIMC_THREAD_IMPL_PCL TRUE)
-
-    target_include_directories (stimc PRIVATE ${INC_PCL})
-    target_link_libraries      (stimc PRIVATE ${LIB_PCL})
-
-    if (PC_PCL_FOUND)
-        list (APPEND STIMC_PC_REQUIRES pcl)
-    else ()
-        cmake_path (GET LIB_PCL PARENT_PATH lib_pcl_dir)
-        list (APPEND STIMC_PC_LIBFLAGS "-L${lib_pcl_dir} -lpcl")
-    endif ()
-elseif (THREAD_IMPL STREQUAL boost1)
-    find_path    (INC_BOOST_CO boost/coroutine/asymmetric_coroutine.hpp REQUIRED)
-    find_library (LIB_BOOST_CO boost_coroutine REQUIRED)
-
-    set (STIMC_THREAD_IMPL_BOOST1 TRUE)
-
-    target_include_directories (stimc PRIVATE ${INC_BOOST_CO})
-    target_link_libraries      (stimc PRIVATE ${LIB_BOOST_CO})
-
-    list (APPEND STIMC_SOURCES ${STIMC_SOURCES_BOOST})
-elseif (THREAD_IMPL STREQUAL boost2)
-    find_path    (INC_BOOST_CO boost/coroutine2/coroutine.hpp REQUIRED)
-    find_library (LIB_BOOST_CO boost_context REQUIRED)
-
-    set (STIMC_THREAD_IMPL_BOOST2 TRUE)
-
-    target_include_directories (stimc PRIVATE ${INC_BOOST_CO})
-    target_link_libraries      (stimc PRIVATE ${LIB_BOOST_CO})
-
-    list (APPEND STIMC_SOURCES ${STIMC_SOURCES_BOOST})
-else ()
-    message (FATAL_ERROR "unknown or invalid thread implementation: ${THREAD_IMPL}")
-endif ()
+include (${CMAKE_SOURCE_DIR}/scripts/cmake_thread_impl.cmake)
 
 # stimc config header
 set (STIMC_DISABLE_CLEANUP           ${DISABLE_CLEANUP})
