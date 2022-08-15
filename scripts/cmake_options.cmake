@@ -2,14 +2,14 @@
 
 # Stimc dependencies
 set (
-    SIMULATOR icarus
+    SIMULATOR auto
     CACHE
-    STRING "set simulator for vpi headers and test, one of: icarus, cvc, ncsim, xcelium (default=icarus)"
+    STRING "set simulator for vpi headers and test, one of: auto, icarus, cvc, ncsim, xcelium (default=auto)"
 )
 set_property (
     CACHE
     SIMULATOR
-    PROPERTY STRINGS icarus cvc ncsim xcelium
+    PROPERTY STRINGS auto icarus cvc ncsim xcelium
 )
 
 set (

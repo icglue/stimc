@@ -1,3 +1,30 @@
+# autodetect available simulators
+if (SIMULATOR STREQUAL auto)
+    find_program (ICARUS iverilog)
+    find_program (CVC    cvc)
+    find_program (XMROOT xmroot)
+    find_program (NCROOT ncroot)
+
+    if (NOT ICARUS-NOTFOUND)
+        set (SIMULATOR icarus)
+    elseif (NOT CVC-NOTFOUND)
+        set (SIMULATOR cvc)
+    elseif (NOT XMROOT-NOTFOUND)
+        set (SIMULATOR xcelium)
+    elseif (NOT NCROOT-NOTFOUND)
+        set (SIMULATOR ncsim)
+    else ()
+        message (FATAL_ERROR "no known simulator found")
+    endif ()
+
+    set (
+        SIMULATOR ${SIMULATOR}
+        CACHE
+        STRING "set simulator for vpi headers and test, one of: auto, icarus, cvc, ncsim, xcelium (default=auto)"
+        FORCE
+    )
+endif ()
+
 # vpi header
 if (SIMULATOR STREQUAL icarus)
     find_program (ICARUSVPI iverilog-vpi REQUIRED)

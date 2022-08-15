@@ -33,7 +33,7 @@ With arguments from
 --without-addons                        omit addons
 
 --simulator                 <SIMULATOR> set simulator for vpi headers and test, one of:
-                                        icarus, cvc, ncsim, xcelium (default=icarus)
+                                        auto, icarus, cvc, ncsim, xcelium (default=auto)
 --thread-implementation     <IMPL>      set thread implementation, one of:
                                         libco-local, libco, pcl, boost1, boost2 (default=libco-local)
 
