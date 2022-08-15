@@ -110,6 +110,10 @@ run: $(ELAB_TARGET) $(CDSLIB_FILE) $(HDLVAR_FILE) $(RUNSCR_BATCH)
 	$q$(call echo, "\n$${b}$(runcolor)RUN $${c} $(SIM_NAME)\n")
 	$q$(SIM) $(SIM_FLAGS) $(TOPLEVEL) -input $(RUNSCR_BATCH)
 
+memcheck: $(ELAB_TARGET) $(CDSLIB_FILE) $(HDLVAR_FILE) $(RUNSCR_BATCH)
+	$q$(call echo, "\n$${b}$(runcolor)MEMCHECK $${c} $(SIM_NAME)\n")
+	$q$(MEMCHK) $(SIM) $(SIM_FLAGS) $(TOPLEVEL) -input $(RUNSCR_BATCH)
+
 runbatch: $(ELAB_TARGET) $(CDSLIB_FILE) $(HDLVAR_FILE) $(RUNSCR_BATCH)
 	$q$(call echo, "\n$${b}$(runcolor)RUN $${c} $(SIM_NAME)\n")
 	$q$(SIM) $(SIM_FLAGS) $(TOPLEVEL) -input $(RUNSCR_BATCH) 2>&1 | tee $(BATCH_LOG)
@@ -156,4 +160,4 @@ clean-vlog:
 clean-gui:
 	$qrm -rf .simvision 2> /dev/null || true
 
-.PHONY: vlog elab run runbatch rungui gui clean-vlog clean-gui
+.PHONY: vlog elab run runbatch rungui gui memcheck clean-vlog clean-gui
