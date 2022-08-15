@@ -10,8 +10,12 @@
 * flow
   * [x] simulation flow update (cvc, ...)
   * [ ] more simulators
+  * [ ] memcheck for other simulators
 * doc
   * [ ] examples: simulation flow
+  * [ ] cmake (build/install)
+  * [ ] local libco as default
+  * [ ] changelog
 * cmake
   * [x] initial setup
   * [x] local libco
@@ -27,5 +31,4 @@
   * [x] optionally include addons/logging/...
   * [x] ci test update
   * [x] find out minimum required cmake version
-  * [ ] refine
-  * [ ] readme/doc update (build/install)
+  * [x] refine
