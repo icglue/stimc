@@ -4,6 +4,11 @@
 
 using namespace stimcxx;
 
+// prevent conflict with union wait,
+// indirectly included via <memory>
+// on some platforms
+#define wait(x) stimcxx::wait(x)
+
 static constexpr int alen = 256;
 
 static int errors = 0;
