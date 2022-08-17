@@ -529,6 +529,21 @@ static inline double stimc_parameter_get_double (stimc_parameter parameter)
 }
 
 /**
+ * @brief Get parameter value as string.
+ * @param parameter Parameter to get read.
+ * @return Parameter value as temporary string; copy if needed after subsequent vpi-related calls.
+ */
+static inline const char* stimc_parameter_get_str (stimc_parameter parameter)
+{
+    s_vpi_value v;
+
+    v.format = vpiStringVal;
+    vpi_get_value (parameter, &v);
+
+    return v.value.str;
+}
+
+/**
  * @brief Non-blocking z assignment.
  * @param net Port/net to assign.
  * @see @ref stimc_net_set_z.

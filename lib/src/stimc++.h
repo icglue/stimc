@@ -27,6 +27,7 @@
 
 #include <stimc.h>
 #include <utility>
+#include <string>
 
 /**
  * @brief stimc++ namespace.
@@ -1101,6 +1102,17 @@ namespace stimcxx {
                     }
 
                     /**
+                     * @brief String value of parameter.
+                     * @return Temporary c string value, copy if needed.
+                     */
+                    const char *strvalue ()
+                    {
+                        const char *str = stimc_parameter_get_str (this->_parameter);
+
+                        return str;
+                    }
+
+                    /**
                      * @brief Integer value of parameter.
                      * @return Integer value.
                      */
@@ -1125,6 +1137,16 @@ namespace stimcxx {
                     operator double () noexcept
                     {
                         return _value_d;
+                    }
+
+                    /**
+                     * @brief String value of parameter.
+                     * @return c++ string value.
+                     */
+                    operator std::string ()
+                    {
+                        std::string str = strvalue ();
+                        return str;
                     }
             };
     };

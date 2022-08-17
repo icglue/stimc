@@ -5,6 +5,7 @@
 * lib
   * [x] libco: local copy for fallback
   * [x] stimc: module + port/parameter access via vpiHandles instead of string
+  * [ ] stimc: string parameters
 * events
   * [ ] methods triggered by event (non-thread)
 * flow
