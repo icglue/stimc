@@ -132,7 +132,7 @@ while risking misinterpretation as shift operation).
 In case only a bit-range of a port should be accessed or an integer type is not sufficiently
 wide it is possible to access the ports `operator() (<msb>,<lsb>)` and similarly read from
 or write to the bit-range.
-Ports can also be assigned to verilog `x` or `z` values using the similarly named constants `X`
+Ports can also be assigned to Verilog `x` or `z` values using the similarly named constants `X`
 and `Z` or checked to contain unknown values via comparison against `X`.
 
 ### Threads and Events
@@ -254,21 +254,28 @@ In this case besides memory being leaked, resetting simulation will likely cause
 
 ## Building
 ### Compiling
-For compiling everything (depending on the simulator) you need to build a vpi library
-containing the stimc/stimc++ code or linking against stimc as a shared library, and
-the module export code created with the `STIMCXX_EXPORT (<module-name>)` macro.
+Starting in version 1.3 the build is based on *cmake* with an experimental
+`configure` wrapper script.
+So in case you have *cmake* installed, you can either run `cmake` as usual or
+for convenience you can just run
+```shell
+./configure
+make
+```
 
-The vpi library, if compiled with stimc, or the linked stimc library needs to be linked against
-the used coroutine library for thread implementation, by default `pcl`.
-Alternatively coroutines can be implemented with libco (preprocessor define `STIMC_THREAD_IMPL_LIBCO`
-and link against `libco`) or boost coroutines (preprocessor define
-`STIMC_THREAD_IMPL_BOOST2` and link against `boost_context` for `boost/coroutine2` implementation
-or define `STIMC_THREAD_IMPL_BOOST1` and link against `boost_coroutine` for `boost/coroutine`
-implementation). Although boost would probably not count as lightweight, it is probably
-one of the more available alternatives.
+The configure script provides command line options for typical scenarios (e.g. explicitly
+selecting the simulator to use), but the existing *cmake* files should also autodetect
+a supported available Verilog simulator otherwise.
 
-vpi headers are by default included via icarus verilog. In case a different simulator
-is to be used, the relevant include path might be changed.
+For compiling in a project (depending on the simulator) you need to build a vpi library
+containing the stimc/stimc++ code (if you do not want a separated library)
+or linking against stimc as a shared library,
+and the module export code created with the `STIMCXX_EXPORT (<module-name>)` macro.
+
+The vpi library, if compiled with stimc, or the linked stimc library depends on a coroutine
+library. Since version 1.3 the default is a local copy of `libco` from the *higan-emu* project.
+Alternatively it is possible to use an existing local coroutine library.
+Options are `libco`, `pcl` (portable coroutine library), `boost/coroutine2` and `boost/coroutine`.
 
 ### Installation
 There is no need to install stimc, as you can just compile the sources together with your
@@ -276,39 +283,37 @@ own code into a vpi shared library for the simulator to load.
 But it is also possible to compile it into a standalone shared library to link against the
 vpi library. This can be achieved via running
 ```shell
+./configure
 make
 make install
 ```
-and can be controlled by
-* `THREAD_IMPL` (one of `pcl`, `libco`, `boost1` or `boost2`, depending on available
-  coroutine implementation libraries),
-* `PREFIX` (install prefix, e.g. `/usr`),
-* `DESTDIR` (e.g. your temporary package directory)
-variables.
+and can be controlled by command line options of the `configure` script
+(run `./configure --help` for available options).
 
 ## Documentation
 ### Documentation
-Doxygen documentation for the code can be built by running `make docs` when doxygen is available.
+Doxygen documentation for the code can be built by running `make doc` when doxygen is available.
 To open generated docs run `make showdocs` (will open html documentation in firefox, which
-can be overwritten with `make BROWSER=<browser> showdocs`.
+can be overwritten with `make BROWSER=<browser> showdoc`.
 
 ### Examples
 Examples are provided in the examples directory.
-To use it you need icarus verilog, GTKWave and the portable coroutine library (libpcl) installed.
-You can load the project environment by sourcing the `env.sh` in the project examples directory.
+To use it you need a simulator (e.g. icarus verilog with GTKWave).
+You can load the project environment by sourcing `env.sh` in the project examples directory.
 Simulation of the given examples depends on stimc being precompiled as a library
-(run `make` in the project's root directory first).
+(run `./configure` and `make` in the project's root directory before).
 
 The examples provide 3 stimc design units: dummy (the shown dummy, also in a plain c version
 for reference), ff (a stimc flip-flop model)
 and ff\_real (flip-flop with real-value port interface).
 The Verilog shell can be found in `source/behavioral/verilog` of the given unit, the module stimc code in
-`source/behavioral/stimc`. To run example simulations enter the unit's `simulation/iverilog/tc_<...>`
-testcase directory and run `make`. The code will be compiled, run and GTKWave will be started
-for browsing the simulated waveforms.
+`source/behavioral/stimc`. To run example simulations enter the unit's `simulation/generic/tc_<...>`
+testcase directory and run `make`. The code will be compiled, and (in case of icarus verilog) run and
+GTKWave will be started for browsing the simulated waveforms.
 
 ## License
-stimc itself is licensed under the GNU LGPLv3. But depending on the used coroutine library the
-derived work might fall under the coroutine library's license. `pcl` is licensed
-under GNU GPL, so here the combination is also licensed as GPL, whereas when using `libco` or `boost`
-the combination will be licensed under GNU LGPL.
+stimc itself is licensed under the GNU LGPLv3.
+Starting with version 1.3 this is compatible with the license of the default coroutine library, `libco`.
+But depending on the used coroutine library the derived work might fall under the coroutine library's license.
+`pcl` is licensed under GNU GPL, so if `pcl` is explicitly selected, the combination is also licensed as GPL,
+whereas when using `libco` or `boost` the combination will be licensed under GNU LGPL.

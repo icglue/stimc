@@ -13,9 +13,9 @@
   * [ ] more simulators
   * [ ] memcheck for other simulators
 * doc
-  * [ ] examples: simulation flow
-  * [ ] cmake (build/install)
-  * [ ] local libco as default
+  * [x] examples: simulation flow
+  * [x] cmake (build/install)
+  * [x] local libco as default
   * [x] changelog
 * cmake
   * [x] initial setup
@@ -33,3 +33,4 @@
   * [x] ci test update
   * [x] find out minimum required cmake version
   * [x] refine
+  * [ ] showdoc target
