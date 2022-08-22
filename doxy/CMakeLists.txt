@@ -20,6 +20,15 @@ if (DOXYGEN_FOUND)
         VERBATIM
     )
 
+    find_program (BROWSER firefox chromium opera)
+
+    add_custom_target (
+        showdoc
+        DEPENDS html
+        COMMAND ${BROWSER} ${CMAKE_CURRENT_BINARY_DIR}/html/index.html
+        VERBATIM
+    )
+
     if (BUILD_DOC)
         add_custom_target (
             build_doc

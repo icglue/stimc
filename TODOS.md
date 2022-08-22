@@ -33,4 +33,4 @@
   * [x] ci test update
   * [x] find out minimum required cmake version
   * [x] refine
-  * [ ] showdoc target
+  * [x] showdoc target

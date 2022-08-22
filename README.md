@@ -293,8 +293,8 @@ and can be controlled by command line options of the `configure` script
 ## Documentation
 ### Documentation
 Doxygen documentation for the code can be built by running `make doc` when doxygen is available.
-To open generated docs run `make showdocs` (will open html documentation in firefox, which
-can be overwritten with `make BROWSER=<browser> showdoc`.
+To open generated docs run `make showdocs` (will open html documentation).
+Via a configure option it is possible to select docs to be built and installed with the library.
 
 ### Examples
 Examples are provided in the examples directory.
