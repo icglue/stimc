@@ -16,7 +16,7 @@
   * [ ] examples: simulation flow
   * [ ] cmake (build/install)
   * [ ] local libco as default
-  * [ ] changelog
+  * [x] changelog
 * cmake
   * [x] initial setup
   * [x] local libco
