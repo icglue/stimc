@@ -8,6 +8,7 @@
 * Add "patch" version based on commits since last release.
 * Configurable build (coroutine lib, simulator, internal parameters).
 * Internal fixes, cleanup and rework.
+* Experimentally added parameter string value.
 
 ## Version 1.2
 * Events are movable.
