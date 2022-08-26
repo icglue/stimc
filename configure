@@ -28,8 +28,8 @@ With arguments from
 --prefix                    <PATH>      installation prefix
 
 --with-docs                             build and install documentation
---without-docs                          omit documentation
---with-addons                           build and install addons
+--without-docs                          omit documentation (default)
+--with-addons                           build and install addons (default)
 --without-addons                        omit addons
 
 --simulator                 <SIMULATOR> set simulator for vpi headers and test, one of:
@@ -42,8 +42,8 @@ With arguments from
 --disable-cleanup                       disable end-of-simulation resource cleanup
 --enable-cleanup                        enable end-of-simulation resource cleanup (default)
 
---disable-strict-warning                set compiler warning level to normal (default)
---enable-strict-warning                 set compiler warning level to strict
+--warning-level             <LEVEL>     set compiler warning level to one of:
+                                        quiet, strict (default), error (strict, treat warnings as errors)
 
 -h, --help                              print this help text
 EOF
@@ -118,13 +118,8 @@ parse_options() {
                 optshift=1
                 ;;
 
-            "--disable-strict-warning")
-                CONFIGFLAGS="${CONFIGFLAGS} -DWARN_LEVEL=strict"
-                optshift=1
-                ;;
-            "--enable-strict-warning")
-                CONFIGFLAGS="${CONFIGFLAGS} -DWARN_LEVEL=default=0"
-                optshift=1
+            "--warning-level")
+                CONFIGFLAGS="${CONFIGFLAGS} -DWARN_LEVEL=${value}"
                 ;;
 
             "-h"|"--help"|"-?"|"-help")

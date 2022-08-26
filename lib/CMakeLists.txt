@@ -7,9 +7,12 @@ add_custom_target (
 )
 
 # compile checks
-if (WARN_LEVEL STREQUAL strict)
+if ((WARN_LEVEL STREQUAL strict) OR (WARN_LEVEL STREQUAL error))
     add_compile_options($<$<COMPILE_LANGUAGE:CXX>:-Weffc++>)
-    add_compile_options(-Wall -Wextra -Wshadow -pedantic -Werror)
+    add_compile_options(-Wall -Wextra -Wshadow -pedantic)
+endif ()
+if (WARN_LEVEL STREQUAL error)
+    add_compile_options(-Werror)
 endif ()
 
 # subdirs

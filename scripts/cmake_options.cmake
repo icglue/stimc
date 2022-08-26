@@ -44,7 +44,7 @@ set (
 option (
     ADDONS
     "Build and install addons"
-    OFF
+    ON
 )
 
 option (
@@ -55,12 +55,12 @@ option (
 
 # Build options
 set (
-    WARN_LEVEL default
+    WARN_LEVEL strict
     CACHE
-    STRING "set compiler warning level, one of: default, strict"
+    STRING "set compiler warning level, one of: quiet, strict, error"
 )
 set_property (
     CACHE
     WARN_LEVEL
-    PROPERTY STRINGS default strict
+    PROPERTY STRINGS quiet strict error
 )
