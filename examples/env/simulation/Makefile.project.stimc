@@ -7,12 +7,12 @@
 # ------------  generate the names of the stimc related files  -----------------
 STIMC_BASEDIR   = ${ICPRO_DIR}/resources/stimc
 STIMC_INCDIRS  += $(STIMC_BASEDIR)/include $(STIMC_BASEDIR)/addons
-STIMC_SOURCES  += $(STIMC_BASEDIR)/addons/logging.c
-STIMC_LIBDIR    = $(STIMC_BASEDIR)/lib
+STIMC_LIBDIRS  += $(STIMC_BASEDIR)/lib $(STIMC_BASEDIR)/addonslib
 STIMC_BASENAMES = $(notdir $(basename $(STIMC_SOURCES)))
 STIMC_OBJECTS   = $(addprefix $(WORK_DIR)/, $(addsuffix .o, $(STIMC_BASENAMES)))
 STIMC_DEPS      = $(addprefix $(WORK_DIR)/, $(addsuffix .d, $(STIMC_BASENAMES)))
-STIMC_LDFLAGS   = -L$(STIMC_LIBDIR) -lstimc -Wl,-rpath,$(STIMC_LIBDIR)
+STIMC_WLRPATH   = -Wl,-rpath,
+STIMC_LDFLAGS   = $(addprefix -L,$(STIMC_LIBDIRS)) -lstimc -llogging-vpi $(addprefix $(STIMC_WLRPATH),$(STIMC_LIBDIRS))
 STIMC_CPPFLAGS  = $(addprefix -I,$(STIMC_INCDIRS))
 
 # ------------  build and run tools  -------------------------------------------
