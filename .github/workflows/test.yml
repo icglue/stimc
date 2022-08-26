@@ -23,14 +23,14 @@ jobs:
           CC: gcc
           CXX: g++
         run: |
-          ./configure --clean --enable-strict-warning
+          ./configure --clean --warning-level=error
           make -j3
       - name: "Build library with clang"
         env:
           CC: clang
           CXX: clang++
         run: |
-          ./configure --clean --enable-strict-warning
+          ./configure --clean --warning-level=error
           make -j3
       - name: "Run tests with libco coroutines, default cc"
         run: |
