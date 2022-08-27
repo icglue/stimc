@@ -1,7 +1,7 @@
 cmake_minimum_required (VERSION 3.17)
 
 # Project setup
-set (STIMC_DESCRIPTION "a lightweight Verilog-vpi Wrapper for Stimuli Generation")
+set (STIMC_DESCRIPTION "a Lightweight Verilog-VPI Wrapper for Stimuli Generation")
 
 set (STIMC_VERSION_MAJOR 1)
 set (STIMC_VERSION_MINOR 2)

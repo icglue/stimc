@@ -1,22 +1,23 @@
-# stimc – a lightweight Verilog-vpi Wrapper for Stimuli Generation
+# stimc – a Lightweight Verilog-VPI Wrapper for Stimuli Generation
 
-stimc is a lightweight Verilog-vpi wrapper to simplify simulation control via
-c/c++ code similar to SystemC.
-In contrast to SystemC you can only use stimc together with a Verilog simulator
+*stimc* is a lightweight *Verilog-VPI* wrapper to simplify simulation control via
+C/C++ code similar to *SystemC*.
+In contrast to *SystemC* you can only use *stimc* together with a *Verilog* simulator
 and it is not meant as a standalone hardware description or modelling language.
-The main Purpose is to control and observe ports of an empty Verilog shell-module
-via c/c++ code to provide abstract models for external components or emulate functionality
+The main purpose is to control and observe ports of an empty *Verilog* shell-module
+via C/C++ code to provide abstract models for external components or emulate functionality
 of an external software-based access to a hardware component.
 
 ## Usage
 
 ### Verilog Shell
-The first thing you need is a Verilog shell for a stimc controlled module.
-This is a Verilog module with parameters and inputs/outputs and optionally parameters.
+The first thing you need for a stimc controlled module is a Verilog shell.
+This is a Verilog module with inputs/outputs and optionally parameters.
 The module should have no actual content except for an initial block calling the system task
 `$stimc_<modulename>_init();` (with `<modulename>` replaced by the name of the Verilog
 module name.
-The system task will be defined by stimc and initialize the stimc part of the module.
+The system task will be defined by the module's stimc implementation and
+initialize the stimc data of the module.
 
 An example could look like this:
 ```verilog
@@ -42,15 +43,15 @@ endmodule
 ```
 
 ### stimc Module
-stimc core is written in c with a thin c++ wrapper,
-so the stimc part of the module can be written in c or c++,
-but c++ will produce more readable code and here the c++ version will be explained.
-The c++ code is wrapped in a `stimcxx` namespace.
+The stimc core is written in C with a thin C++ wrapper,
+so the stimc part of the module can be implemented in C or C++,
+but C++ will produce more readable code and here the C++ version will be explained.
+The C++ code is wrapped in a `stimcxx` namespace.
 
 #### Module Class
-First a c++ class is needed that inherits `stimcxx::module` (include `stimc++.h`).
-For every (used) port of the Verilog shell the class should have a `port` member,
-for every (used) parameter a `parameter` member of the same name as the Verilog pendant.
+First a C++ class is needed that inherits `stimcxx::module` (include `stimc++.h`).
+For every (used) port of the Verilog shell the class should have a `port` member and
+for every (used) parameter a `parameter` member of the same name as the Verilog counterpart.
 Additionally, it can have `stimcxx::event` members in case waiting on events triggered
 by individual stimc threads or value-change events on ports is needed (similar to
 SystemC events).
@@ -88,10 +89,10 @@ The constructor needs to initialize ports, parameters, event-triggered methods a
 started at simulation start.
 For ports and parameters preprocessor defines are prepared to use in the member initializer list.
 For ports this is `STIMCXX_PORT (<port-name>)`, for parameters `STIMCXX_PARAMETER (<parameter-name>)`.
-In the constructor threads and event-triggered methods can be setup with the defines
+Inside the constructor threads and event-triggered methods can be setup with the defines
 `STIMCXX_REGISTER_STARTUP_THREAD (<function-name>);` and
 `STIMCXX_REGISTER_METHOD (<event-type>, <port-name>, <function-name>);`, where `<event-type>` is
-one of `posedge`, `negedge` or `change` (corresponding to the Verilog posedge, negedge or just
+one of `posedge`, `negedge` or `change` (corresponding to the Verilog `posedge`, `negedge` or just
 plain `@` events).
 
 The main part of the example constructor looks like this:
@@ -109,7 +110,7 @@ dummy::dummy () :
 }
 ```
 
-On every posedge event on the `clk_i` input the member function `clock` will
+On every `posedge` event on the `clk_i` input the member function `clock` will
 be called, on every value change on input `data_in_i` the function `dinchange` will
 be called and a stimc thread will be created and run at simulation start calling
 `testcontrol`.
@@ -119,7 +120,7 @@ To provide the Verilog initializer system task and functionality
 the preprocessor define `STIMCXX_EXPORT (<module-name>)` (without semicolon)
 should be put at some place in the code.
 
-This will provide the system tasks for all modules on loading the vpi library.
+This will provide the system tasks for the given module on loading the VPI library.
 
 #### Functionality
 To interact with simulation, parameters can be read, ports can be read and assigned.
@@ -127,21 +128,21 @@ For reading it is possible to directly assign a port or parameter to a variable.
 For writing to a port you can assign an integer type to it directly (corresponding
 to Verilog blocking assignment) or via the overloaded `<<=` operator (corresponding
 to Verilog non-blocking assignment, optical similarity to Verilog is intended,
-while risking misinterpretation as shift operation).
+by accepting the risk of misinterpretation as shift operation).
 
 In case only a bit-range of a port should be accessed or an integer type is not sufficiently
-wide it is possible to access the ports `operator() (<msb>,<lsb>)` and similarly read from
+wide it is possible to access the port's `operator() (<msb>,<lsb>)` and similarly read from
 or write to the bit-range.
 Ports can also be assigned to Verilog `x` or `z` values using the similarly named constants `X`
 and `Z` or checked to contain unknown values via comparison against `X`.
 
 ### Threads and Events
-Apart from a module method it is also possible to spawn a standalone function taking
-a single pointer argument as a thread via `STIMCXX_SPAWN_THREAD (<function>, <data>);`
 Threads can be suspended to wait for a specified amount of simulation time and/or an
 event to be triggered.
 
 There are some helper functions in the `stimcxx` namespace:
+* `time()` (current simulation time in seconds), `time(<unit>)` (current simulation
+  time as integer in specified unit; similar to SystemC units are defined as `SC_PS`, `SC_US` and so on).
 * Multiple wait functions.
   They can only be called from within a thread
   (as only initialized threads can be suspended and resumed):
@@ -149,13 +150,11 @@ There are some helper functions in the `stimcxx` namespace:
   * `wait(<event1> & <event2> & ...)` to wait for all of the events to be triggered,
   * `wait(<event1> | <event2> | ...)` to wait for any of the events to be triggered,
   * `wait(<time>)` to wait an amount of time in seconds (double) or
-  * `wait(<time>, <unit>)` to wait an integral amount of time in specified unit (similarly `SC_PS` and so on).
+  * `wait(<time>, <unit>)` to wait an integral amount of time in the specified unit (similarly `SC_PS` and so on).
   * `wait(<event or combination>, <time>)`, `wait(<event or combination>, <time>, <unit>)` to wait for
     an event or combination (any/all) of events with the specified time as timeout.
     In contrast to the other wait functions the wait with timeout returns `true` in case of timeout,
     `false` otherwise.
-* `time()` (current simulation time in seconds), `time(<unit>)` (current simulation
-  time as integer in specified unit, similar to SystemC units are defined as `SC_PS`, `SC_US` and so on).
 * `finish()` to finish simulation.
 
 Events can be triggered by calling their `trigger()` member function.
@@ -163,6 +162,9 @@ When triggering an event, all threads currently waiting for it will be resumed (
 It is not possible for a thread to trigger itself as it would either need to first wait (not being
 able to trigger) or first trigger (and not yet waiting on the event, so not being resumed on this
 trigger).
+
+Apart from a module class method it is also possible to spawn a standalone function taking
+a single pointer argument as a thread via `STIMCXX_SPAWN_THREAD (<function>, <data>);`
 
 ### Cleanup
 Resource cleanup is mainly useful in cases where simulation can be reset.
@@ -178,8 +180,8 @@ of simulation or simulator reset. If programmed accordingly by writing the assoc
 code exception safe it is possible to have resources freed this way.
 
 Stack unwinding is achieved by letting `wait` functions throw a stimc++ specific exception
-at end of simulation which therefore should not be caught or otherwise rethrown if necessary.
-It is important to consider, that all thread's stacks can be unwound in any order.
+at end of simulation which therefore should either not be caught or otherwise rethrown if necessary.
+It is important to consider that all thread's stacks can be unwound in any order.
 
 If stack unwinding causes problems it can be disabled by defining `STIMCXX_DISABLE_STACK_UNWIND`.
 Alternatively it can be selectively disabled for individual threads by calling
@@ -192,10 +194,10 @@ when a thread is terminated it is possible to register a cleanup callback.
 In stimc++ it is possible to wrap this into one or more objects of custom cleanup classes
 inheriting `stimcxx::thread_cleanup` which is created within the thread via `new` and performs
 cleanup tasks in its destructor.
-The creation via new is important, as the object must also remain in case the thread function returns
+The creation via `new` is important, as the object must also remain in case the thread function returns
 and will be destroyed via `delete` in the cleanup process.
-The object must be created within the thread it should cleanup as it will be called when the respective
-thread is deleted.
+The object must be created within the thread it should cleanup as it will be called when the
+creating thread is deleted.
 Furthermore it is necessary to cover all possible scenarios where the cleanup could happen, which
 is typically whenever the thread is destroyed while suspended (waiting, which might also happen in
 a function calling a wait function) or when the thread function returns.
@@ -267,21 +269,21 @@ The configure script provides command line options for typical scenarios (e.g. e
 selecting the simulator to use), but the existing *cmake* files should also autodetect
 a supported available Verilog simulator otherwise.
 
-For compiling in a project (depending on the simulator) you need to build a vpi library
+For compiling in a project (depending on the simulator) you need to build a VPI library
 containing the stimc/stimc++ code (if you do not want a separated library)
 or linking against stimc as a shared library,
 and the module export code created with the `STIMCXX_EXPORT (<module-name>)` macro.
 
-The vpi library, if compiled with stimc, or the linked stimc library depends on a coroutine
-library. Since version 1.3 the default is a local copy of `libco` from the *higan-emu* project.
+The VPI library, if compiled with stimc, or the linked stimc library depends on a coroutine
+library. Since version 1.3 the default is a local copy of *libco* from the *higan-emu* project.
 Alternatively it is possible to use an existing local coroutine library.
 Options are `libco`, `pcl` (portable coroutine library), `boost/coroutine2` and `boost/coroutine`.
 
 ### Installation
 There is no need to install stimc, as you can just compile the sources together with your
-own code into a vpi shared library for the simulator to load.
-But it is also possible to compile it into a standalone shared library to link against the
-vpi library. This can be achieved via running
+own code into a VPI shared library for the simulator to load.
+But it is also possible to compile it into a standalone shared library and link the
+VPI library against it. This can be achieved via running
 ```shell
 ./configure
 make
@@ -290,26 +292,31 @@ make install
 and can be controlled by command line options of the `configure` script
 (run `./configure --help` for available options).
 
+In case of a local installation make sure the VPI library can find the stimc library
+by using appropriate environment variables or linker settings (e.g. `-Wl,rpath,`).
+
 ## Documentation
 ### Documentation
-Doxygen documentation for the code can be built by running `make doc` when doxygen is available.
+*Doxygen* documentation for the code can be built by running `make doc` when *Doxygen* is available.
 To open generated docs run `make showdocs` (will open html documentation).
 Via a configure option it is possible to select docs to be built and installed with the library.
 
 ### Examples
 Examples are provided in the examples directory.
-To use it you need a simulator (e.g. icarus verilog with GTKWave).
-You can load the project environment by sourcing `env.sh` in the project examples directory.
-Simulation of the given examples depends on stimc being precompiled as a library
-(run `./configure` and `make` in the project's root directory before).
+To use it you need a simulator (e.g. *Icarus Verilog* with *GTKWave*).
+You can load the project environment by sourcing `env.sh` in the project's examples directory.
+Simulation of the given examples depends on stimc being precompiled as a library, so
+run `./configure` and `make` in the project's root directory before or in case of manual
+cmake invocation make sure to use `build` in the project's root directory where the examples
+expect to find the library.
 
-The examples provide 3 stimc design units: dummy (the shown dummy, also in a plain c version
-for reference), ff (a stimc flip-flop model)
-and ff\_real (flip-flop with real-value port interface).
+The examples provide 3 stimc design units: `dummy` (the shown dummy, also in a plain C version
+for reference), `ff` (a stimc flip-flop model)
+and `ff\_real` (flip-flop with experimental real-value port interface).
 The Verilog shell can be found in `source/behavioral/verilog` of the given unit, the module stimc code in
 `source/behavioral/stimc`. To run example simulations enter the unit's `simulation/generic/tc_<...>`
-testcase directory and run `make`. The code will be compiled, and (in case of icarus verilog) run and
-GTKWave will be started for browsing the simulated waveforms.
+testcase directory and run `make`. The code will be compiled, and (in case of *Icarus Verilog*) run and
+*GTKWave* will be started for browsing the simulated waveforms.
 
 ## License
 stimc itself is licensed under the GNU LGPLv3.
