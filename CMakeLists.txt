@@ -4,7 +4,7 @@ cmake_minimum_required (VERSION 3.17)
 set (STIMC_DESCRIPTION "a Lightweight Verilog-VPI Wrapper for Stimuli Generation")
 
 set (STIMC_VERSION_MAJOR 1)
-set (STIMC_VERSION_MINOR 2)
+set (STIMC_VERSION_MINOR 3)
 set (STIMC_VERSION_PATCH 0)
 
 include (${CMAKE_SOURCE_DIR}/scripts/cmake_patch_version.cmake)
