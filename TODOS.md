@@ -1,7 +1,7 @@
 # TODOs
 * lib
   * [ ] stimc: parameter rework (string and co)
-* events
+  * [ ] stimc: noexcept/exception review
   * [ ] methods triggered by event (non-thread)
 * flow
   * [ ] more simulators
