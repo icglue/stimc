@@ -176,21 +176,21 @@ TARGETS_OTHER := \$(filter-out \$(TARGETS_SELF), \$(MAKECMDGOALS))
 	@\$(MAKE) --no-print-directory -C \$(TARGET_BUILDDIR) \$(TARGETS_OTHER)
 .PHONY: \$(TARGETS_OTHER) all
 
-# Do nothing for all targets but last. Also quiet the message "Noting to be done on xxx"
+# Do nothing for all targets but last. Also quiet the message "Nothing to be done on xxx"
 \$(filter-out \$(lastword \$(TARGETS_OTHER)), \$(TARGETS_OTHER)):
-	@cd .
+	@:
 
-\$(TARGET_BUILDDIR):
-	mkdir -p \$(TARGET_BUILDDIR)
-\$(TARGET_MAKEFILE): | \$(TARGET_BUILDDIR)
-	cd \$(TARGET_BUILDDIR) && cmake ..
+\$(TARGET_MAKEFILE):
+	cmake -B \$(TARGET_BUILDDIR)
+
 \$(TARGET_TEST): all
-	cd \$(TARGET_BUILDDIR) && ctest -j\$(NCPUS)
+	ctest --test-dir \$(TARGET_BUILDDIR) -j\$(NCPUS)
+
 \$(TARGET_CLEAN):
 	rm -rf \$(TARGET_BUILDDIR)
 	rm -f  Makefile
 
-.PHONY: \$(TARGET_TEST)
+.PHONY: \$(TARGET_TEST) \$(TARGET_CLEAN)
 EOF
 }
 
@@ -199,3 +199,4 @@ parse_options "$@"
 [ "${CLEAN}" -eq 1 ] && clean_build
 
 prepare_build && gen_makefile
+
